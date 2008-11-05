@@ -1,0 +1,30 @@
+#This is an example of command scripts
+
+#specify remote ip and port
+!TCP CONNECT 127.0.0.1 9527
+
+#define a command named "Query Command"
+!CMD Query Command
+
+#this command will be sent in "Host Byte Order"
+!SEND HBO
+
+#following are command head fields with FIXED values
+U32 ver:=100
+U32 seq:=1234
+
+#len is a variable 
+U32 len
+
+#here len begins
+!BEGIN(len)
+
+#following are command body fields with FIXED values
+U8 cmd_type:=59
+STR url:="http://www.google.com"
+
+#here len ends, and is calculated as size of the command body in byte
+!END(len)
+
+#command ends
+!CMD
