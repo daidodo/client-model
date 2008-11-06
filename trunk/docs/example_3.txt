@@ -14,7 +14,7 @@ STR url:="http://www.google.com"
 !END(len)
 !CMD
 
-#then, we expect an answer name "Resp Command"
+#then, we expect an answer named "Resp Command"
 !CMD Resp Command
 !RECV HBO
 U32 ver
