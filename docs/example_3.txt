@@ -1,0 +1,33 @@
+#This is an example of command scripts
+
+!TCP CONNECT 127.0.0.1 9527
+
+#first, we send a command named "Query Command"
+!CMD Query Command
+!SEND HBO
+U32 ver:=100
+U32 seq:=1234
+U32 len
+!BEGIN(len)
+U8 cmd_type:=59
+STR url:="http://www.google.com"
+!END(len)
+!CMD
+
+#then, we expect an answer name "Resp Command"
+!CMD Resp Command
+!RECV HBO
+U32 ver
+U32 seq
+
+#validate "len < 2048", otherwise stop decoding
+U32 len < 2048
+
+#validate "cmd_type == 60", otherwise stop decoding
+U8 cmd_type == 60
+
+#validate "result == 0", otherwise stop decoding
+U32 result == 0
+
+#ipv4_array is an array of type U32 of variable length
+U32[] ipv4_array;
