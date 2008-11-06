@@ -1,7 +1,7 @@
 #This is an example of command scripts
 
-#specify remote ip and port
-!TCP CONNECT 127.0.0.1 9527
+#specify remote ip, port and connection type
+!TCP 127.0.0.1 9527
 
 #define a command named "Query Command"
 !CMD Query Command

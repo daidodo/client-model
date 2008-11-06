@@ -1,6 +1,6 @@
 #This is an example of command scripts
 
-!TCP CONNECT 127.0.0.1 9527
+!TCP 127.0.0.1 9527
 
 #define a structure named "http" 
 !CMD http
