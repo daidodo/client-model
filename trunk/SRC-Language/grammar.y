@@ -11,7 +11,7 @@
 
 %token BEGIN_ END HBO NBO SEND RECV HEX UNHEX
 
-%token COMP
+%token COMP STREAM
 
 %token ARG_NAME
 
@@ -47,20 +47,20 @@ func_call_list : func_call	{DBG_YY("func_call_list 1");}
 
 declare : simple_declare	{DBG_YY("declare 1");}
 	| def_declare	{DBG_YY("declare 2");}
-	| assert_declare	{DBG_YY("declare 3");}
 	;
 
-simple_declare : type ARG_NAME	{DBG_YY("simple_declare 1");}
-	| type ARG_NAME '=' expr	{DBG_YY("simple_declare 2");}
-	| type ARG_NAME '(' arg_list ')'	{DBG_YY("simple_declare 3");}
-	| type ARG_NAME IEQ expr	{DBG_YY("simple_declare 4");}
-	| type ARG_NAME ':' '(' arg_list ')'	{DBG_YY("simple_declare 5");}
+simple_declare : array_type ARG_NAME	{DBG_YY("simple_declare 1");}
+	| simple_type ARG_NAME	{DBG_YY("simple_declare 2");}
+	| simple_type ARG_NAME '=' expr	{DBG_YY("simple_declare 3");}
+	| simple_type ARG_NAME '(' arg_list ')'	{DBG_YY("simple_declare 4");}
+	| simple_type ARG_NAME IEQ expr	{DBG_YY("simple_declare 5");}
+	| simple_type ARG_NAME ':' '(' arg_list ')'	{DBG_YY("simple_declare 6");}
+	| simple_type ARG_NAME COMP expr	{DBG_YY("simple_declare 7");}
+	| simple_type ARG_NAME STREAM expr	{DBG_YY("simple_declare 8");}
+	| simple_type ARG_NAME STREAM simple_type	{DBG_YY("simple_declare 9");}
 	;
 
 def_declare : DEF simple_declare	{DBG_YY("def_declare 1");}
-	;
-
-assert_declare : type ARG_NAME COMP expr	{DBG_YY("assert_declare 1");}
 	;
 
 expr : fix_value	{DBG_YY("expr 1");}
@@ -70,7 +70,7 @@ expr : fix_value	{DBG_YY("expr 1");}
 
 func_call : func	{DBG_YY("func_call 1");}
 	| func '(' arg_list ')'	{DBG_YY("func_call 2");}
-	| type '(' arg_list ')'	{DBG_YY("func_call 3");}
+	| simple_type '(' arg_list ')'	{DBG_YY("func_call 3");}
 	;
 
 assert : expr COMP expr	{DBG_YY("assert 1");}
@@ -83,20 +83,16 @@ func : BEGIN_ | END	{DBG_YY("func 1");}
 	| HEX | UNHEX	{DBG_YY("func 4");}
 	;
 
-type : simple_type	{DBG_YY("type 1");}
-	| array_type	{DBG_YY("type 2");}
-	;
-
 array_type : simple_type '[' ']'	{DBG_YY("array_type 1");}
 	| simple_type '[' expr ']'	{DBG_YY("array_type 2");}
 	;
 
-simple_type : U8 | S8	{DBG_YY("type 1");}
-	| U16 | S16	{DBG_YY("type 2");}
-	| U32 | S32	{DBG_YY("type 3");}
-	| U64 | S64	{DBG_YY("type 4");}
-	| STR | RAW	{DBG_YY("type 5");}
-	| TCP | UDP	{DBG_YY("type 6");}
+simple_type : U8 | S8	{DBG_YY("simple_type 1");}
+	| U16 | S16	{DBG_YY("simple_type 2");}
+	| U32 | S32	{DBG_YY("simple_type 3");}
+	| U64 | S64	{DBG_YY("simple_type 4");}
+	| STR | RAW	{DBG_YY("simple_type 5");}
+	| TCP | UDP	{DBG_YY("simple_type 6");}
 	;
 
 arg_list : /* empty */	{DBG_YY("arg_list 1");}
