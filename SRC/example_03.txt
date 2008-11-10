@@ -1,0 +1,32 @@
+# This is an example of SRC Language
+
+//server ip and port
+STR server_ip := "127.0.0.1";
+U16 server_port := 9527;
+
+//connections
+TCP conn1 (server_ip,server_port)
+TCP conn2 : (server_ip,server_port)
+
+NET_BYTE_ORDER
+
+CMD QueryCommand	//command definition
+SEND(conn2)
+//http wrap
+RAW http1 := "POST http://127.0.0.1:12345/ HTTP/1.1\r\nContent-Length: "
+DEF U32 pack_len
+RAW pack_len_str = RAW(pack_len)
+RAW http2 := "\r\nContent-Type: application/octet-stream\r\nConnection:Close\r\n\r\n"
+BEGIN(pack_len)
+//cmd data
+U32 ver := U32()        //fixed value default 0
+U32 seq = 1234
+U32 len
+BEGIN(len)
+U8 cmd_type := 59
+STR url := "http://www.baidu.com"
+STR cid := UNHEX("1A2B3C4D5E6F")
+END(len)
+END CMD
+
+# The End
