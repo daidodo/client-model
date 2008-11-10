@@ -15,21 +15,27 @@
 
 %token NUMBER STRING QSTRING
 
-%token IEQ
+%token NL IEQ
 
 %token CMD
 
 %%
 
-program : stmt_list cmd_list	{DBG_YY("program");}
+program : /* empty */	{DBG_YY("program 1");}
+	| program program_item	{DBG_YY("program 2");}
 	;
 
-stmt_list: 	{DBG_YY("stmt_list 1");}
-	| stmt_list stmt	{DBG_YY("stmt_list 2");}
+program_item:stmt	{DBG_YY("program_item 1");}
+	| cmd_define	{DBG_YY("program_item 2");}
 	;
 
-stmt :  func_call	{DBG_YY("stmt 1");}
-	| declare	{DBG_YY("stmt 2");}
+stmt :  NL	{DBG_YY("stmt 1");}
+	| func_call_list NL	{DBG_YY("stmt 2");}
+	| declare NL	{DBG_YY("stmt 3");}
+	;
+
+func_call_list : func_call	{DBG_YY("func_call_list 1");}
+	| func_call_list func_call	{DBG_YY("func_call_list 2");}
 	;
 
 declare : type ARG_NAME	{DBG_YY("declare 1");}
@@ -72,17 +78,17 @@ fix_value : NUMBER	{DBG_YY("fix_value 1");}
 	| QSTRING	{DBG_YY("fix_value 2");}
 	;
 
-cmd_list : cmd_define	{DBG_YY("cmd_list 1");}
-	| cmd_list cmd_define	{DBG_YY("cmd_list 2");}
+cmd_define : cmd_begin stmt_list cmd_end NL	{DBG_YY("cmd_define");}
 	;
 
-cmd_define : cmd_begin stmt_list cmd_end	{DBG_YY("cmd_define");}
+cmd_begin : CMD	{DBG_YY("cmd_begin 1");}
+	| CMD ARG_NAME	{DBG_YY("cmd_begin 2");}
 	;
 
-cmd_begin : CMD ARG_NAME	{DBG_YY("cmd_begin");}
+stmt_list : stmt	{DBG_YY("stmt_list 1");}
+	| stmt_list stmt	{DBG_YY("stmt_list 2");}
 	;
 
 cmd_end : END CMD	{DBG_YY("cmd_end");}
 	;
-%%
 
