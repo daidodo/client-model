@@ -1,0 +1,19 @@
+
+STR server_ip := "127.0.0.1"
+U16 server_port := 9527
+
+TCP conn(server_ip,server_port)
+HBO
+
+COMMAND QueryCommand
+SEND NET_BYTE_ORDER 
+U32 ver := 100
+U32 seq := 1234
+U32 len
+BEGIN(len)
+U8 cmd_type := 59
+STR url := "http://www.baidu.com"
+STR cid := UNHEX("1A2B3C4D5E6F")
+END(len)
+END CMD
+
