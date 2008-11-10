@@ -7,10 +7,11 @@ int lineno = 1;
 std::string cur_tok;
 %}
 
-qs	(((\\\")|([^"\n]))*)
-nzero	[1-9][0-9]+
 nl	\r?\n
 ws	[ \t]+
+nzero	[1-9][0-9]+
+qs	(((\\\")|([^"\n]))*)
+
 %%
 
 "//".* |
@@ -47,25 +48,34 @@ CMD	{cur_tok = yytext;DBG_LEX("CMD");return CMD;}
 DEFINE |
 DEF	{cur_tok = yytext;DBG_LEX("DEF");return DEF;}
 
-;	{cur_tok = yytext;DBG_LEX("SEMI");return SEMI;}
-{nl}	{cur_tok = "\\n";DBG_LEX("{nl}");++lineno;return NL;}
-:=	{cur_tok = yytext;DBG_LEX("IEQ");return IEQ;}
+;	{cur_tok = yytext;DBG_LEX1("SEMI",cur_tok);return SEMI;}
+{nl}	{cur_tok = "\\n";DBG_LEX1("NL",cur_tok);++lineno;return NL;}
+:=	{cur_tok = yytext;DBG_LEX1("IEQ",cur_tok);return IEQ;}
+
+"<<"|">>"	{cur_tok = yytext;DBG_LEX1("STREAM",cur_tok);return STREAM;}
 
 "<"=? |
 >=? |
 [=!]= |
-!	{cur_tok = yytext;DBG_LEX("COMP");return COMP;}
+!	{cur_tok = yytext;DBG_LEX1("COMP",cur_tok);return COMP;}
 
-[_a-zA-Z][_a-zA-Z0-9]*	{cur_tok = yytext;DBG_LEX("ARG_NAME");return ARG_NAME;}
+[_a-zA-Z][_a-zA-Z0-9]*	{cur_tok = yytext;DBG_LEX1("ARG_NAME",cur_tok);return ARG_NAME;}
 
-0|{nzero}[kKmMgG]?	{cur_tok = yytext;DBG_LEX("NUMBER");return NUMBER;}
-\"{qs}\"	{cur_tok = yytext;DBG_LEX("QSTRING");return QSTRING;}
+0|{nzero}[kKmMgG]?	{cur_tok = yytext;DBG_LEX1("NUMBER",cur_tok);return NUMBER;}
+\"{qs}\"	{cur_tok = yytext;DBG_LEX1("QSTRING",cur_tok);return QSTRING;}
+\"{qs}((\\{nl}){qs}?)+\"	{
+		cur_tok = yytext;
+		for(size_t i = 0;i < yyleng;++i)  //fix lineno
+			if(yytext[i] == '\n')
+				++lineno;
+		DBG_LEX("QSTRING(NL)");return QSTRING;
+	}
 
 	/* error handle */
 0[0-9]+	{cur_tok = yytext;ERROR("error number format");}
-\"{qs}{nl}	{cur_tok = yytext;ERROR("unterminated string");}
+\"{qs}{nl}	{cur_tok = yytext;ERROR("unterminated string");++lineno;}
 
-.	{cur_tok = yytext;DBG_LEX(".");return *yytext;}
+.	{cur_tok = yytext;DBG_LEX(*yytext);return *yytext;}
 
 %%
 
