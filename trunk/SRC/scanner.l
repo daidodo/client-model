@@ -13,6 +13,7 @@ nl	\r?\n
 ws	[ \t]+
 %%
 
+"//".* |
 #.*	/* comments */;
 [ \t]+	;
 
@@ -46,6 +47,7 @@ CMD	{cur_tok = yytext;DBG_LEX("CMD");return CMD;}
 DEFINE |
 DEF	{cur_tok = yytext;DBG_LEX("DEF");return DEF;}
 
+;	{cur_tok = yytext;DBG_LEX("SEMI");return SEMI;}
 {nl}	{cur_tok = "\\n";DBG_LEX("{nl}");++lineno;return NL;}
 :=	{cur_tok = yytext;DBG_LEX("IEQ");return IEQ;}
 

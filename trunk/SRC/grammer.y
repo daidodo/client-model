@@ -15,7 +15,7 @@
 
 %token NUMBER STRING QSTRING
 
-%token NL IEQ
+%token SEMI NL IEQ
 
 %token CMD DEF
 
@@ -29,9 +29,13 @@ program_item:stmt	{DBG_YY("program_item 1");}
 	| cmd_define	{DBG_YY("program_item 2");}
 	;
 
-stmt :  NL	{DBG_YY("stmt 1");}
-	| func_call_list NL	{DBG_YY("stmt 2");}
-	| declare NL	{DBG_YY("stmt 3");}
+stmt :  stmt_sep	{DBG_YY("stmt 1");}
+	| func_call_list stmt_sep	{DBG_YY("stmt 2");}
+	| declare stmt_sep	{DBG_YY("stmt 3");}
+	;
+
+stmt_sep : SEMI	{DBG_YY("stmt_sep 1");}
+	| NL	{DBG_YY("stmt_sep 2");}
 	;
 
 func_call_list : func_call	{DBG_YY("func_call_list 1");}
