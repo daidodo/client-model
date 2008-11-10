@@ -1,0 +1,17 @@
+
+TCP("127.0.0.1",9527)
+
+HBO
+
+CMD QueryCommand
+SEND
+U32 ver := 100
+U32 seq := 1234
+U32 len
+BEGIN(len)
+U8 cmd_type := 59
+STR url := "http\\www.baidu.com"
+STR cid := UNHEX("010203")
+END(len)
+END CMD
+
