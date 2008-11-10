@@ -51,9 +51,14 @@ DEF	{cur_tok = yytext;DBG_LEX("DEF");return DEF;}
 {nl}	{cur_tok = "\\n";DBG_LEX("{nl}");++lineno;return NL;}
 :=	{cur_tok = yytext;DBG_LEX("IEQ");return IEQ;}
 
+"<"=? |
+>=? |
+[=!]= |
+!	{cur_tok = yytext;DBG_LEX("COMP");return COMP;}
+
 [_a-zA-Z][_a-zA-Z0-9]*	{cur_tok = yytext;DBG_LEX("ARG_NAME");return ARG_NAME;}
 
-0|{nzero}	{cur_tok = yytext;DBG_LEX("NUMBER");return NUMBER;}
+0|{nzero}[kKmMgG]?	{cur_tok = yytext;DBG_LEX("NUMBER");return NUMBER;}
 \"{qs}\"	{cur_tok = yytext;DBG_LEX("QSTRING");return QSTRING;}
 
 	/* error handle */
