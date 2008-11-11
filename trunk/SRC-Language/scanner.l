@@ -50,7 +50,6 @@ CMD	{cur_tok = yytext;DBG_LEX1("CMD",cur_tok);return CMD;}
 DEFINE |
 DEF	{cur_tok = yytext;DBG_LEX1("DEF",cur_tok);return DEF;}
 
-;	{cur_tok = yytext;DBG_LEX1("SEMI",cur_tok);return SEMI;}
 {nl}	{cur_tok = "\\n";DBG_LEX1("NL",cur_tok);++lineno;return NL;}
 :=	{cur_tok = yytext;DBG_LEX1("IEQ",cur_tok);return IEQ;}
 
@@ -82,7 +81,8 @@ DEF	{cur_tok = yytext;DBG_LEX1("DEF",cur_tok);return DEF;}
 %%
 
 void yyerror(const char * msg){
-	cerr<<pname<<":"<<lineno<<" : '"<<cur_tok<<"' "<<msg<<endl;
+	std::cerr<<pname<<":"<<lineno<<" : '"<<cur_tok<<"' "
+		<<msg<<std::endl;
 	exit(1);
 }
 
@@ -92,18 +92,18 @@ int yywrap(){
 
 int main(int argc,const char ** argv){
 	if(argc < 2){
-		cerr<<"Usage: a.out file\n";
+		std::cerr<<"Usage: a.out file\n";
 		exit(1);
 	}
 	FILE * fp = fopen(argv[1],"r");
 	if(!fp){
-		cerr<<"cannot open file '"<<argv[1]<<"'\n";
+		std::cerr<<"cannot open file '"<<argv[1]<<"'\n";
 		exit(1);
 	}
 	pname = argv[1];
 	yyin = fp;
 	if(yyparse()){
-		cerr<<"parse failed\n";
+		std::cerr<<"parse failed\n";
 		return 1;
 	}
 	return 0;

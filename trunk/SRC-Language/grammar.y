@@ -17,11 +17,10 @@
 
 %token NUMBER STRING QSTRING
 
-%token SEMI NL IEQ
+%token NL IEQ
 
 %token CMD DEF
 
-%nonassoc COMP
 %%
 	/* top */
 program : /* empty */	{DBG_YY("program 1");}
@@ -101,18 +100,18 @@ expr : fix_value	{DBG_YY("expr 1");}
 	;
 
 	/* basic symbols */
-cmd_begin : CMD	{DBG_YY("cmd_begin 1");}
+cmd_begin : CMD		{DBG_YY("cmd_begin 1");}
 	| CMD ARG_NAME	{DBG_YY("cmd_begin 2");}
 	;
 
 cmd_end : END CMD	{DBG_YY("cmd_end 1");}
 	;
 
-stmt_sep : SEMI	{DBG_YY("stmt_sep 1");}
-	| NL	{DBG_YY("stmt_sep 2");}
+stmt_sep : ';'		{DBG_YY("stmt_sep 1");}
+	| NL		{DBG_YY("stmt_sep 2");}
 	;
 
-func_name : FUN	{DBG_YY("func_name 1");}
+func_name : FUN		{DBG_YY("func_name 1");}
 	| BEGIN_ | END	{DBG_YY("func_name 2");}
 	| HBO | NBO	{DBG_YY("func_name 3");}
 	| SEND | RECV	{DBG_YY("func_name 4");}

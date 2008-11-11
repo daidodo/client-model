@@ -16,7 +16,7 @@ U32 ver:=100
 U32 seq:=1234
 U32 len; BEGIN(len)
 U8 cmd_type := 59
-STR url := "http://www.baidu.com"
+STR url := "http://www.google.com"
 STR cid := UNHEX("1A2B3C4D5E6F")
 //"aes_encrypt" MUST be a predefined function pointer:
 //bool (*aes_encrypt)(std::vector<char> & input, std::vector<char> & output)
