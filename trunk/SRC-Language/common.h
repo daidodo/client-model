@@ -1,7 +1,5 @@
 #include <iostream>
-#include <string>
-
-//using namespace std;
+#include "symbols.h"
 
 extern int lineno;
 

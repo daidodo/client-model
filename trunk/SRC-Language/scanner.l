@@ -53,12 +53,16 @@ DEF	{cur_tok = yytext;DBG_LEX1("DEF",cur_tok);return DEF;}
 {nl}	{cur_tok = "\\n";DBG_LEX1("NL",cur_tok);++lineno;return NL;}
 :=	{cur_tok = yytext;DBG_LEX1("IEQ",cur_tok);return IEQ;}
 
-"<<"|">>"	{cur_tok = yytext;DBG_LEX1("STREAM",cur_tok);return STREAM;}
+"<<"	{cur_tok = yytext;DBG_LEX1("OP_OUT",cur_tok);return OP_OUT;}
+">>"	{cur_tok = yytext;DBG_LEX1("OP_IN",cur_tok);return OP_IN;}
 
-"<"=? |
->=? |
-[=!]= |
-!	{cur_tok = yytext;DBG_LEX1("COMP",cur_tok);return COMP;}
+==	{cur_tok = yytext;DBG_LEX1("OP_EQ",cur_tok);return OP_EQ;}
+!=	{cur_tok = yytext;DBG_LEX1("OP_NEQ",cur_tok);return OP_NEQ;}
+"<="	{cur_tok = yytext;DBG_LEX1("OP_SEQ",cur_tok);return OP_SEQ;}
+">="	{cur_tok = yytext;DBG_LEX1("OP_LEQ",cur_tok);return OP_LEQ;}
+"<"	{cur_tok = yytext;DBG_LEX1("OP_SM",cur_tok);return OP_SM;}
+">"	{cur_tok = yytext;DBG_LEX1("OP_LG",cur_tok);return OP_LG;}
+!	{cur_tok = yytext;DBG_LEX1("NOT",cur_tok);return OP_NOT;}
 
 [_a-zA-Z][_a-zA-Z0-9]*	{cur_tok = yytext;DBG_LEX1("ARG_NAME",cur_tok);return ARG_NAME;}
 
