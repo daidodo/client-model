@@ -5,7 +5,7 @@
 #include "common.h"
 
 std::vector<std::string> qstr_table;
-std::map<std::string,CExpr> arg_table;
+std::map<std::string,CExpr *> arg_table;
 %}
 
 %token NL IEQ
