@@ -1,11 +1,10 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
+//using namespace std;
 
 extern int lineno;
-//extern std::string cur_tok;
-	
+
 #define ERROR(msg) yyerror(msg)
 
 void yyerror(const char * msg);
@@ -14,6 +13,6 @@ int yylex();
 
 int yyparse();
 
-#define DBG_LEX(msg)	//{cout<<"lex "<<lineno<<" : "<<msg<<endl;}
-#define DBG_LEX1(t,v)	//{cout<<"lex "<<lineno<<" : "<<t<<"("<<v<<")\n";} 
-#define DBG_YY(msg)	//{cout<<"yy "<<lineno<<" : "<<msg<<endl;}
+#define DBG_LEX(msg)    {std::cout<<"lex "<<lineno<<" : "<<msg<<std::endl;}
+#define DBG_LEX1(t,v)   {std::cout<<"lex "<<lineno<<" : "<<t<<"("<<v<<")\n";} 
+#define DBG_YY(msg)     {std::cout<<"yy "<<lineno<<" : "<<msg<<std::endl;}
