@@ -31,22 +31,24 @@ RAW	{cur_tok = yytext;DBG_LEX("RAW");return RAW;}
 TCP	{cur_tok = yytext;DBG_LEX("TCP");return TCP;}
 UDP	{cur_tok = yytext;DBG_LEX("UDP");return UDP;}
 
+FUNCTION |
+FUN	{cur_tok = yytext;DBG_LEX1("FUN",cur_tok);return FUN;}
 BEGIN	{cur_tok = yytext;DBG_LEX("BEGIN");return BEGIN_;}
 END	{cur_tok = yytext;DBG_LEX("END");return END;}
 HOST_BYTE_ORDER |
-HBO	{cur_tok = yytext;DBG_LEX("HBO");return HBO;}
+HBO	{cur_tok = yytext;DBG_LEX1("HBO",cur_tok);return HBO;}
 NET_BYTE_ORDER |
-NBO	{cur_tok = yytext;DBG_LEX("NBO");return NBO;}
+NBO	{cur_tok = yytext;DBG_LEX1("NBO",cur_tok);return NBO;}
 SEND	{cur_tok = yytext;DBG_LEX("SEND");return SEND;}
 RECV	{cur_tok = yytext;DBG_LEX("RECV");return RECV;}
 HEX	{cur_tok = yytext;DBG_LEX("HEX");return HEX;}
 UNHEX	{cur_tok = yytext;DBG_LEX("UNHEX");return UNHEX;}
 
 COMMAND |
-CMD	{cur_tok = yytext;DBG_LEX("CMD");return CMD;}
+CMD	{cur_tok = yytext;DBG_LEX1("CMD",cur_tok);return CMD;}
 
 DEFINE |
-DEF	{cur_tok = yytext;DBG_LEX("DEF");return DEF;}
+DEF	{cur_tok = yytext;DBG_LEX1("DEF",cur_tok);return DEF;}
 
 ;	{cur_tok = yytext;DBG_LEX1("SEMI",cur_tok);return SEMI;}
 {nl}	{cur_tok = "\\n";DBG_LEX1("NL",cur_tok);++lineno;return NL;}

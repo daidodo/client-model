@@ -1,0 +1,46 @@
+# This is an example of SRC Language
+
+TCP("127.0.0.1",9527)
+NET_BYTE_ORDER
+
+CMD QueryCommand SEND
+//http wrap
+RAW http1 := "POST http://127.0.0.1:12345/ HTTP/1.1\r\nContent-Length: "
+DEF U32 pack_len
+RAW pack_len_str << pack_len  //stream output
+RAW http2 := "\r\nContent-Type: application/octet-stream\r\nConnection: \
+Close\r\n\r\n"
+BEGIN(pack_len)
+//cmd data
+U32 ver:=100
+U32 seq:=1234
+U32 len; BEGIN(len)
+U8 cmd_type := 59
+STR url := "http://www.baidu.com"
+STR cid := UNHEX("1A2B3C4D5E6F")
+//"aes_encrypt" MUST be a predefined function pointer:
+//bool (*aes_encrypt)(std::vector<char> & input, std::vector<char> & output)
+FUN(aes_encrypt)
+END(len)
+END CMD
+
+CMD RespCommand RECV
+//http wrap
+RAW http1 == "HTTP/1.1 200 OK\r\nContent-Length: "
+RAW pack_len_str >> U32  //stream input
+RAW http2 == "\r\nContent-Type: Application/octet-stream\r\nConnection: \
+Close\r\n\r\n"
+//cmd data
+U32 ver > 0
+U32 seq != 0
+U32 len <= 32k
+//"aes_decrypt" MUST be a predefined function pointer:
+//bool (*aes_decrypt)(std::vector<char> & input, std::vector<char> & output)
+FUN(aes_decrypt,len)	//insure "len" bytes of data beyond this point to invoke "aes_decrypt"
+U8 cmd_type == 60
+STR url
+U32 ip_sz <= 100	//size of ip_array
+U32[ip_sz] ip_array
+END CMD
+
+# The End

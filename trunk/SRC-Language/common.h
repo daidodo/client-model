@@ -16,4 +16,4 @@ int yyparse();
 
 #define DBG_LEX(msg)	//{cout<<"lex "<<lineno<<" : "<<msg<<endl;}
 #define DBG_LEX1(t,v)	//{cout<<"lex "<<lineno<<" : "<<t<<"("<<v<<")\n";} 
-#define DBG_YY(msg)	{cout<<"yy "<<lineno<<" : "<<msg<<endl;}
+#define DBG_YY(msg)	//{cout<<"yy "<<lineno<<" : "<<msg<<endl;}
