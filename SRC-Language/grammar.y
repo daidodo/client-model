@@ -9,7 +9,7 @@
 %token STR RAW
 %token TCP UDP
 
-%token BEGIN_ END HBO NBO SEND RECV HEX UNHEX
+%token FUN BEGIN_ END HBO NBO SEND RECV HEX UNHEX
 
 %token COMP STREAM
 
@@ -112,10 +112,11 @@ stmt_sep : SEMI	{DBG_YY("stmt_sep 1");}
 	| NL	{DBG_YY("stmt_sep 2");}
 	;
 
-func_name : BEGIN_ | END	{DBG_YY("func_name 1");}
-	| HBO | NBO	{DBG_YY("func_name 2");}
-	| SEND | RECV	{DBG_YY("func_name 3");}
-	| HEX | UNHEX	{DBG_YY("func_name 4");}
+func_name : FUN	{DBG_YY("func_name 1");}
+	| BEGIN_ | END	{DBG_YY("func_name 2");}
+	| HBO | NBO	{DBG_YY("func_name 3");}
+	| SEND | RECV	{DBG_YY("func_name 4");}
+	| HEX | UNHEX	{DBG_YY("func_name 5");}
 	;
 
 simple_type : U8 | S8	{DBG_YY("simple_type 1");}
