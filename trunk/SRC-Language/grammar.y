@@ -10,12 +10,12 @@
 %token OP_LG OP_SM OP_LEQ OP_SEQ OP_EQ OP_NEQ OP_NOT OP_IN OP_OUT
 %token <number_> NUMBER
 %token <strIdx_> QSTRING
-%token <argname_> ARG_NAME
+%token <arg_> ARG_NAME
 
 %type <token_> simple_type func_name comp_op stream_op
 %type <fix_value_> fix_value
+%type <arg_> arg sim_type_name
 %type <expr_> expr
-%type <sim_type_name_> sim_type_name
 %type <array_type_> array_type
 %type <arg_list_> arg_list arg_list_not_empty
 %type <assert_exp_> assert_exp
@@ -23,13 +23,12 @@
 %type <func_call_> func_call
 
 %union{
-	int		token_;
 	int		number_;
 	size_t		strIdx_;
-	__Argname	argname_;
+	int		token_;
 	CFixValue *	fix_value_;
+	CArg *		arg_;
 	CExpr *		expr_;
-	CSimTypeName *	sim_type_name_;
 	CArrayType *	array_type_;
 	__ArgList *	arg_list_;
 	CAssertExp *	assert_exp_;
@@ -70,6 +69,10 @@ stmt_assert_list : stmt	{DBG_YY("stmt_list 1");}
 	| stmt_assert_list assert_exp	{DBG_YY("stmt_list 3");}
 	;
 
+cmd_begin : CMD		{DBG_YY("cmd_begin 1");}
+	| CMD arg	{DBG_YY("cmd_begin 2");}
+	;
+
 	/* level 3 */
 func_call : func_name	{DBG_YY("func_call 1");}
 	| func_name '(' arg_list ')'	{DBG_YY("func_call 2");}
@@ -79,7 +82,7 @@ func_call : func_name	{DBG_YY("func_call 1");}
 def_declare : DEF simple_declare	{DBG_YY("def_declare 1");}
 	;
 
-simple_declare : array_type ARG_NAME		{DBG_YY("simple_declare 1");}
+simple_declare : array_type arg			{DBG_YY("simple_declare 1");}
 	| sim_type_name				{DBG_YY("simple_declare 2");}
 	| sim_type_name '=' expr		{DBG_YY("simple_declare 3");}
 	| sim_type_name '(' arg_list ')'	{DBG_YY("simple_declare 4");}
@@ -107,12 +110,27 @@ array_type : simple_type '[' ']'	{DBG_YY("array_type 1");}
 	| simple_type '[' expr ']'	{DBG_YY("array_type 2");}
 	;
 
-sim_type_name : simple_type ARG_NAME	{DBG_YY("sim_type_name 1");}
+sim_type_name : simple_type arg	{DBG_YY("sim_type_name 1");}
 	;
 
-expr : fix_value	{DBG_YY("expr 1");}
-	| func_call	{DBG_YY("expr 2");}
-	| ARG_NAME	{DBG_YY("expr 3");}
+expr : fix_value	{
+				DBG_YY("expr 1");
+				$$ = New<CExpr>();
+				$$->type_ = 1;
+				$$->fix_value_ = $1;
+			}
+	| func_call	{
+				DBG_YY("expr 2");
+				$$ = New<CExpr>();
+				$$->type_ = 2;
+				$$->func_call_ = $1;
+			}
+	| arg	{
+				DBG_YY("expr 3");
+				$$ = New<CExpr>();
+				$$->type_ = 3;
+				$$->arg_ = $1;
+			}
 	;
 
 	/* basic symbols */
@@ -130,12 +148,10 @@ fix_value : NUMBER	{
 			}
 	;
 
-cmd_begin : CMD		{DBG_YY("cmd_begin 1");}
-	| CMD ARG_NAME	{DBG_YY("cmd_begin 2");}
-	;
-
 cmd_end : END CMD	{DBG_YY("cmd_end 1");}
 	;
+
+arg : ARG_NAME		{DBG_YY("arg 1 = "<<$1->argname_);}
 
 func_name : FUN		{DBG_YY("func_name 1");}
 	| BEGIN_ 	{DBG_YY("func_name 2");}
