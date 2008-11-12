@@ -103,7 +103,12 @@ DEF	{CUR_TOK = yytext;DBG_LEX1("DEF",CUR_TOK);return DEF;}
 ">"	{CUR_TOK = yytext;DBG_LEX1("OP_LG",CUR_TOK);return OP_LG;}
 !	{CUR_TOK = yytext;DBG_LEX1("NOT",CUR_TOK);return OP_NOT;}
 
-[_a-zA-Z][_a-zA-Z0-9]*	{CUR_TOK = yytext;DBG_LEX1("ARG_NAME",CUR_TOK);return ARG_NAME;}
+[_a-zA-Z][_a-zA-Z0-9]*	{
+				CUR_TOK = yytext;
+				DBG_LEX1("ARG_NAME",CUR_TOK);
+				yylval.arg_ = global().GetArg(CUR_TOK);
+				return ARG_NAME;
+			}
 
 0|{nzero}[kKmMgG]?	{
 				CUR_TOK = yytext;
