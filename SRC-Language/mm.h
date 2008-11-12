@@ -1,8 +1,6 @@
 #ifndef DOZERG_MEMORY_MANAGMENT_H_20081111
 #define DOZERG_MEMORY_MANAGMENT_H_20081111
 
-#include <memory>
-
 template<class T>
 T * New(){
     return new T;

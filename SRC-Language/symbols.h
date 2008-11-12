@@ -3,10 +3,11 @@
 
 #include <vector>
 #include <string>
+#include <algorithm>
 #include "types.h"
 #include "mm.h"
 
-struct CFixValue        //8
+struct CFixValue
 {
     int type_;
     union{
@@ -15,10 +16,15 @@ struct CFixValue        //8
     };
 };
 
-struct CTcp;
-struct CUdp;
+struct CTcp
+{
+};
 
-struct CValue           //8
+struct CUdp
+{
+};
+
+struct CValue
 {
     union{
         U8  u8_;
@@ -37,38 +43,56 @@ struct CValue           //8
 
 struct CArrayType;
 
-struct CArg             //16
+struct CVariable
 {
-    std::string argname_;
+    std::string varname_;
     int type_;
     union{
         int simple_type_;
         CArrayType * array_type_;
     };
     std::vector<CValue> val_;
+    //functions:
+    ~CVariable(){
+        if(type_ == 2)
+            Delete(array_type_);
+    }
 };
 
 struct CFuncCall;
 
-struct CExpr            //8
+struct CExpr
 {
     int type_;
     union{
         CFixValue * fix_value_;
         CFuncCall * func_call_;
-        CArg *      arg_;
+        CVariable * var_;
     };
+    //functions:
+    ~CExpr(){
+        switch(type_){
+            case 1:Delete(fix_value_);break;
+            case 2:Delete(func_call_);break;
+            case 3:Delete(var_);break;
+            default:;
+        }
+    }
 };
 
-struct CArrayType       //8
+struct CArrayType
 {
-    int simple_type;
+    int simple_type_;
     CExpr * expr_;
+    //functions:
+    ~CArrayType(){
+        if(expr_){
+            Delete(expr_);
+        }
+    }
 };
 
-typedef std::vector<CExpr>  __ArgList;
-
-struct CAssertExp       //12
+struct CAssertExp
 {
     int op_token_;
     CExpr * expr1_;
@@ -81,10 +105,10 @@ struct CAssertExp       //12
     }
 };
 
-struct CSimDeclare      //16
+struct CSimDeclare
 {
     int type_;
-    CArg * arg_;
+    CVariable * var_;
     int op_token;
     union{
         CExpr * expr_;
@@ -92,7 +116,7 @@ struct CSimDeclare      //16
     };
     //functions:
     ~CSimDeclare(){
-        Delete(arg_);
+        Delete(var_);
         switch(type_){
             case 3:
             case 4:
@@ -105,7 +129,9 @@ struct CSimDeclare      //16
     }
 };
 
-struct CFuncCall        //12
+typedef std::vector<CExpr *> __ArgList;
+
+struct CFuncCall
 {
     int type_;
     union{
@@ -115,11 +141,14 @@ struct CFuncCall        //12
     __ArgList * arg_list_;
     //functions:
     ~CFuncCall(){
-        Delete(arg_list_);
+        if(arg_list_){
+            std::for_each(arg_list_->begin(),arg_list_->end(),Delete<CExpr>);
+            Delete(arg_list_);
+        }
     }
 };
 
-struct CCmdItem
+struct CStmt
 {
     int type_;
     union{
@@ -128,7 +157,7 @@ struct CCmdItem
         CFuncCall * func_call_;
     };
     //functions:
-    ~CCmdItem(){
+    ~CStmt(){
         switch(type_){
             case 1:Delete(assert_);break;
             case 2:Delete(declare_);break;
@@ -141,15 +170,11 @@ struct CCmdItem
 struct CCommand
 {
     std::string cmd_name_;
-    std::vector<CCmdItem> items_;
-};
-
-struct CTcp
-{
-};
-
-struct CUdp
-{
+    std::vector<CStmt *> items_;
+    //functions:
+    ~CCommand(){
+        std::for_each(items_.begin(),items_.end(),Delete<CStmt>);
+    }
 };
 
 #endif
