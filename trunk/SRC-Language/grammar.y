@@ -1,6 +1,12 @@
 %{
-#include "mm.h"
+#include <cassert>
+#include <iostream>
 #include "global.h"
+#include "tokens.h"
+#include "errors.h"
+#include "dbg.h"
+
+int yylex();
 %}
 
 %token NL IEQ
@@ -10,11 +16,11 @@
 %token OP_LG OP_SM OP_LEQ OP_SEQ OP_EQ OP_NEQ OP_NOT OP_IN OP_OUT
 %token <number_> NUMBER
 %token <strIdx_> QSTRING
-%token <arg_> ARG_NAME
+%token <var_> VAR_NAME
 
 %type <token_> simple_type func_name comp_op stream_op
 %type <fix_value_> fix_value
-%type <arg_> arg sim_type_name
+%type <var_> sim_type_name
 %type <expr_> expr
 %type <array_type_> array_type
 %type <arg_list_> arg_list arg_list_not_empty
@@ -27,10 +33,10 @@
 	size_t		strIdx_;
 	int		token_;
 	CFixValue *	fix_value_;
-	CArg *		arg_;
+	CVariable *	var_;
+	__ArgList *	arg_list_;
 	CExpr *		expr_;
 	CArrayType *	array_type_;
-	__ArgList *	arg_list_;
 	CAssertExp *	assert_exp_;
 	CSimDeclare *	simple_declare_;
 	CFuncCall *	func_call_;
@@ -70,7 +76,7 @@ stmt_assert_list : stmt	{DBG_YY("stmt_list 1");}
 	;
 
 cmd_begin : CMD		{DBG_YY("cmd_begin 1");}
-	| CMD arg	{DBG_YY("cmd_begin 2");}
+	| CMD VAR_NAME	{DBG_YY("cmd_begin 2");}
 	;
 
 	/* level 3 */
@@ -82,7 +88,7 @@ func_call : func_name	{DBG_YY("func_call 1");}
 def_declare : DEF simple_declare	{DBG_YY("def_declare 1");}
 	;
 
-simple_declare : array_type arg			{DBG_YY("simple_declare 1");}
+simple_declare : array_type VAR_NAME			{DBG_YY("simple_declare 1");}
 	| sim_type_name				{DBG_YY("simple_declare 2");}
 	| sim_type_name '=' expr		{DBG_YY("simple_declare 3");}
 	| sim_type_name '(' arg_list ')'	{DBG_YY("simple_declare 4");}
@@ -93,24 +99,71 @@ simple_declare : array_type arg			{DBG_YY("simple_declare 1");}
 	| sim_type_name stream_op simple_type	{DBG_YY("simple_declare 9");}
 	;
 
-assert_exp : expr comp_op expr		{DBG_YY("assert_exp 1");}
+assert_exp : expr comp_op expr
+			{
+				DBG_YY("assert_exp 1");
+				if(!IsBinaryPredict($2)){
+					LEX_ERROR("");
+				}
+				$$ = New<CAssertExp>();
+				$$->op_token_ = $2;
+				$$->expr1_ = $1;
+				$$->expr2_ = $3;
+			}
 	| comp_op expr			{DBG_YY("assert_exp 2");}
 	;
 
 	/* level 4 */
-arg_list : /* empty */			{DBG_YY("arg_list 1");}
-	| arg_list_not_empty		{DBG_YY("arg_list 2");}
+arg_list : /* empty */
+			{
+				DBG_YY("arg_list 1");
+				$$ = 0;
+			}
+	| arg_list_not_empty
+			{
+				DBG_YY("arg_list 2");
+				$$ = $1;
+			}
 	;
 
-arg_list_not_empty : expr		{DBG_YY("arg_list_not_empty 1");}
-	| arg_list_not_empty ',' expr	{DBG_YY("arg_list_not_empty 2");}
+arg_list_not_empty : expr
+			{
+				DBG_YY("arg_list_not_empty 1");
+				$$ = New<__ArgList>();
+				$$->push_back($1);
+			}
+	| arg_list_not_empty ',' expr
+			{
+				DBG_YY("arg_list_not_empty 2");
+				assert($1);
+				$$ = $1;
+				$$->push_back($3);
+			}
 	;
 
-array_type : simple_type '[' ']'	{DBG_YY("array_type 1");}
-	| simple_type '[' expr ']'	{DBG_YY("array_type 2");}
+array_type : simple_type '[' ']'
+			{
+				DBG_YY("array_type 1");
+				$$ = New<CArrayType>();
+				$$->simple_type_ = $1;
+				$$->expr_ = 0;
+			}
+	| simple_type '[' expr ']'
+			{
+				DBG_YY("array_type 2");
+				$$ = New<CArrayType>();
+				$$->simple_type_ = $1;
+				$$->expr_ = $3;
+			}
 	;
 
-sim_type_name : simple_type arg	{DBG_YY("sim_type_name 1");}
+sim_type_name : simple_type VAR_NAME
+			{
+				DBG_YY("sim_type_name 1 = "<<$2->varname_);
+				$$ = $2;
+				$$->type_ = 1;
+				$$->simple_type_ = $1;
+			}
 	;
 
 expr : fix_value	{
@@ -125,11 +178,11 @@ expr : fix_value	{
 				$$->type_ = 2;
 				$$->func_call_ = $1;
 			}
-	| arg	{
+	| VAR_NAME	{
 				DBG_YY("expr 3");
 				$$ = New<CExpr>();
 				$$->type_ = 3;
-				$$->arg_ = $1;
+				$$->var_ = $1;
 			}
 	;
 
@@ -151,44 +204,42 @@ fix_value : NUMBER	{
 cmd_end : END CMD	{DBG_YY("cmd_end 1");}
 	;
 
-arg : ARG_NAME		{DBG_YY("arg 1 = "<<$1->argname_);}
-
-func_name : FUN		{DBG_YY("func_name 1");}
-	| BEGIN_ 	{DBG_YY("func_name 2");}
-	| END		{DBG_YY("func_name 3");}
-	| HBO 		{DBG_YY("func_name 4");}
-	| NBO		{DBG_YY("func_name 5");}
-	| SEND 		{DBG_YY("func_name 6");}
-	| RECV		{DBG_YY("func_name 7");}
-	| HEX 		{DBG_YY("func_name 8");}
-	| UNHEX		{DBG_YY("func_name 9");}
+func_name : FUN		{DBG_YY("func_name 1");$$ = FUN;}
+	| BEGIN_ 	{DBG_YY("func_name 2");$$ = BEGIN_;}
+	| END		{DBG_YY("func_name 3");$$ = END;}
+	| HBO 		{DBG_YY("func_name 4");$$ = HBO;}
+	| NBO		{DBG_YY("func_name 5");$$ = NBO;}
+	| SEND 		{DBG_YY("func_name 6");$$ = SEND;}
+	| RECV		{DBG_YY("func_name 7");$$ = RECV;}
+	| HEX 		{DBG_YY("func_name 8");$$ = HEX;}
+	| UNHEX		{DBG_YY("func_name 9");$$ = UNHEX;}
 	;
 
-simple_type : U8	{DBG_YY("simple_type 1");}
-	| S8		{DBG_YY("simple_type 2");}
-	| U16		{DBG_YY("simple_type 3");}
-	| S16		{DBG_YY("simple_type 4");}
-	| U32		{DBG_YY("simple_type 5");}
-	| S32		{DBG_YY("simple_type 6");}
-	| U64		{DBG_YY("simple_type 7");}
-	| S64		{DBG_YY("simple_type 8");}
-	| STR		{DBG_YY("simple_type 9");}
-	| RAW		{DBG_YY("simple_type 10");}
-	| TCP		{DBG_YY("simple_type 11");}
-	| UDP		{DBG_YY("simple_type 12");}
+simple_type : U8	{DBG_YY("simple_type 1");$$ = U8;}
+	| S8		{DBG_YY("simple_type 2");$$ = S8;}
+	| U16		{DBG_YY("simple_type 3");$$ =  U16;}
+	| S16		{DBG_YY("simple_type 4");$$ = S16;}
+	| U32		{DBG_YY("simple_type 5");$$ = U32;}
+	| S32		{DBG_YY("simple_type 6");$$ = S32;}
+	| U64		{DBG_YY("simple_type 7");$$ = U64;}
+	| S64		{DBG_YY("simple_type 8");$$ = S64;}
+	| STR		{DBG_YY("simple_type 9");$$ = STR;}
+	| RAW		{DBG_YY("simple_type 10");$$ =  RAW;}
+	| TCP		{DBG_YY("simple_type 11");$$ = TCP;}
+	| UDP		{DBG_YY("simple_type 12");$$ = UDP;}
 	;
 
-comp_op : OP_LG		{DBG_YY("comp_op 1");}
-	| OP_SM		{DBG_YY("comp_op 2");}
-	| OP_LEQ 	{DBG_YY("comp_op 3");}
-	| OP_SEQ 	{DBG_YY("comp_op 4");}
-	| OP_EQ 	{DBG_YY("comp_op 5");}
-	| OP_NEQ 	{DBG_YY("comp_op 6");}
-	| OP_NOT	{DBG_YY("comp_op 7");}
+comp_op : OP_LG		{DBG_YY("comp_op 1");$$ = OP_LG;}
+	| OP_SM		{DBG_YY("comp_op 2");$$ = OP_SM;}
+	| OP_LEQ 	{DBG_YY("comp_op 3");$$ = OP_LEQ;}
+	| OP_SEQ 	{DBG_YY("comp_op 4");$$ = OP_SEQ;}
+	| OP_EQ 	{DBG_YY("comp_op 5");$$ = OP_EQ;}
+	| OP_NEQ 	{DBG_YY("comp_op 6");$$ = OP_NEQ;}
+	| OP_NOT	{DBG_YY("comp_op 7");$$ = OP_NOT;}
 	;
 
-stream_op : OP_IN	{DBG_YY("stream_op 1");}
-	| OP_OUT	{DBG_YY("stream_op 2");}
+stream_op : OP_IN	{DBG_YY("stream_op 1");$$ = OP_IN;}
+	| OP_OUT	{DBG_YY("stream_op 2");$$ = OP_OUT;}
 	;
 
 stmt_sep : ';'		{DBG_YY("stmt_sep 1");}

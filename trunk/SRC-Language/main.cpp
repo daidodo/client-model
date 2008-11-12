@@ -1,7 +1,11 @@
 //#define TEST
 
-#include "common.h"
+#include <iostream>
 #include "global.h"
+
+extern FILE * yyin;
+
+int yyparse();
 
 #ifdef TEST
 #   include "test.h"

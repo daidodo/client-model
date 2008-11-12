@@ -1,6 +1,8 @@
 %{
 #include "global.h"
 #include "util.h"
+#include "errors.h"
+#include "dbg.h"
 #include "y.tab.h"
 
 #define CUR_TOK	global().cur_tok
@@ -27,7 +29,7 @@ nzero	([1-9][0-9]+)
 				int ch = atoi_base8(yytext + 1,yyleng - 1);
 				if(ch > 255){
 					CUR_TOK = yytext;
-					ERROR("char value overflow");
+					LEX_ERROR("char value overflow");
 				}
 				CUR_TOK.push_back(ch);
 			}
@@ -35,14 +37,14 @@ nzero	([1-9][0-9]+)
 					int ch = atoi_base16(yytext + 1,yyleng - 1);
 					if(ch > 255){
 						CUR_TOK = yytext;
-						ERROR("char value overflow");
+						LEX_ERROR("char value overflow");
 					}
 					CUR_TOK.push_back(ch);
 				}
 
 <QSTR_S>\\{nl}	{++LINE_NO;}
 <QSTR_S>\\.	{CUR_TOK.push_back(yytext[1]);}
-<QSTR_S>{nl}	{ERROR("unterminated string");}
+<QSTR_S>{nl}	{LEX_ERROR("unterminated string");}
 <QSTR_S>\"	{
 			BEGIN INITIAL;
 			yylval.strIdx_ = global().qstr_table.size();
@@ -105,9 +107,9 @@ DEF	{CUR_TOK = yytext;DBG_LEX1("DEF",CUR_TOK);return DEF;}
 
 [_a-zA-Z][_a-zA-Z0-9]*	{
 				CUR_TOK = yytext;
-				DBG_LEX1("ARG_NAME",CUR_TOK);
-				yylval.arg_ = global().GetArg(CUR_TOK);
-				return ARG_NAME;
+				DBG_LEX1("VAR_NAME",CUR_TOK);
+				yylval.var_ = global().GetVar(CUR_TOK);
+				return VAR_NAME;
 			}
 
 0|{nzero}[kKmMgG]?	{
@@ -118,17 +120,11 @@ DEF	{CUR_TOK = yytext;DBG_LEX1("DEF",CUR_TOK);return DEF;}
 			}
 
 	/* error handle */
-0[0-9]+	{CUR_TOK = yytext;ERROR("error number format");}
+0[0-9]+	{CUR_TOK = yytext;LEX_ERROR("error number format");}
 
 .	{CUR_TOK = yytext;DBG_LEX(*yytext);return *yytext;}
 
 %%
-
-void yyerror(const char * msg){
-	std::cerr<<global().input_file<<":"<<LINE_NO<<" : '"<<CUR_TOK<<"' "
-		<<msg<<std::endl;
-	exit(1);
-}
 
 int yywrap(){
 	return 1;
