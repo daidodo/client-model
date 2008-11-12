@@ -1,11 +1,6 @@
 %{
-#include <string>
-#include <vector>
-#include <map>
-#include "common.h"
-
-std::vector<std::string> qstr_table;
-std::map<std::string,CExpr *> arg_table;
+#include "mm.h"
+#include "global.h"
 %}
 
 %token NL IEQ
@@ -41,6 +36,7 @@ std::map<std::string,CExpr *> arg_table;
 	CSimDeclare *	simple_declare_;
 	CFuncCall *	func_call_;
 }
+
 %%
 	/* top */
 program : /* empty */	{DBG_YY("program 1");}
@@ -120,15 +116,25 @@ expr : fix_value	{DBG_YY("expr 1");}
 	;
 
 	/* basic symbols */
+fix_value : NUMBER	{
+				DBG_YY("fix_value 1 = "<<$1);
+				$$ = New<CFixValue>();
+				$$->type_ = 1;
+				$$->number_ = $1;
+			}
+	| QSTRING	{
+				DBG_YY("fix_value 2 = "<<global().qstr_table[$1]);
+				$$ = New<CFixValue>();
+				$$->type_ = 2;
+				$$->strIdx_ = $1;
+			}
+	;
+
 cmd_begin : CMD		{DBG_YY("cmd_begin 1");}
 	| CMD ARG_NAME	{DBG_YY("cmd_begin 2");}
 	;
 
 cmd_end : END CMD	{DBG_YY("cmd_end 1");}
-	;
-
-stmt_sep : ';'		{DBG_YY("stmt_sep 1");}
-	| NL		{DBG_YY("stmt_sep 2");}
 	;
 
 func_name : FUN		{DBG_YY("func_name 1");}
@@ -169,7 +175,6 @@ stream_op : OP_IN	{DBG_YY("stream_op 1");}
 	| OP_OUT	{DBG_YY("stream_op 2");}
 	;
 
-fix_value : NUMBER	{DBG_YY("fix_value 1");}
-	| QSTRING	{DBG_YY("fix_value 2");}
+stmt_sep : ';'		{DBG_YY("stmt_sep 1");}
+	| NL		{DBG_YY("stmt_sep 2");}
 	;
-
