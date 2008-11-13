@@ -9,7 +9,7 @@ CGlobal::CGlobal()
 CGlobal::~CGlobal()
 {
     //vars and stmts
-    for(std::map<std::string,CVariable *>::iterator i = var_table.begin();i != var_table.end();++i)
+    for(__VarTable::iterator i = var_table.begin();i != var_table.end();++i)
         Delete(i->second);
     std::for_each(global_stmts.begin(),global_stmts.end(),Delete<CStmt>);
     //connections
@@ -21,15 +21,28 @@ CGlobal::~CGlobal()
 }
 
 CVariable * CGlobal::GetVar(const std::string & varname){
-    typedef std::map<std::string,CVariable *>::const_iterator __Iter;
-    __Iter wh = var_table.find(varname);
-    if(wh == var_table.end()){
-        CVariable * ret = New<CVariable>(lineno);
-        ret->varname_ = varname;
-        var_table[varname] = ret;
-        return ret;
-    }else
-        return wh->second;
+    CVariable * ret = 0;
+    if(cur_cmd)
+        ret = findVar(cur_cmd->var_table,varname);
+    if(!ret)
+        ret = findVar(var_table,varname);
+    if(!ret)
+        return NewVar(varname);
+    ++ret->ref_count_;
+    return ret;
+}
+
+CVariable * CGlobal::NewVar(const std::string & varname,CVariable * old)
+{
+    __VarTable & vt = (isGlobal() ? var_table : cur_cmd->var_table);
+    CVariable *& ret = vt[varname];
+    assert(!ret);
+    ret = New<CVariable>(lineno);
+    ret->varname_ = varname;
+    ret->host_cmd_ = cur_cmd;
+    if(old)
+        --old->ref_count_;
+    return ret;
 }
 
 void CGlobal::AddStmt(CAssertExp * stmt)

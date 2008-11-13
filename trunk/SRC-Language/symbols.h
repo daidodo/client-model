@@ -80,16 +80,27 @@ struct CValue
 
 struct CArrayType;
 
+struct CCommand;
+
 struct CVariable
 {
     std::string varname_;
     const int lineno_;
     int type_;
     int simple_type_;
+    int ref_count_;
     CArrayType * array_type_;
+    CCommand * host_cmd_;
     std::vector<CValue> val_;
     //functions:
-    explicit CVariable(int ln):lineno_(ln),type_(0),simple_type_(0),array_type_(0){}
+    explicit CVariable(int ln)
+        : lineno_(ln)
+        , type_(0)
+        , simple_type_(0)
+        , ref_count_(0)
+        , array_type_(0)
+        , host_cmd_(0)
+    {}
     ~CVariable(){
         Delete(array_type_);
     }
@@ -100,6 +111,8 @@ struct CVariable
             <<",simple_type_="<<simple_type_
             <<",array_type_="<<signa(array_type_)
             <<",val_.size()="<<val_.size()
+            <<",ref_count_="<<ref_count_
+            <<",host_cmd_="<<signa(host_cmd_)
             <<")";
         return oss.str();
     }
@@ -319,16 +332,18 @@ struct CStmt
     }
 };
 
+typedef std::map<std::string,CVariable *>   __VarTable;
+
 struct CCommand
 {
     const int lineno_;
     std::string cmd_name_;
-    std::map<std::string,CVariable *> var_table;
+    __VarTable var_table;
     std::vector<CStmt *> items_;
     //functions:
     explicit CCommand(int ln):lineno_(ln){}
     ~CCommand(){
-        for(std::map<std::string,CVariable *>::iterator i = var_table.begin();i != var_table.end();++i)
+        for(__VarTable::iterator i = var_table.begin();i != var_table.end();++i)
             Delete(i->second);
         std::for_each(items_.begin(),items_.end(),Delete<CStmt>);
     }
