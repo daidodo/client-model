@@ -8,8 +8,8 @@
 class CGlobal
 {
     CGlobal()
-        : input_file(0)
-        , lineno(1)
+        : lineno(1)
+        , tcp_default(true)
         , cur_cmd(0)
     {}
     ~CGlobal(){
@@ -45,7 +45,7 @@ public:
     }
 //members:
     //parse infos
-    const char * input_file;
+    std::string input_file;
     int lineno;
     std::string cur_tok;
     //string vars
