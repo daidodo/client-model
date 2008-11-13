@@ -5,15 +5,18 @@
 
 int str2int(const char * str,size_t len);
 
-///*  return: 
-//        -n  error
-//        0
-//        +n  # of '\n'
-////*/
-//int qstr(std::string & ret,const char * src,size_t len);
-
 int atoi_base8(const char * str,size_t len);
 
 int atoi_base16(const char * str,size_t len);
+
+template<class T>
+std::string to_str(const T * p){
+    return (p ? p->ToString() : "0x0");
+}
+
+template<class T>
+std::string signa(const T * p){
+    return (p ? p->Signature() : "0x0");
+}
 
 #endif

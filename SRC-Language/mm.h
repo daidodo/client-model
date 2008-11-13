@@ -2,8 +2,8 @@
 #define DOZERG_MEMORY_MANAGMENT_H_20081111
 
 template<class T>
-T * New(){
-    return new T;
+T * New(int ln){
+    return new T(ln);
 }
 
 template<class T>
