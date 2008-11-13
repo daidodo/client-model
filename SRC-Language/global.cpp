@@ -1,3 +1,5 @@
+#include "dbg.h"
+#include "errors.h"
 #include "global.h"
 
 CGlobal::CGlobal()
@@ -47,14 +49,32 @@ CVariable * CGlobal::NewVar(const std::string & varname,CVariable * old)
 
 void CGlobal::AddStmt(CAssertExp * stmt)
 {
+    YY_ASSERT(stmt);
+    if(isGlobal()){
+        GAMMAR_ERR(stmt->lineno_,"invalid YY_ASSERTion in global scope");
+    }
+    CStmt * st = New<CStmt>(stmt->lineno_);
+    st->type_ = 1;
+    st->assert_ = stmt;
+    cur_cmd->stmt_list_.push_back(st);
 }
 
 void CGlobal::AddStmt(CDeclare * stmt)
 {
+    YY_ASSERT(stmt);
+
+    CStmt * st = New<CStmt>(stmt->lineno_);
+    st->type_ = 2;
+    st->declare_ = stmt;
 }
 
 void CGlobal::AddStmt(CFuncCall * stmt)
 {
+    YY_ASSERT(stmt);
+
+    CStmt * st = New<CStmt>(stmt->lineno_);
+    st->type_ = 3;
+    st->func_call_ = stmt;
 }
 
 void CGlobal::CmdBegin(CVariable * var_name)

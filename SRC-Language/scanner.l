@@ -25,7 +25,7 @@ nzero	([1-9][0-9]+)
 				int ch = atoi_base8(yytext + 1,yyleng - 1);
 				if(ch > 255){
 					CUR_TOK = yytext;
-					LEX_ERROR("char value overflow");
+					SYNTAX_ERR("char value overflow");
 				}
 				CUR_TOK.push_back(ch);
 			}
@@ -33,14 +33,14 @@ nzero	([1-9][0-9]+)
 					int ch = atoi_base16(yytext + 1,yyleng - 1);
 					if(ch > 255){
 						CUR_TOK = yytext;
-						LEX_ERROR("char value overflow");
+						SYNTAX_ERR("char value overflow");
 					}
 					CUR_TOK.push_back(ch);
 				}
 
 <QSTR_S>\\{nl}	{++LINE_NO;}
 <QSTR_S>\\.	{CUR_TOK.push_back(yytext[1]);}
-<QSTR_S>{nl}	{LEX_ERROR("unterminated string");}
+<QSTR_S>{nl}	{SYNTAX_ERR("unterminated string");}
 <QSTR_S>\"	{
 			BEGIN INITIAL;
 			yylval.strIdx_ = global().qstr_table.size();
@@ -116,7 +116,7 @@ DEF	{CUR_TOK = yytext;DBG_LEX1("DEF",CUR_TOK);return DEF;}
 			}
 
 	/* error handle */
-0[0-9]+	{CUR_TOK = yytext;LEX_ERROR("error number format");}
+0[0-9]+	{CUR_TOK = yytext;SYNTAX_ERR("error number format");}
 
 .	{CUR_TOK = yytext;DBG_LEX(*yytext);return *yytext;}
 

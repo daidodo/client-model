@@ -339,19 +339,19 @@ struct CCommand
     const int lineno_;
     std::string cmd_name_;
     __VarTable var_table;
-    std::vector<CStmt *> items_;
+    std::vector<CStmt *> stmt_list_;
     //functions:
     explicit CCommand(int ln):lineno_(ln){}
     ~CCommand(){
         for(__VarTable::iterator i = var_table.begin();i != var_table.end();++i)
             Delete(i->second);
-        std::for_each(items_.begin(),items_.end(),Delete<CStmt>);
+        std::for_each(stmt_list_.begin(),stmt_list_.end(),Delete<CStmt>);
     }
     std::string ToString() const{
         std::ostringstream oss;
         oss<<"(cmd_name_="<<cmd_name_;
-        for(size_t i = 0;i < items_.size();++i)
-            oss<<",items_["<<i<<"]="<<signa(items_[i]);
+        for(size_t i = 0;i < stmt_list_.size();++i)
+            oss<<",stmt_list_["<<i<<"]="<<signa(stmt_list_[i]);
         oss<<")";
         return oss.str();
     }
