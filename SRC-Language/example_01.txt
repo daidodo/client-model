@@ -3,6 +3,7 @@ STR server_ip := "127.0.0.1"
 U16 server_port := 9527
 
 TCP conn(server_ip,server_port)
+TCP server_port(server_ip,server_port)
 HBO
 
 COMMAND QueryCommand
