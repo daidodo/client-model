@@ -321,42 +321,42 @@ fix_value : NUMBER	{
 cmd_end : END CMD	{DBG_YY("cmd_end");}
 	;
 
-func_name : FUN		{DBG_YY("func_name = FUN");$$  =  FUN;}
-	| BEGIN_ 	{DBG_YY("func_name = BEGIN");$$  =  BEGIN_;}
-	| END		{DBG_YY("func_name = END");$$  =  END;}
-	| HBO 		{DBG_YY("func_name = HBO");$$  =  HBO;}
-	| NBO		{DBG_YY("func_name = NBO");$$  =  NBO;}
-	| SEND 		{DBG_YY("func_name = SEND");$$  =  SEND;}
-	| RECV		{DBG_YY("func_name = RECV");$$  =  RECV;}
-	| HEX 		{DBG_YY("func_name = HEX");$$  =  HEX;}
-	| UNHEX		{DBG_YY("func_name = UNHEX");$$  =  UNHEX;}
+func_name : FUN		{DBG_YY("func_name = FUN("<<FUN<<")");$$  =  FUN;}
+	| BEGIN_ 	{DBG_YY("func_name = BEGIN("<<BEGIN_<<")");$$  =  BEGIN_;}
+	| END		{DBG_YY("func_name = END("<<END<<")");$$  =  END;}
+	| HBO 		{DBG_YY("func_name = HBO("<<HBO<<")");$$  =  HBO;}
+	| NBO		{DBG_YY("func_name = NBO("<<NBO<<")");$$  =  NBO;}
+	| SEND 		{DBG_YY("func_name = SEND("<<SEND<<")");$$  =  SEND;}
+	| RECV		{DBG_YY("func_name = RECV("<<RECV<<")");$$  =  RECV;}
+	| HEX 		{DBG_YY("func_name = HEX("<<HEX<<")");$$  =  HEX;}
+	| UNHEX		{DBG_YY("func_name = UNHEX("<<UNHEX<<")");$$  =  UNHEX;}
 	;
 
-simple_type : U8	{DBG_YY("simple_type = U8");$$  =  U8;}
-	| S8		{DBG_YY("simple_type = S8");$$  =  S8;}
-	| U16		{DBG_YY("simple_type = U16");$$  =   U16;}
-	| S16		{DBG_YY("simple_type = S16");$$  =  S16;}
-	| U32		{DBG_YY("simple_type = U32");$$  =  U32;}
-	| S32		{DBG_YY("simple_type = S32");$$  =  S32;}
-	| U64		{DBG_YY("simple_type = U64");$$  =  U64;}
-	| S64		{DBG_YY("simple_type = S64");$$  =  S64;}
-	| STR		{DBG_YY("simple_type = STR");$$  =  STR;}
-	| RAW		{DBG_YY("simple_type = RAW");$$  =   RAW;}
-	| TCP		{DBG_YY("simple_type = TCP");$$  =  TCP;}
-	| UDP		{DBG_YY("simple_type = UDP");$$  =  UDP;}
+simple_type : U8	{DBG_YY("simple_type = U8("<<U8<<")");$$  =  U8;}
+	| S8		{DBG_YY("simple_type = S8("<<S8<<")");$$  =  S8;}
+	| U16		{DBG_YY("simple_type = U16("<<U16<<")");$$  =   U16;}
+	| S16		{DBG_YY("simple_type = S16("<<S16<<")");$$  =  S16;}
+	| U32		{DBG_YY("simple_type = U32("<<U32<<")");$$  =  U32;}
+	| S32		{DBG_YY("simple_type = S32("<<S32<<")");$$  =  S32;}
+	| U64		{DBG_YY("simple_type = U64("<<U64<<")");$$  =  U64;}
+	| S64		{DBG_YY("simple_type = S64("<<S64<<")");$$  =  S64;}
+	| STR		{DBG_YY("simple_type = STR("<<STR<<")");$$  =  STR;}
+	| RAW		{DBG_YY("simple_type = RAW("<<RAW<<")");$$  =   RAW;}
+	| TCP		{DBG_YY("simple_type = TCP("<<TCP<<")");$$  =  TCP;}
+	| UDP		{DBG_YY("simple_type = UDP("<<UDP<<")");$$  =  UDP;}
 	;
 
-comp_op : OP_LG		{DBG_YY("comp_op = OP_LG");$$  =  OP_LG;}
-	| OP_SM		{DBG_YY("comp_op = OP_SM");$$  =  OP_SM;}
-	| OP_LEQ 	{DBG_YY("comp_op = OP_LEQ");$$  =  OP_LEQ;}
-	| OP_SEQ 	{DBG_YY("comp_op = OP_SEQ");$$  =  OP_SEQ;}
-	| OP_EQ 	{DBG_YY("comp_op = OP_EQ");$$  =  OP_EQ;}
-	| OP_NEQ 	{DBG_YY("comp_op = OP_NEQ");$$  =  OP_NEQ;}
-	| OP_NOT	{DBG_YY("comp_op = OP_NOT");$$  =  OP_NOT;}
+comp_op : OP_LG		{DBG_YY("comp_op = OP_LG("<<OP_LG<<")");$$  =  OP_LG;}
+	| OP_SM		{DBG_YY("comp_op = OP_SM("<<OP_SM<<")");$$  =  OP_SM;}
+	| OP_LEQ 	{DBG_YY("comp_op = OP_LEQ("<<OP_LEQ<<")");$$  =  OP_LEQ;}
+	| OP_SEQ 	{DBG_YY("comp_op = OP_SEQ("<<OP_SEQ<<")");$$  =  OP_SEQ;}
+	| OP_EQ 	{DBG_YY("comp_op = OP_EQ("<<OP_EQ<<")");$$  =  OP_EQ;}
+	| OP_NEQ 	{DBG_YY("comp_op = OP_NEQ("<<OP_NEQ<<")");$$  =  OP_NEQ;}
+	| OP_NOT	{DBG_YY("comp_op = OP_NOT("<<OP_NOT<<")");$$  =  OP_NOT;}
 	;
 
-stream_op : OP_IN	{DBG_YY("stream_op = OP_IN");$$  =  OP_IN;}
-	| OP_OUT	{DBG_YY("stream_op = OP_OUT");$$  =  OP_OUT;}
+stream_op : OP_IN	{DBG_YY("stream_op = OP_IN("<<OP_IN<<")");$$  =  OP_IN;}
+	| OP_OUT	{DBG_YY("stream_op = OP_OUT("<<OP_OUT<<")");$$  =  OP_OUT;}
 	;
 
 stmt_sep : ';'		{DBG_YY("stmt_sep = ;");}

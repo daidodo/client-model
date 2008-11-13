@@ -10,6 +10,7 @@
 #include "types.h"
 #include "mm.h"
 #include "util.h"
+#include "common/Sockets.h"
 
 struct CFixValue
 {
@@ -34,13 +35,9 @@ struct CFixValue
     }
 };
 
-struct CTcp
-{
-};
+typedef CTcpConnSocket  CTcp;
 
-struct CUdp
-{
-};
+typedef CUdpSocket      CUdp;
 
 struct CValue
 {
@@ -259,7 +256,7 @@ struct CFuncCall
     std::string ToString() const{
         std::ostringstream oss;
         oss<<"(ft_token_="<<ft_token_
-            <<"arg_list_="<<signa(arg_list_)
+            <<",arg_list_="<<signa(arg_list_)
             <<")";
         return oss.str();
     }
