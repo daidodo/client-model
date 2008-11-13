@@ -35,9 +35,29 @@ struct CFixValue
     }
 };
 
-typedef CTcpConnSocket  CTcp;
+struct CTcp : public CTcpConnSocket
+{
+    const int lineno_;
+    //functions:
+    explicit CTcp(int ln):lineno_(ln){}
+    std::string Signature() const{
+        std::ostringstream oss;
+        oss<<"(LINE:"<<lineno_<<")";
+        return oss.str();
+    }
+};
 
-typedef CUdpSocket      CUdp;
+struct CUdp : public CUdpSocket
+{
+    const int lineno_;
+    //functions:
+    explicit CUdp(int ln):lineno_(ln){}
+    std::string Signature() const{
+        std::ostringstream oss;
+        oss<<"(LINE:"<<lineno_<<")";
+        return oss.str();
+    }
+};
 
 struct CValue
 {
@@ -84,7 +104,9 @@ struct CVariable
         return oss.str();
     }
     std::string Signature() const{
-        return varname_;
+        std::ostringstream oss;
+        oss<<"(LINE:"<<lineno_<<")"<<varname_;
+        return oss.str();
     }
 };
 
@@ -171,7 +193,7 @@ struct CAssertExp
     }
 };
 
-struct CSimDeclare
+struct CDeclare
 {
     const int lineno_;
     int type_;
@@ -181,7 +203,7 @@ struct CSimDeclare
     CVariable * var_;
     CExpr * expr_;
     //functions:
-    explicit CSimDeclare(int ln)
+    explicit CDeclare(int ln)
         : lineno_(ln)
         , type_(0)
         , is_def_(0)
@@ -190,7 +212,7 @@ struct CSimDeclare
         , var_(0)
         , expr_(0)
     {}
-    ~CSimDeclare(){
+    ~CDeclare(){
         Delete(var_);
         Delete(expr_);
     }
@@ -272,7 +294,7 @@ struct CStmt
     const int lineno_;
     int type_;
     CAssertExp * assert_;
-    CSimDeclare * declare_;
+    CDeclare * declare_;
     CFuncCall * func_call_;
     //functions:
     explicit CStmt(int ln):lineno_(ln),type_(0),assert_(0){}
@@ -301,14 +323,14 @@ struct CCommand
 {
     const int lineno_;
     std::string cmd_name_;
-    std::vector<CStmt *> items_;
     std::map<std::string,CVariable *> var_table;
+    std::vector<CStmt *> items_;
     //functions:
     explicit CCommand(int ln):lineno_(ln){}
     ~CCommand(){
-        std::for_each(items_.begin(),items_.end(),Delete<CStmt>);
         for(std::map<std::string,CVariable *>::iterator i = var_table.begin();i != var_table.end();++i)
             Delete(i->second);
+        std::for_each(items_.begin(),items_.end(),Delete<CStmt>);
     }
     std::string ToString() const{
         std::ostringstream oss;
@@ -319,7 +341,9 @@ struct CCommand
         return oss.str();
     }
     std::string Signature() const{
-        return cmd_name_;
+        std::ostringstream oss;
+        oss<<"(LINE:"<<lineno_<<")"<<cmd_name_;
+        return oss.str();
     }
 };
 

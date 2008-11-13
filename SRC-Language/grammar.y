@@ -38,7 +38,7 @@ int yylex();
 	CExpr *		expr_;
 	CArrayType *	array_type_;
 	CAssertExp *	assert_exp_;
-	CSimDeclare *	declare_;
+	CDeclare *	declare_;
 	CFuncCall *	func_call_;
 }
 
@@ -66,11 +66,24 @@ func_call_list : func_call	{DBG_YY("func_call_list 1 ");}
 	| func_call_list func_call	{DBG_YY("func_call_list 2");}
 	;
 
+stmt_assert_list : stmt	{DBG_YY("stmt_list 1");}
+	| stmt_assert_list stmt	{DBG_YY("stmt_list 2");}
+	| stmt_assert_list assert_exp	{DBG_YY("stmt_list 3");}
+	;
+
+cmd_begin : CMD		{DBG_YY("cmd_begin 1");global().CmdBegin(0);}
+	| CMD VAR_NAME	{DBG_YY("cmd_begin 2");global().CmdBegin($2);}
+	;
+
+cmd_end : END CMD	{DBG_YY("cmd_end");global().CmdEnd();}
+	;
+
 declare : simple_declare
 			{
 				assert($1);
 				$$ = $1;
 				DBG_YY("declare 1 = "<<to_str($$));
+				global().AddStmt($$);
 			}
 	| DEF simple_declare
 			{
@@ -78,16 +91,8 @@ declare : simple_declare
 				$$ = $2;
 				$$->is_def_ = 1;
 				DBG_YY("declare 2 = "<<to_str($$));
+				global().AddStmt($$);
 			}
-	;
-
-stmt_assert_list : stmt	{DBG_YY("stmt_list 1");}
-	| stmt_assert_list stmt	{DBG_YY("stmt_list 2");}
-	| stmt_assert_list assert_exp	{DBG_YY("stmt_list 3");}
-	;
-
-cmd_begin : CMD		{DBG_YY("cmd_begin 1");}
-	| CMD VAR_NAME	{DBG_YY("cmd_begin 2");}
 	;
 
 	/* level 3 */
@@ -96,6 +101,7 @@ func_call : func_name
 				$$ = New<CFuncCall>(LINE_NO);
 				$$->ft_token_ = $1;
 				DBG_YY("func_call 1 = "<<to_str($$));
+				global().AddStmt($$);
 			}
 	| func_name '(' arg_list ')'
 			{
@@ -104,6 +110,7 @@ func_call : func_name
 				$$->ft_token_ = $1;
 				$$->arg_list_ = $3;
 				DBG_YY("func_call 2 = "<<to_str($$));
+				global().AddStmt($$);
 			}
 	| simple_type '(' arg_list ')'
 			{
@@ -112,99 +119,7 @@ func_call : func_name
 				$$->ft_token_ = $1;
 				$$->arg_list_ = $3;
 				DBG_YY("func_call 3 = "<<to_str($$));
-			}
-	;
-
-simple_declare : array_type VAR_NAME
-			{
-				assert($1 && $2);
-				$$ = New<CSimDeclare>($1->lineno_);
-				$$->type_ = 1;
-				$$->var_ = $2;
-				$$->var_->type_ = 2;
-				$$->var_->array_type_ = $1;
-				DBG_YY("simple_declare 1 = "<<to_str($$));
-			}
-	| sim_type_name	{
-				assert($1);
-				$$ = New<CSimDeclare>($1->lineno_);
-				$$->type_ = 2;
-				$$->var_ = $1;
-				DBG_YY("simple_declare 2 = "<<to_str($$));
-			}
-	| sim_type_name '=' expr
-			{
-				assert($1 && $3);
-				$$ = New<CSimDeclare>($1->lineno_);
-				$$->type_ = 3;
-				$$->var_ = $1;
-				$$->expr_ = $3;
-				DBG_YY("simple_declare 3 = "<<to_str($$));
-			}
-	| sim_type_name '(' arg_list ')'
-			{
-				assert($1 && $3);
-				$$ = New<CSimDeclare>($1->lineno_);
-				$$->type_ = 4;
-				$$->var_ = $1;
-				$$->expr_ = New<CExpr>($1->lineno_);
-				$$->expr_->type_ = 2;
-				$$->expr_->func_call_ =  New<CFuncCall>($1->lineno_);
-				$$->expr_->func_call_->ft_token_ = $1->simple_type_;
-				$$->expr_->func_call_->arg_list_ = $3;
-				DBG_YY("simple_declare 4 = "<<to_str($$));
-			}
-	| sim_type_name IEQ expr
-			{
-				assert($1 && $3);
-				$$ = New<CSimDeclare>($1->lineno_);
-				$$->type_ = 5;
-				$$->var_ = $1;
-				$$->expr_ = $3;
-				DBG_YY("simple_declare 5 = "<<to_str($$));
-			}
-	| sim_type_name ':' '(' arg_list ')'
-			{
-				assert($1 && $4);
-				$$ = New<CSimDeclare>($1->lineno_);
-				$$->type_ = 6;
-				$$->var_ = $1;
-				$$->expr_ = New<CExpr>($1->lineno_);
-				$$->expr_->type_ = 2;
-				$$->expr_->func_call_ =  New<CFuncCall>($1->lineno_);
-				$$->expr_->func_call_->ft_token_ = $1->simple_type_;
-				$$->expr_->func_call_->arg_list_ = $4;
-				DBG_YY("simple_declare 6 = "<<to_str($$));
-			}
-	| sim_type_name comp_op expr
-			{
-				assert($1 && $3);
-				$$ = New<CSimDeclare>($1->lineno_);
-				$$->type_ = 7;
-				$$->var_ = $1;
-				$$->op_token = $2;
-				$$->expr_ = $3;
-				DBG_YY("simple_declare 7 = "<<to_str($$));
-			}
-	| sim_type_name stream_op expr
-			{
-				assert($1 && $3);
-				$$ = New<CSimDeclare>($1->lineno_);
-				$$->type_ = 8;
-				$$->var_ = $1;
-				$$->op_token = $2;
-				$$->expr_ = $3;
-				DBG_YY("simple_declare 8 = "<<to_str($$));
-			}
-	| sim_type_name stream_op simple_type
-			{
-				assert($1);
-				$$ = New<CSimDeclare>($1->lineno_);
-				$$->type_ = 9;
-				$$->var_ = $1;
-				$$->op_token = $2;
-				$$->simple_type = $3;
-				DBG_YY("simple_declare 9 = "<<to_str($$));
+				global().AddStmt($$);
 			}
 	;
 
@@ -218,6 +133,7 @@ assert_exp : expr comp_op expr
 				$$->expr1_ = $1;
 				$$->expr2_ = $3;
 				DBG_YY("assert_exp 1 = "<<to_str($$));
+				global().AddStmt($$);
 			}
 	| comp_op expr	{
 				if(!IsUnaryPredict($1)){
@@ -227,6 +143,100 @@ assert_exp : expr comp_op expr
 				$$->op_token_ = $1;
 				$$->expr1_ = $2;
 				DBG_YY("assert_exp 2 = "<<to_str($$));
+				global().AddStmt($$);
+			}
+	;
+
+simple_declare : array_type VAR_NAME
+			{
+				assert($1 && $2);
+				$$ = New<CDeclare>($1->lineno_);
+				$$->type_ = 1;
+				$$->var_ = $2;
+				$$->var_->type_ = 2;
+				$$->var_->array_type_ = $1;
+				DBG_YY("simple_declare 1 = "<<to_str($$));
+			}
+	| sim_type_name	{
+				assert($1);
+				$$ = New<CDeclare>($1->lineno_);
+				$$->type_ = 2;
+				$$->var_ = $1;
+				DBG_YY("simple_declare 2 = "<<to_str($$));
+			}
+	| sim_type_name '=' expr
+			{
+				assert($1 && $3);
+				$$ = New<CDeclare>($1->lineno_);
+				$$->type_ = 3;
+				$$->var_ = $1;
+				$$->expr_ = $3;
+				DBG_YY("simple_declare 3 = "<<to_str($$));
+			}
+	| sim_type_name '(' arg_list ')'
+			{
+				assert($1 && $3);
+				$$ = New<CDeclare>($1->lineno_);
+				$$->type_ = 4;
+				$$->var_ = $1;
+				$$->expr_ = New<CExpr>($1->lineno_);
+				$$->expr_->type_ = 2;
+				$$->expr_->func_call_ =  New<CFuncCall>($1->lineno_);
+				$$->expr_->func_call_->ft_token_ = $1->simple_type_;
+				$$->expr_->func_call_->arg_list_ = $3;
+				DBG_YY("simple_declare 4 = "<<to_str($$));
+			}
+	| sim_type_name IEQ expr
+			{
+				assert($1 && $3);
+				$$ = New<CDeclare>($1->lineno_);
+				$$->type_ = 5;
+				$$->var_ = $1;
+				$$->expr_ = $3;
+				DBG_YY("simple_declare 5 = "<<to_str($$));
+			}
+	| sim_type_name ':' '(' arg_list ')'
+			{
+				assert($1 && $4);
+				$$ = New<CDeclare>($1->lineno_);
+				$$->type_ = 6;
+				$$->var_ = $1;
+				$$->expr_ = New<CExpr>($1->lineno_);
+				$$->expr_->type_ = 2;
+				$$->expr_->func_call_ =  New<CFuncCall>($1->lineno_);
+				$$->expr_->func_call_->ft_token_ = $1->simple_type_;
+				$$->expr_->func_call_->arg_list_ = $4;
+				DBG_YY("simple_declare 6 = "<<to_str($$));
+			}
+	| sim_type_name comp_op expr
+			{
+				assert($1 && $3);
+				$$ = New<CDeclare>($1->lineno_);
+				$$->type_ = 7;
+				$$->var_ = $1;
+				$$->op_token = $2;
+				$$->expr_ = $3;
+				DBG_YY("simple_declare 7 = "<<to_str($$));
+			}
+	| sim_type_name stream_op expr
+			{
+				assert($1 && $3);
+				$$ = New<CDeclare>($1->lineno_);
+				$$->type_ = 8;
+				$$->var_ = $1;
+				$$->op_token = $2;
+				$$->expr_ = $3;
+				DBG_YY("simple_declare 8 = "<<to_str($$));
+			}
+	| sim_type_name stream_op simple_type
+			{
+				assert($1);
+				$$ = New<CDeclare>($1->lineno_);
+				$$->type_ = 9;
+				$$->var_ = $1;
+				$$->op_token = $2;
+				$$->simple_type = $3;
+				DBG_YY("simple_declare 9 = "<<to_str($$));
 			}
 	;
 
@@ -316,9 +326,6 @@ fix_value : NUMBER	{
 				$$->strIdx_ = $1;
 				DBG_YY("fix_value 2 = "<<to_str($$));
 			}
-	;
-
-cmd_end : END CMD	{DBG_YY("cmd_end");}
 	;
 
 func_name : FUN		{DBG_YY("func_name = FUN("<<FUN<<")");$$  =  FUN;}
