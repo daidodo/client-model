@@ -22,63 +22,6 @@ int str2int(const char * str,size_t len)
     return ret;
 }
 
-//int qstr(std::string & res,const char * src,size_t len)
-//{
-//    assert(src && len);
-//    res.clear();
-//    int nl = 0;
-//    int state = 0;
-//    for(const char * end = src + len;src < end;++src){
-//        switch(state){
-//            case 0:{
-//                if(*src != '\"')
-//                    return -1;
-//                state = 1;
-//                break;}
-//            case 1:{
-//                if(*src == '\"')
-//                    state = 2;
-//                else if(*src == '\\')
-//                    state = 3;
-//                else if(*src == '\n')
-//                    return -1;
-//                else
-//                    res.push_back(*src);
-//                break;}
-//            case 2:{
-//                if(src != end)
-//                    return -1;
-//                break;}
-//            case 3:{
-//                state = 1;
-//                switch(*src){
-//                    case 'a':res.push_back('\a');break;
-//                    case 'b':res.push_back('\b');break;
-//                    case 't':res.push_back('\t');break;
-//                    case 'n':res.push_back('\n');break;
-//                    case 'v':res.push_back('\v');break;
-//                    case 'f':res.push_back('\f');break;
-//                    case 'r':res.push_back('\r');break;
-//                    case '0':res.push_back('\0');break;
-//                    case '\n':++nl;break;
-//                    case '\r':state = 4;break;
-//                    default:res.push_back(*src);
-//                }
-//                break;}
-//            case 4:{
-//                if(*src == '\n'){
-//                    state = 1;
-//                    ++nl;
-//                }else
-//                    return -1;
-//                break;}
-//            default:
-//                return -1;
-//        }
-//    }
-//    return nl;
-//}
-
 int atoi_base8(const char * str,size_t len)
 {
     assert(str && len);

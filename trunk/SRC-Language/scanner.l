@@ -4,10 +4,6 @@
 #include "errors.h"
 #include "dbg.h"
 #include "y.tab.h"
-
-#define CUR_TOK	global().cur_tok
-#define LINE_NO	global().lineno
-
 %}
 
 %x QSTR_S

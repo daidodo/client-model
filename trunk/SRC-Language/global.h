@@ -2,6 +2,7 @@
 #define DOZERG_GLOBAL_H_20081111
 
 #include <map>
+#include <cassert>
 #include "symbols.h"
 
 class CGlobal
@@ -31,12 +32,16 @@ public:
         typedef std::map<std::string,CVariable *>::const_iterator __Iter;
         __Iter wh = var_table.find(varname);
         if(wh == var_table.end()){
-            CVariable * ret = New<CVariable>();
+            CVariable * ret = New<CVariable>(lineno);
             ret->varname_ = varname;
-            ret->type_ = 0;
-            return (var_table[varname] = ret);
+            var_table[varname] = ret;
+            return ret;
         }else
             return wh->second;
+    }
+    const std::string & GetQstr(size_t i) const{
+        assert(i < qstr_table.size());
+        return qstr_table[i];
     }
 //members:
     //parse infos
@@ -58,5 +63,8 @@ public:
 };
 
 inline CGlobal & global(){return CGlobal::Inst();}
+
+#define CUR_TOK (global().cur_tok)
+#define LINE_NO (global().lineno)
 
 #endif
