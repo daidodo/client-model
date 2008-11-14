@@ -43,8 +43,7 @@ nzero	([1-9][0-9]+)
 <QSTR_S>{nl}	{SYNTAX_ERR("unterminated string");}
 <QSTR_S>\"	{
 			BEGIN INITIAL;
-			yylval.strIdx_ = global().qstr_table.size();
-			global().qstr_table.push_back(CUR_TOK);
+			yylval.strIdx_ = program().AddQstr(CUR_TOK);
 			return QSTRING;
 		}
 <QSTR_S>.	{CUR_TOK.push_back(*yytext);}
@@ -104,7 +103,7 @@ DEF	{CUR_TOK = yytext;DBG_LEX1("DEF",CUR_TOK);return DEF;}
 [_a-zA-Z][_a-zA-Z0-9]*	{
 				CUR_TOK = yytext;
 				DBG_LEX1("VAR_NAME",CUR_TOK);
-				yylval.var_ = global().GetVar(CUR_TOK);
+				yylval.var_ = program().GetVar(CUR_TOK);
 				return VAR_NAME;
 			}
 

@@ -9,6 +9,6 @@ void grammar_error(int lineno,const std::string & msg);
 
 #define SYNTAX_ERR(msg)      {std::ostringstream oss;oss<<msg;yyerror(oss.str().c_str());}
 
-#define GAMMAR_ERR(ln,msg)   {std::ostringstream oss;oss<<msg;grammar_error(ln,oss.str());}
+#define GAMMAR_ERR(ln,msg)   do{std::ostringstream oss;oss<<msg;grammar_error(ln,oss.str());}while(0)
 
 #endif
