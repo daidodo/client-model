@@ -17,3 +17,7 @@ bool IsUnaryPredict(int op_token){
     return (op_token == OP_NOT);
 }
 
+bool IsOnlyGlobalType(int type_token)
+{
+    return (type_token == TCP || type_token == UDP);
+}

@@ -4,7 +4,9 @@
 #include "global.h"
 #include "tokens.h"
 #include "errors.h"
+#include "mm.h"
 #include "dbg.h"
+#include "util.h"
 
 int yylex();
 %}
@@ -81,11 +83,11 @@ stmt_assert_list : stmt
 			{DBG_YY("stmt_list 3");}
 	;
 
-cmd_begin : CMD		{DBG_YY("cmd_begin 1");global().CmdBegin(0);}
-	| CMD VAR_NAME	{DBG_YY("cmd_begin 2");global().CmdBegin($2);}
+cmd_begin : CMD		{DBG_YY("cmd_begin 1");program().CmdBegin(0);}
+	| CMD VAR_NAME	{DBG_YY("cmd_begin 2");program().CmdBegin($2);}
 	;
 
-cmd_end : END CMD	{DBG_YY("cmd_end");global().CmdEnd();}
+cmd_end : END CMD	{DBG_YY("cmd_end");program().CmdEnd();}
 	;
 
 declare : simple_declare
@@ -95,7 +97,7 @@ declare : simple_declare
 				YY_ASSERT($1);
 				$$ = $1;
 				DBG_YY("$$ = "<<to_str($$));
-				global().AddStmt($$);
+				program().AddStmt($$);
 			}
 	| DEF simple_declare
 			{
@@ -105,7 +107,7 @@ declare : simple_declare
 				$$ = $2;
 				$$->is_def_ = 1;
 				DBG_YY("$$ = "<<to_str($$));
-				global().AddStmt($$);
+				program().AddStmt($$);
 			}
 	;
 
@@ -117,7 +119,7 @@ func_call : func_name
 				$$ = New<CFuncCall>(LINE_NO);
 				$$->ft_token_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
-				global().AddStmt($$);
+				program().AddStmt($$);
 			}
 	| func_name '(' arg_list ')'
 			{
@@ -129,19 +131,18 @@ func_call : func_name
 				$$->ft_token_ = $1;
 				$$->arg_list_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
-				global().AddStmt($$);
+				program().AddStmt($$);
 			}
 	| simple_type '(' arg_list ')'
 			{
 				DBG_YY("func_call 3");
 				DBG_YY("$1 = "<<$1);
 				DBG_YY("$3 = "<<to_str($3));
-				YY_ASSERT($3);
 				$$ = New<CFuncCall>(LINE_NO);
 				$$->ft_token_ = $1;
 				$$->arg_list_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
-				global().AddStmt($$);
+				program().AddStmt($$);
 			}
 	;
 
@@ -153,13 +154,17 @@ assert_exp : expr comp_op expr
 				DBG_YY("$3 = "<<to_str($3));
 				if(!IsBinaryPredict($2)){
 					GAMMAR_ERR($1->lineno_,"prediction format error");
+					Delete($1);
+					Delete($3);
+					$$ = 0;
+				}else{
+					$$ = New<CAssertExp>($1->lineno_);
+					$$->op_token_ = $2;
+					$$->expr1_ = $1;
+					$$->expr2_ = $3;
+					DBG_YY("$$ = "<<to_str($$));
+					program().AddStmt($$);
 				}
-				$$ = New<CAssertExp>($1->lineno_);
-				$$->op_token_ = $2;
-				$$->expr1_ = $1;
-				$$->expr2_ = $3;
-				DBG_YY("$$ = "<<to_str($$));
-				global().AddStmt($$);
 			}
 	| comp_op expr	{
 				DBG_YY("assert_exp 2");
@@ -167,12 +172,15 @@ assert_exp : expr comp_op expr
 				DBG_YY("$2 = "<<to_str($2));
 				if(!IsUnaryPredict($1)){
 					GAMMAR_ERR($2->lineno_,"prediction format error");
+					Delete($2);
+					$$ = 0;
+				}else{
+					$$ = New<CAssertExp>($2->lineno_);
+					$$->op_token_ = $1;
+					$$->expr1_ = $2;
+					DBG_YY("$$ = "<<to_str($$));
+					program().AddStmt($$);
 				}
-				$$ = New<CAssertExp>($2->lineno_);
-				$$->op_token_ = $1;
-				$$->expr1_ = $2;
-				DBG_YY("$$ = "<<to_str($$));
-				global().AddStmt($$);
 			}
 	;
 
@@ -186,8 +194,10 @@ simple_declare : array_type VAR_NAME
 					if($2->host_cmd_ == CUR_CMD){
 						GAMMAR_ERR($1->lineno_,"redefine of '"<<$2->varname_
 							<<"', see LINE:"<<$2->lineno_);
+						Delete($1);
+						YYERROR;
 					}else
-						$2 = global().NewVar($2->varname_,$2);
+						$2 = program().NewVar($2->varname_,$2);
 				}
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 1;
@@ -222,7 +232,7 @@ simple_declare : array_type VAR_NAME
 				DBG_YY("simple_declare 4");
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$3 = "<<to_str($3));
-				YY_ASSERT($1 && $3);
+				YY_ASSERT($1);
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 4;
 				$$->var_ = $1;
@@ -250,7 +260,7 @@ simple_declare : array_type VAR_NAME
 				DBG_YY("simple_declare 6");
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$4 = "<<to_str($4));
-				YY_ASSERT($1 && $4);
+				YY_ASSERT($1);
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 6;
 				$$->var_ = $1;
@@ -375,8 +385,9 @@ sim_type_name : simple_type VAR_NAME
 					if($2->host_cmd_ == CUR_CMD){
 						GAMMAR_ERR(LINE_NO,"redefine of '"<<$2->varname_
 							<<"', see LINE:"<<$2->lineno_);
+						YYERROR;
 					}else
-						$2 = global().NewVar($2->varname_,$2);
+						$2 = program().NewVar($2->varname_,$2);
 				}
 				$$ = $2;
 				$$->type_ = 1;
@@ -408,8 +419,9 @@ expr : fix_value	{
 				DBG_YY("$1 = "<<to_str($1));
 				YY_ASSERT($1);
 				if($1->ref_count_ == 0){
-					GAMMAR_ERR(LINE_NO,"undefined variable "
-						<<$1->varname_);
+					GAMMAR_ERR(LINE_NO,"undefined variable '"
+						<<$1->varname_<<"'");
+					YYERROR;	
 				}
 				$$ = New<CExpr>(LINE_NO);
 				$$->type_ = 3;

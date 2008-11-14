@@ -6,10 +6,7 @@
 #include <string>
 #include <sstream>
 #include <algorithm>
-#include <cassert>
 #include "types.h"
-#include "mm.h"
-#include "util.h"
 #include "common/Sockets.h"
 
 struct CFixValue
@@ -19,44 +16,25 @@ struct CFixValue
     int number_;
     size_t strIdx_;
     //functions:
-    explicit CFixValue(int ln):lineno_(ln),type_(0),number_(0),strIdx_(0){}
-    std::string ToString() const{
-        std::ostringstream oss;
-        oss<<"(type_="<<type_
-            <<",number_="<<number_
-            <<",strIdx_="<<strIdx_
-            <<")";
-        return oss.str();
-    }
-    std::string Signature() const{
-        std::ostringstream oss;
-        oss<<"(LINE:"<<lineno_<<")";
-        return oss.str();
-    }
+    explicit CFixValue(int ln);
+    std::string ToString() const;
+    std::string Signature() const;
 };
 
 struct CTcp : public CTcpConnSocket
 {
     const int lineno_;
     //functions:
-    explicit CTcp(int ln):lineno_(ln){}
-    std::string Signature() const{
-        std::ostringstream oss;
-        oss<<"(LINE:"<<lineno_<<")";
-        return oss.str();
-    }
+    explicit CTcp(int ln);
+    std::string Signature() const;
 };
 
 struct CUdp : public CUdpSocket
 {
     const int lineno_;
     //functions:
-    explicit CUdp(int ln):lineno_(ln){}
-    std::string Signature() const{
-        std::ostringstream oss;
-        oss<<"(LINE:"<<lineno_<<")";
-        return oss.str();
-    }
+    explicit CUdp(int ln);
+    std::string Signature() const;
 };
 
 struct CValue
@@ -93,34 +71,10 @@ struct CVariable
     CCommand * host_cmd_;
     std::vector<CValue> val_;
     //functions:
-    explicit CVariable(int ln)
-        : lineno_(ln)
-        , type_(0)
-        , simple_type_(0)
-        , ref_count_(0)
-        , array_type_(0)
-        , host_cmd_(0)
-    {}
-    ~CVariable(){
-        Delete(array_type_);
-    }
-    std::string ToString() const{
-        std::ostringstream oss;
-        oss<<"(varname_="<<varname_
-            <<",type_="<<type_
-            <<",simple_type_="<<simple_type_
-            <<",array_type_="<<signa(array_type_)
-            <<",val_.size()="<<val_.size()
-            <<",ref_count_="<<ref_count_
-            <<",host_cmd_="<<signa(host_cmd_)
-            <<")";
-        return oss.str();
-    }
-    std::string Signature() const{
-        std::ostringstream oss;
-        oss<<"(LINE:"<<lineno_<<")"<<varname_;
-        return oss.str();
-    }
+    explicit CVariable(int ln);
+    ~CVariable();
+    std::string ToString() const;
+    std::string Signature() const;
 };
 
 struct CFuncCall;
@@ -133,26 +87,10 @@ struct CExpr
     CFuncCall * func_call_;
     CVariable * var_;
     //functions:
-    explicit CExpr(int ln):lineno_(ln),type_(0),fix_value_(0),func_call_(0),var_(0){}
-    ~CExpr(){
-        Delete(fix_value_);
-        Delete(func_call_);
-        Delete(var_);
-    }
-    std::string ToString() const{
-        std::ostringstream oss;
-        oss<<"(type_="<<type_
-            <<",fix_value_="<<signa(fix_value_)
-            <<",func_call_="<<signa(func_call_)
-            <<",var_="<<signa(var_)
-            <<")";
-        return oss.str();
-    }
-    std::string Signature() const{
-        std::ostringstream oss;
-        oss<<"(LINE:"<<lineno_<<")";
-        return oss.str();
-    }
+    explicit CExpr(int ln);
+    ~CExpr();
+    std::string ToString() const;
+    std::string Signature() const;
 };
 
 struct CArrayType
@@ -161,22 +99,10 @@ struct CArrayType
     int simple_type_;
     CExpr * expr_;
     //functions:
-    explicit CArrayType(int ln):lineno_(ln),simple_type_(0),expr_(0){}
-    ~CArrayType(){
-        Delete(expr_);
-    }
-    std::string ToString() const{
-        std::ostringstream oss;
-        oss<<"(simple_type_="<<simple_type_
-            <<",expr_="<<signa(expr_)
-            <<")";
-        return oss.str();
-    }
-    std::string Signature() const{
-        std::ostringstream oss;
-        oss<<"(LINE:"<<lineno_<<")";
-        return oss.str();
-    }
+    explicit CArrayType(int ln);
+    ~CArrayType();
+    std::string ToString() const;
+    std::string Signature() const;
 };
 
 struct CAssertExp
@@ -186,24 +112,10 @@ struct CAssertExp
     CExpr * expr1_;
     CExpr * expr2_;
     //functions:
-    explicit CAssertExp(int ln):lineno_(ln),op_token_(0),expr1_(0),expr2_(0){}
-    ~CAssertExp(){
-        Delete(expr1_);
-        Delete(expr2_);
-    }
-    std::string ToString() const{
-        std::ostringstream oss;
-        oss<<"(op_token_="<<op_token_
-            <<",expr1_="<<signa(expr1_)
-            <<",expr2_="<<signa(expr2_)
-            <<")";
-        return oss.str();
-    }
-    std::string Signature() const{
-        std::ostringstream oss;
-        oss<<"(LINE:"<<lineno_<<")";
-        return oss.str();
-    }
+    explicit CAssertExp(int ln);
+    ~CAssertExp();
+    std::string ToString() const;
+    std::string Signature() const;
 };
 
 struct CDeclare
@@ -216,32 +128,11 @@ struct CDeclare
     CVariable * var_;
     CExpr * expr_;
     //functions:
-    explicit CDeclare(int ln)
-        : lineno_(ln)
-        , type_(0)
-        , is_def_(0)
-        , op_token(0)
-        , simple_type(0)
-        , var_(0)
-        , expr_(0)
-    {}
-    ~CDeclare(){
-        Delete(var_);
-        Delete(expr_);
-    }
-    std::string ToString() const{
-        std::ostringstream oss;
-        oss<<"(type_="<<type_
-            <<",var_="<<signa(var_)
-            <<",op_token="<<op_token
-            <<",expr_="<<signa(expr_)
-            <<",simple_type="<<simple_type
-            <<")";
-        return oss.str();
-    }
-    std::string Signature() const{
-        return signa(var_);
-    }
+    explicit CDeclare(int ln);
+    ~CDeclare();
+    std::string ToString() const;
+    std::string Signature() const;
+    bool IsGlobalOnly() const;
 };
 
 struct CArgList
@@ -249,33 +140,12 @@ struct CArgList
     const int lineno_;
     std::vector<CExpr *> args_;
     //fuctions:
-    explicit CArgList(int ln):lineno_(ln){}
-    ~CArgList(){
-        std::for_each(args_.begin(),args_.end(),Delete<CExpr>);
-    }
-    CExpr * operator [](size_t i) const{
-        assert(i < args_.size());
-        return args_[i];
-    }
-    void Add(CExpr * arg){
-        args_.push_back(arg);
-    }
-    std::string ToString() const{
-        std::ostringstream oss;
-        oss<<"(";
-        if(!args_.empty()){
-            oss<<"args_[0]="<<signa(args_[0]);
-            for(size_t i = 1;i < args_.size();++i)
-                oss<<",args_["<<i<<"]="<<signa(args_[i]);
-        }
-        oss<<")";
-        return oss.str();
-    }
-    std::string Signature() const{
-        std::ostringstream oss;
-        oss<<"(LINE:"<<lineno_<<")";
-        return oss.str();
-    }
+    explicit CArgList(int ln);
+    ~CArgList();
+    CExpr * operator [](size_t i) const;
+    void Add(CExpr * arg);
+    std::string ToString() const;
+    std::string Signature() const;
 };
 
 struct CFuncCall
@@ -284,22 +154,10 @@ struct CFuncCall
     int ft_token_;
     CArgList * arg_list_;
     //functions:
-    explicit CFuncCall(int ln):lineno_(ln),ft_token_(0),arg_list_(0){}
-    ~CFuncCall(){
-        Delete(arg_list_);
-    }
-    std::string ToString() const{
-        std::ostringstream oss;
-        oss<<"(ft_token_="<<ft_token_
-            <<",arg_list_="<<signa(arg_list_)
-            <<")";
-        return oss.str();
-    }
-    std::string Signature() const{
-        std::ostringstream oss;
-        oss<<"(LINE:"<<lineno_<<")"<<ft_token_;
-        return oss.str();
-    }
+    explicit CFuncCall(int ln);
+    ~CFuncCall();
+    std::string ToString() const;
+    std::string Signature() const;
 };
 
 struct CStmt
@@ -310,26 +168,10 @@ struct CStmt
     CDeclare * declare_;
     CFuncCall * func_call_;
     //functions:
-    explicit CStmt(int ln):lineno_(ln),type_(0),assert_(0){}
-    ~CStmt(){
-        Delete(assert_);
-        Delete(declare_);
-        Delete(func_call_);
-    }
-    std::string ToString() const{
-        std::ostringstream oss;
-        oss<<"(type_="<<type_
-            <<",assert_="<<signa(assert_)
-            <<",declare_="<<signa(declare_)
-            <<",func_call_="<<signa(func_call_)
-            <<")";
-        return oss.str();
-    }
-    std::string Signature() const{
-        std::ostringstream oss;
-        oss<<"(LINE:"<<lineno_<<")";
-        return oss.str();
-    }
+    explicit CStmt(int ln);
+    ~CStmt();
+    std::string ToString() const;
+    std::string Signature() const;
 };
 
 typedef std::map<std::string,CVariable *>   __VarTable;
@@ -341,25 +183,39 @@ struct CCommand
     __VarTable var_table;
     std::vector<CStmt *> stmt_list_;
     //functions:
-    explicit CCommand(int ln):lineno_(ln){}
-    ~CCommand(){
-        for(__VarTable::iterator i = var_table.begin();i != var_table.end();++i)
-            Delete(i->second);
-        std::for_each(stmt_list_.begin(),stmt_list_.end(),Delete<CStmt>);
-    }
-    std::string ToString() const{
-        std::ostringstream oss;
-        oss<<"(cmd_name_="<<cmd_name_;
-        for(size_t i = 0;i < stmt_list_.size();++i)
-            oss<<",stmt_list_["<<i<<"]="<<signa(stmt_list_[i]);
-        oss<<")";
-        return oss.str();
-    }
-    std::string Signature() const{
-        std::ostringstream oss;
-        oss<<"(LINE:"<<lineno_<<")"<<cmd_name_;
-        return oss.str();
-    }
+    explicit CCommand(int ln);
+    ~CCommand();
+    std::string ToString() const;
+    std::string Signature() const;
+};
+
+struct CProgram
+{
+    //vars and stmts
+    std::vector<std::string> qstr_table;
+    __VarTable var_table;
+    std::vector<CStmt *> global_stmts;
+    //connections
+    bool tcp_default;
+    std::vector<CTcp *> tcp_table;
+    std::vector<CUdp *> udp_table;
+    //commands
+    CCommand * cur_cmd;
+    std::map<std::string,CCommand *> cmd_table;
+//functions:
+    CProgram();
+    ~CProgram();
+    bool isGlobal() const{return !cur_cmd;}
+    size_t AddQstr(const std::string qstr);
+    static CVariable * findVar(const __VarTable & vt,const std::string & name);
+    CVariable * GetVar(const std::string & varname);
+    CVariable * NewVar(const std::string & varname,CVariable * old = 0);
+    const std::string & GetQstr(size_t i) const;
+    void AddStmt(CAssertExp * stmt);
+    void AddStmt(CDeclare * stmt);
+    void AddStmt(CFuncCall * stmt);
+    void CmdBegin(CVariable * var_name);
+    void CmdEnd();
 };
 
 #endif
