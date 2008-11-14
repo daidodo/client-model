@@ -69,12 +69,14 @@ struct CVariable
     int ref_count_;
     CArrayType * array_type_;
     CCommand * host_cmd_;
+    CVariable * shadow_;
     std::vector<CValue> val_;
     //functions:
     explicit CVariable(int ln);
     ~CVariable();
     std::string ToString() const;
     std::string Signature() const;
+    bool IsGlobal() const{return !host_cmd_;}
 };
 
 struct CFuncCall;
@@ -91,6 +93,7 @@ struct CExpr
     ~CExpr();
     std::string ToString() const;
     std::string Signature() const;
+    bool IsVar() const{return type_ == 3;}
 };
 
 struct CArrayType
@@ -116,6 +119,7 @@ struct CAssertExp
     ~CAssertExp();
     std::string ToString() const;
     std::string Signature() const;
+    bool Validate() const;
 };
 
 struct CDeclare
@@ -133,6 +137,12 @@ struct CDeclare
     std::string ToString() const;
     std::string Signature() const;
     bool IsGlobalOnly() const;
+    bool Validate() const;          //self validation
+    bool IsArray() const{return type_ == 1;}
+    bool IsVariable() const{return type_ == 2 || type_ == 3;}
+    bool IsFixed() const{return type_ == 5 || type_ == 6;}
+    bool IsAssert() const{return type_ == 7;}
+    bool IsStream() const{return type_ == 8 || type_ == 9;}
 };
 
 struct CArgList
@@ -187,35 +197,6 @@ struct CCommand
     ~CCommand();
     std::string ToString() const;
     std::string Signature() const;
-};
-
-struct CProgram
-{
-    //vars and stmts
-    std::vector<std::string> qstr_table;
-    __VarTable var_table;
-    std::vector<CStmt *> global_stmts;
-    //connections
-    bool tcp_default;
-    std::vector<CTcp *> tcp_table;
-    std::vector<CUdp *> udp_table;
-    //commands
-    CCommand * cur_cmd;
-    std::map<std::string,CCommand *> cmd_table;
-//functions:
-    CProgram();
-    ~CProgram();
-    bool isGlobal() const{return !cur_cmd;}
-    size_t AddQstr(const std::string qstr);
-    static CVariable * findVar(const __VarTable & vt,const std::string & name);
-    CVariable * GetVar(const std::string & varname);
-    CVariable * NewVar(const std::string & varname,CVariable * old = 0);
-    const std::string & GetQstr(size_t i) const;
-    void AddStmt(CAssertExp * stmt);
-    void AddStmt(CDeclare * stmt);
-    void AddStmt(CFuncCall * stmt);
-    void CmdBegin(CVariable * var_name);
-    void CmdEnd();
 };
 
 #endif

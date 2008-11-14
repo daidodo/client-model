@@ -1,17 +1,15 @@
 %{
-#include <cassert>
 #include <iostream>
 #include "global.h"
-#include "tokens.h"
-#include "errors.h"
 #include "mm.h"
 #include "dbg.h"
 #include "util.h"
+#include "errors.h"
 
 int yylex();
 %}
 
-%token NL IEQ
+%token NL EOF_ IEQ
 %token CMD DEF
 %token U8 S8 U16 S16 U32 S32 U64 S64 STR RAW TCP UDP
 %token FUN BEGIN_ END HBO NBO SEND RECV HEX UNHEX
@@ -152,35 +150,22 @@ assert_exp : expr comp_op expr
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$2 = "<<$2);
 				DBG_YY("$3 = "<<to_str($3));
-				if(!IsBinaryPredict($2)){
-					GAMMAR_ERR($1->lineno_,"prediction format error");
-					Delete($1);
-					Delete($3);
-					$$ = 0;
-				}else{
-					$$ = New<CAssertExp>($1->lineno_);
-					$$->op_token_ = $2;
-					$$->expr1_ = $1;
-					$$->expr2_ = $3;
-					DBG_YY("$$ = "<<to_str($$));
-					program().AddStmt($$);
-				}
+				$$ = New<CAssertExp>(LINE_NO);
+				$$->op_token_ = $2;
+				$$->expr1_ = $1;
+				$$->expr2_ = $3;
+				DBG_YY("$$ = "<<to_str($$));
+				program().AddStmt($$);
 			}
 	| comp_op expr	{
 				DBG_YY("assert_exp 2");
 				DBG_YY("$1 = "<<$1);
 				DBG_YY("$2 = "<<to_str($2));
-				if(!IsUnaryPredict($1)){
-					GAMMAR_ERR($2->lineno_,"prediction format error");
-					Delete($2);
-					$$ = 0;
-				}else{
-					$$ = New<CAssertExp>($2->lineno_);
-					$$->op_token_ = $1;
-					$$->expr1_ = $2;
-					DBG_YY("$$ = "<<to_str($$));
-					program().AddStmt($$);
-				}
+				$$ = New<CAssertExp>(LINE_NO);
+				$$->op_token_ = $1;
+				$$->expr1_ = $2;
+				DBG_YY("$$ = "<<to_str($$));
+				program().AddStmt($$);
 			}
 	;
 
@@ -190,18 +175,17 @@ simple_declare : array_type VAR_NAME
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$2 = "<<to_str($2));
 				YY_ASSERT($1 && $2);
-				if($2->ref_count_ > 0){
-					if($2->host_cmd_ == CUR_CMD){
-						GAMMAR_ERR($1->lineno_,"redefine of '"<<$2->varname_
-							<<"', see LINE:"<<$2->lineno_);
-						Delete($1);
-						YYERROR;
-					}else
-						$2 = program().NewVar($2->varname_,$2);
-				}
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 1;
 				$$->var_ = $2;
+				if($$->var_->ref_count_ > 0){
+					//redefinition, but we need the whole declaration
+					CVariable * t = $$->var_;
+					$$->var_ = New<CVariable>(LINE_NO);
+					$$->var_->shadow_ = t;
+					$$->var_->varname_ = t->varname_;
+					$$->var_->host_cmd_ = CUR_CMD;
+				}
 				$$->var_->type_ = 2;
 				$$->var_->array_type_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
@@ -236,9 +220,9 @@ simple_declare : array_type VAR_NAME
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 4;
 				$$->var_ = $1;
-				$$->expr_ = New<CExpr>($1->lineno_);
+				$$->expr_ = New<CExpr>(LINE_NO);
 				$$->expr_->type_ = 2;
-				$$->expr_->func_call_ =  New<CFuncCall>($1->lineno_);
+				$$->expr_->func_call_ =  New<CFuncCall>(LINE_NO);
 				$$->expr_->func_call_->ft_token_ = $1->simple_type_;
 				$$->expr_->func_call_->arg_list_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
@@ -264,9 +248,9 @@ simple_declare : array_type VAR_NAME
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 6;
 				$$->var_ = $1;
-				$$->expr_ = New<CExpr>($1->lineno_);
+				$$->expr_ = New<CExpr>(LINE_NO);
 				$$->expr_->type_ = 2;
-				$$->expr_->func_call_ =  New<CFuncCall>($1->lineno_);
+				$$->expr_->func_call_ =  New<CFuncCall>(LINE_NO);
 				$$->expr_->func_call_->ft_token_ = $1->simple_type_;
 				$$->expr_->func_call_->arg_list_ = $4;
 				DBG_YY("$$ = "<<to_str($$));
@@ -381,15 +365,15 @@ sim_type_name : simple_type VAR_NAME
 				DBG_YY("$1 = "<<$1);
 				DBG_YY("$2 = "<<to_str($2));
 				YY_ASSERT($2);
-				if($2->ref_count_ > 0){
-					if($2->host_cmd_ == CUR_CMD){
-						GAMMAR_ERR(LINE_NO,"redefine of '"<<$2->varname_
-							<<"', see LINE:"<<$2->lineno_);
-						YYERROR;
-					}else
-						$2 = program().NewVar($2->varname_,$2);
-				}
 				$$ = $2;
+				if($$->ref_count_ > 0){
+					//redefinition, but we need the whole declaration
+					CVariable * t = $$;
+					$$ = New<CVariable>(LINE_NO);
+					$$->shadow_ = t;
+					$$->varname_ = t->varname_;
+					$$->host_cmd_ = CUR_CMD;
+				}
 				$$->type_ = 1;
 				$$->simple_type_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
@@ -400,7 +384,7 @@ expr : fix_value	{
 				DBG_YY("expr 1");
 				DBG_YY("$1 = "<<to_str($1));
 				YY_ASSERT($1);
-				$$ = New<CExpr>($1->lineno_);
+				$$ = New<CExpr>(LINE_NO);
 				$$->type_ = 1;
 				$$->fix_value_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
@@ -409,7 +393,7 @@ expr : fix_value	{
 				DBG_YY("expr 2");
 				DBG_YY("$1 = "<<to_str($1));
 				YY_ASSERT($1);
-				$$ = New<CExpr>($1->lineno_);
+				$$ = New<CExpr>(LINE_NO);
 				$$->type_ = 2;
 				$$->func_call_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
@@ -418,11 +402,6 @@ expr : fix_value	{
 				DBG_YY("expr 3");
 				DBG_YY("$1 = "<<to_str($1));
 				YY_ASSERT($1);
-				if($1->ref_count_ == 0){
-					GAMMAR_ERR(LINE_NO,"undefined variable '"
-						<<$1->varname_<<"'");
-					YYERROR;	
-				}
 				$$ = New<CExpr>(LINE_NO);
 				$$->type_ = 3;
 				$$->var_ = $1;
@@ -489,4 +468,5 @@ stream_op : OP_IN	{DBG_YY("stream_op = OP_IN("<<OP_IN<<")");$$ = OP_IN;}
 
 stmt_sep : ';'		{DBG_YY("stmt_sep = ;");}
 	| NL		{DBG_YY("stmt_sep = NL");}
+	| EOF_		{DBG_YY("stmt_sep = EOF");}
 	;

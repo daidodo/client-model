@@ -1,9 +1,8 @@
 #ifndef DOZERG_GLOBAL_H_20081111
 #define DOZERG_GLOBAL_H_20081111
 
-#include <map>
 #include <cassert>
-#include "symbols.h"
+#include "program.h"
 
 struct CGlobal
 {
@@ -32,7 +31,7 @@ inline CGlobal & global(){return CGlobal::Inst();}
 inline CProgram & program(){return global().program_;}
 
 #define CUR_TOK     (global().cur_tok)
-#define CUR_CMD     (program().cur_cmd)
+#define CUR_CMD     (program().CurCmd())
 #define LINE_NO     (global().lineno)
 #define ERR_INCR    {global().ErrIncrease();}
 
