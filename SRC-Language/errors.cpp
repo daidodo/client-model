@@ -1,7 +1,7 @@
 #include <iostream>
+#include "global.h"
 #include "config.h"
 #include "errors.h"
-#include "global.h"
 
 void yyerror(const std::string & msg){
     std::cerr<<global().input_file<<":"<<LINE_NO<<" - '"

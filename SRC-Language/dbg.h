@@ -17,6 +17,12 @@
 #   define DBG_YY(msg)
 #endif
 
+#if __GRAMMAR_DEBUG
+#   define DBG_GMM(msg)      {std::cout<<"gmm "<<global().lineno<<" : "<<msg<<std::endl;}
+#else
+#   define DBG_GMM(msg)
+#endif
+
 #define YY_ASSERT(expr)     {assert(expr);}
 
 #endif

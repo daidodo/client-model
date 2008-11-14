@@ -28,8 +28,7 @@ int main(int argc,const char ** argv){
     global().input_file = argv[1];
     yyin = fp;
     if(yyparse()){
-        cerr<<"parse failed\n";
-        return 1;
+        cerr<<"total "<<global().err_count_<<" error(s)\n";
     }
 #endif
     return 0;

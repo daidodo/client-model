@@ -1,10 +1,8 @@
-#include <cassert>
-#include "symbols.h"
+#include "global.h"
 #include "mm.h"
 #include "dbg.h"
 #include "errors.h"
 #include "util.h"
-#include "global.h"
 #include "tokens.h"
 
 //CFixValue
@@ -60,6 +58,7 @@ CVariable::CVariable(int ln)
     , ref_count_(0)
     , array_type_(0)
     , host_cmd_(0)
+    , shadow_(0)
 {}
 
 CVariable::~CVariable(){
@@ -75,6 +74,7 @@ std::string CVariable::ToString() const{
         <<",val_.size()="<<val_.size()
         <<",ref_count_="<<ref_count_
         <<",host_cmd_="<<signa(host_cmd_)
+        <<",shadow_="<<to_str(shadow_)
         <<")";
     return oss.str();
 }
@@ -169,6 +169,18 @@ std::string CAssertExp::Signature() const{
     return oss.str();
 }
 
+bool CAssertExp::Validate() const
+{
+    assert(expr1_);
+    if(IsBinaryPredict(op_token_) && !expr2_){
+        GAMMAR_ERR(lineno_,"prediction format error(binary)");
+    }else if(IsUnaryPredict(op_token_) && expr2_){
+        GAMMAR_ERR(lineno_,"prediction format error(unary)");
+    }else
+        return true;
+    return false;
+}
+
 //CDeclare
 CDeclare::CDeclare(int ln)
     : lineno_(ln)
@@ -205,6 +217,19 @@ bool CDeclare::IsGlobalOnly() const
     if(var_->array_type_)
         return IsOnlyGlobalType(var_->array_type_->simple_type_);
     return IsOnlyGlobalType(var_->simple_type_);
+}
+
+bool CDeclare::Validate() const
+{
+    //array type check
+    if(var_->array_type_ && CannotBeArray(var_->array_type_->simple_type_)){
+        GAMMAR_ERR(lineno_,"error array type");
+    }else if(IsAssert() && !IsBinaryPredict(op_token)){
+        GAMMAR_ERR(lineno_,"prediction format error");
+        return false;
+    }else
+        return true;
+    return false;
 }
 
 //CArgList
@@ -321,111 +346,5 @@ std::string CCommand::Signature() const{
     std::ostringstream oss;
     oss<<"(LINE:"<<lineno_<<")"<<cmd_name_;
     return oss.str();
-}
-
-//CProgram
-CProgram::CProgram()
-    : tcp_default(true)
-    , cur_cmd(0)
-{}
-
-CProgram::~CProgram(){
-    //vars and stmts
-    for(__VarTable::iterator i = var_table.begin();i != var_table.end();++i)
-        Delete(i->second);
-    std::for_each(global_stmts.begin(),global_stmts.end(),Delete<CStmt>);
-    //connections
-    std::for_each(tcp_table.begin(),tcp_table.end(),Delete<CTcp>);
-    std::for_each(udp_table.begin(),udp_table.end(),Delete<CUdp>);
-    //commands
-    for(std::map<std::string,CCommand *>::iterator i = cmd_table.begin();i != cmd_table.end();++i)
-        Delete(i->second);
-}
-
-size_t CProgram::AddQstr(const std::string qstr)
-{
-    size_t ret = qstr_table.size();
-    qstr_table.push_back(qstr);
-    return ret;
-}
-
-CVariable * CProgram::findVar(const __VarTable & vt,const std::string & name){
-    typedef __VarTable::const_iterator __Iter;
-    __Iter wh = vt.find(name);
-    return (wh == vt.end() ? 0 : wh->second);
-}
-
-CVariable * CProgram::GetVar(const std::string & varname){
-    CVariable * ret = 0;
-    if(cur_cmd)
-        ret = findVar(cur_cmd->var_table,varname);
-    if(!ret)
-        ret = findVar(var_table,varname);
-    if(!ret)
-        return NewVar(varname);
-    ++ret->ref_count_;
-    return ret;
-}
-
-CVariable * CProgram::NewVar(const std::string & varname,CVariable * old)
-{
-    __VarTable & vt = (isGlobal() ? var_table : cur_cmd->var_table);
-    CVariable *& ret = vt[varname];
-    assert(!ret);
-    ret = New<CVariable>(LINE_NO);
-    ret->varname_ = varname;
-    ret->host_cmd_ = cur_cmd;
-    if(old)
-        --old->ref_count_;
-    return ret;
-}
-
-const std::string & CProgram::GetQstr(size_t i) const{
-    assert(i < qstr_table.size());
-    return qstr_table[i];
-}
-
-void CProgram::AddStmt(CAssertExp * stmt)
-{
-    YY_ASSERT(stmt);
-    if(isGlobal()){
-        GAMMAR_ERR(stmt->lineno_,"invalid assertion in global scope");
-        Delete(stmt);
-        return;
-    }
-    CStmt * st = New<CStmt>(stmt->lineno_);
-    st->type_ = 1;
-    st->assert_ = stmt;
-    cur_cmd->stmt_list_.push_back(st);
-}
-
-void CProgram::AddStmt(CDeclare * stmt)
-{
-    YY_ASSERT(stmt);
-    if(!isGlobal() && stmt->IsGlobalOnly()){
-        GAMMAR_ERR(stmt->lineno_,"should declare '"<<stmt->var_->varname_<<"' in global scope");
-        Delete(stmt);
-        return;
-    }
-    CStmt * st = New<CStmt>(stmt->lineno_);
-    st->type_ = 2;
-    st->declare_ = stmt;
-}
-
-void CProgram::AddStmt(CFuncCall * stmt)
-{
-    YY_ASSERT(stmt);
-
-    CStmt * st = New<CStmt>(stmt->lineno_);
-    st->type_ = 3;
-    st->func_call_ = stmt;
-}
-
-void CProgram::CmdBegin(CVariable * var_name)
-{
-}
-
-void CProgram::CmdEnd()
-{
 }
 

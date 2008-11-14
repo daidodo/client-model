@@ -1,4 +1,5 @@
 %{
+#include <iostream>
 #include "global.h"
 #include "util.h"
 #include "errors.h"
@@ -7,9 +8,10 @@
 %}
 
 %x QSTR_S
+%s EOF_S
 
 nl	(\r?\n)
-nzero	([1-9][0-9]+)
+nzero	([1-9][0-9]*)
 
 %%
 
@@ -117,6 +119,8 @@ DEF	{CUR_TOK = yytext;DBG_LEX1("DEF",CUR_TOK);return DEF;}
 	/* error handle */
 0[0-9]+	{CUR_TOK = yytext;SYNTAX_ERR("error number format");}
 
+<EOF_S><<EOF>>	{return 0;}
+<<EOF>>	{CUR_TOK = "EOF";DBG_LEX(CUR_TOK);BEGIN EOF_S;return EOF_;}
 .	{CUR_TOK = yytext;DBG_LEX(*yytext);return *yytext;}
 
 %%

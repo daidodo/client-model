@@ -7,4 +7,6 @@ bool IsUnaryPredict(int op_token);
 
 bool IsOnlyGlobalType(int type_token);
 
+bool CannotBeArray(int type_token);
+
 #endif
