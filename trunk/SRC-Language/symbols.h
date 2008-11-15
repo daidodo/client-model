@@ -99,7 +99,6 @@ struct CExpr
     std::string ToString() const;
     std::string Signature() const;
     bool CheckDefined(int lineno) const;
-    bool IsVar() const{return type_ == 3;}
 };
 
 struct CArrayType
@@ -145,7 +144,7 @@ struct CDeclare
     std::string ToString() const;
     std::string Signature() const;
     bool IsGlobalOnly() const;
-    bool Validate() const;          //self validation
+    bool Validate() const;
     bool IsArray() const{return type_ == 1;}
     bool IsVariable() const{return type_ == 2 || type_ == 3;}
     bool IsFixed() const{return type_ == 5 || type_ == 6;}
@@ -188,6 +187,7 @@ struct CStmt
     CAssertExp * assert_;
     CDeclare * declare_;
     CFuncCall * func_call_;
+    CCommand * cmd_;
     //functions:
     explicit CStmt(int ln);
     ~CStmt();

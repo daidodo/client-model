@@ -26,8 +26,6 @@ CProgram::~CProgram(){
     //connections
     std::for_each(tcp_table.begin(),tcp_table.end(),Delete<CTcp>);
     std::for_each(udp_table.begin(),udp_table.end(),Delete<CUdp>);
-    //commands
-    std::for_each(cmd_vec.begin(),cmd_vec.end(),Delete<CCommand>);
 }
 
 size_t CProgram::AddQstr(const std::string qstr)
@@ -182,6 +180,9 @@ void CProgram::CmdBegin(CVariable * var)
         return;
     cmd = cur_cmd = New<CCommand>(LINE_NO);
     cmd->cmd_name_ = name;
+    CStmt * st = New<CStmt>(LINE_NO);
+    st->type_ = 4;
+    st->cmd_ = cmd;
     DBG_GMM("succ new command="<<signa(cmd));
 }
 
