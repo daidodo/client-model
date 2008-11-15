@@ -7,13 +7,15 @@
 #include <sstream>
 #include <algorithm>
 #include "types.h"
-#include "common/Sockets.h"
+//#include "common/Sockets.h"
 
 struct CFixValue
 {
     const int lineno_;
     int type_;
-    int number_;
+    int int_;
+    long long_;
+    long long i64_;
     size_t strIdx_;
     //functions:
     explicit CFixValue(int ln);
@@ -21,19 +23,21 @@ struct CFixValue
     std::string Signature() const;
 };
 
-struct CTcp : public CTcpConnSocket
+struct CTcp// : public CTcpConnSocket
 {
     const int lineno_;
     //functions:
     explicit CTcp(int ln);
+    std::string ToString() const{}
     std::string Signature() const;
 };
 
-struct CUdp : public CUdpSocket
+struct CUdp// : public CUdpSocket
 {
     const int lineno_;
     //functions:
     explicit CUdp(int ln);
+    std::string ToString() const{}
     std::string Signature() const;
 };
 

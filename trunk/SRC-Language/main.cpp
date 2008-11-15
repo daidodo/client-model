@@ -1,4 +1,4 @@
-//#define TEST
+#define TEST
 
 #include <iostream>
 #include "global.h"
@@ -14,7 +14,9 @@ int yyparse();
 int main(int argc,const char ** argv){
     using namespace std;
 #ifdef TEST
-    test_1();
+    //test_1();
+    //test_2();
+    test_3();
 #else
     if(argc < 2){
         cerr<<"Usage: "<<argv[0]<<" file\n";
