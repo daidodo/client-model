@@ -1,23 +1,15 @@
-STR server_ip := "127.0.0.1"
-CMD server_ip
-END CMD
 
+STR server_ip := "127.0.0.1"
 U16 server_port := 9527
 
 TCP conn(server_ip,server_port)
-U32 conn
+TCP server_port(server_ip,server_port)
 HBO
 
-CMD
-END CMD
-
-COMMAND conn
+COMMAND QueryCommand
 SEND NET_BYTE_ORDER 
-conn1 < 1
 U32 ver := 100
 U32 seq := 1234
-U32 conn1
-U32 conn1
 U32 len
 BEGIN(len)
 U8 cmd_type := 59
