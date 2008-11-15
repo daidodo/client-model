@@ -15,10 +15,6 @@ long str2long(const char * str,size_t len);
 
 long long str2i64(const char * str,size_t len);
 
-int atoi_base8(const char * str,size_t len);
-
-int atoi_base16(const char * str,size_t len);
-
 template<class T>
 std::string to_str(const T * p){
     return (p ? p->ToString() : "0x0");
