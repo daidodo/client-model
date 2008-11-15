@@ -81,6 +81,7 @@ struct CVariable
     std::string ToString() const;
     std::string Signature() const;
     bool IsGlobal() const{return !host_cmd_;}
+    bool Is1stDefine() const{return !ref_count_;}
 };
 
 struct CFuncCall;
@@ -97,6 +98,7 @@ struct CExpr
     ~CExpr();
     std::string ToString() const;
     std::string Signature() const;
+    bool CheckDefined(int lineno) const;
     bool IsVar() const{return type_ == 3;}
 };
 
@@ -110,6 +112,7 @@ struct CArrayType
     ~CArrayType();
     std::string ToString() const;
     std::string Signature() const;
+    bool CheckDefined(int lineno) const;
 };
 
 struct CAssertExp
@@ -124,6 +127,7 @@ struct CAssertExp
     std::string ToString() const;
     std::string Signature() const;
     bool Validate() const;
+    bool CheckDefined() const;
 };
 
 struct CDeclare
@@ -147,6 +151,7 @@ struct CDeclare
     bool IsFixed() const{return type_ == 5 || type_ == 6;}
     bool IsAssert() const{return type_ == 7;}
     bool IsStream() const{return type_ == 8 || type_ == 9;}
+    bool CheckDefined(CCommand * cur_cmd);
 };
 
 struct CArgList
@@ -160,6 +165,7 @@ struct CArgList
     void Add(CExpr * arg);
     std::string ToString() const;
     std::string Signature() const;
+    bool CheckDefined(int lineno) const;
 };
 
 struct CFuncCall
@@ -172,6 +178,7 @@ struct CFuncCall
     ~CFuncCall();
     std::string ToString() const;
     std::string Signature() const;
+    bool CheckDefined() const;
 };
 
 struct CStmt

@@ -2,7 +2,6 @@
 #include <iostream>
 #include "global.h"
 #include "util.h"
-#include "errors.h"
 #include "dbg.h"
 #include "y.tab.h"
 %}

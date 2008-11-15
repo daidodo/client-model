@@ -1,0 +1,8 @@
+CMD 
+
+STR a := "\x23"
+
+
+END CMD
+CMD a
+END CMD

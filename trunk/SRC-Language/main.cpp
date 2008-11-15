@@ -1,4 +1,4 @@
-#define TEST
+//#define TEST
 
 #include <iostream>
 #include "global.h"
@@ -20,18 +20,17 @@ int main(int argc,const char ** argv){
 #else
     if(argc < 2){
         cerr<<"Usage: "<<argv[0]<<" file\n";
-        exit(1);
+        return 1;
     }
     FILE * fp = fopen(argv[1],"r");
     if(!fp){
         cerr<<"cannot open file '"<<argv[1]<<"'\n";
-        exit(1);
+        return 1;
     }
     global().input_file = argv[1];
     yyin = fp;
-    if(yyparse()){
-        cerr<<"total "<<global().err_count_<<" error(s)\n";
-    }
+    yyparse();
+    err_exit(0);
 #endif
     return 0;
 }
