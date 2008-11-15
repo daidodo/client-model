@@ -370,6 +370,7 @@ CStmt::~CStmt(){
     Delete(assert_);
     Delete(declare_);
     Delete(func_call_);
+    Delete(cmd_);
 }
 
 std::string CStmt::ToString() const{
@@ -378,6 +379,7 @@ std::string CStmt::ToString() const{
         <<",assert_="<<signa(assert_)
         <<",declare_="<<signa(declare_)
         <<",func_call_="<<signa(func_call_)
+        <<",cmd_="<<signa(cmd_)
         <<")";
     return oss.str();
 }

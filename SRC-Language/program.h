@@ -23,7 +23,6 @@ class CProgram
     //commands
     CCommand * cur_cmd;
     std::map<std::string,CCommand *> cmd_table;
-    std::vector<CCommand *> cmd_vec;
 //functions:
     static CVariable * findVar(const __VarTable & vt,const std::string & name);
 public:
