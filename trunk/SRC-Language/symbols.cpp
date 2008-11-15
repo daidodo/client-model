@@ -100,7 +100,7 @@ CExpr::CExpr(int ln)
 CExpr::~CExpr(){
     Delete(fix_value_);
     Delete(func_call_);
-    Delete(var_);
+    //Delete(var_);
 }
 
 std::string CExpr::ToString() const{
@@ -224,7 +224,7 @@ CDeclare::CDeclare(int ln)
 {}
 
 CDeclare::~CDeclare(){
-    Delete(var_);
+    //Delete(var_);
     Delete(expr_);
 }
 
@@ -272,9 +272,11 @@ bool CDeclare::CheckDefined(CCommand * cur_cmd)
         if(cur_cmd == shadow->host_cmd_){
             GAMMAR_ERR(lineno_,"redefine symbol '"<<var_->varname_
                 <<"', see LINE:"<<shadow->lineno_);
+            Delete(var_);
+            var_ = shadow;
             ret = false;
-        }
-        shadow = 0;
+        }else
+            shadow = 0;
     }
     if(expr_)
         ret = (expr_->CheckDefined(lineno_) && ret);
