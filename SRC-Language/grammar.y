@@ -14,7 +14,9 @@ int yylex();
 %token U8 S8 U16 S16 U32 S32 U64 S64 STR RAW TCP UDP
 %token FUN BEGIN_ END HBO NBO SEND RECV HEX UNHEX
 %token OP_LG OP_SM OP_LEQ OP_SEQ OP_EQ OP_NEQ OP_NOT OP_IN OP_OUT
-%token <number_> NUMBER
+%token <int_> INT
+%token <long_> LONG
+%token <i64_> I64
 %token <strIdx_> QSTRING
 %token <var_> VAR_NAME
 
@@ -29,7 +31,9 @@ int yylex();
 %type <func_call_> func_call
 
 %union{
-	int		number_;
+	int		int_;
+	long		long_;
+	long long	i64_;
 	size_t		strIdx_;
 	int		token_;
 	CFixValue *	fix_value_;
@@ -410,19 +414,35 @@ expr : fix_value	{
 	;
 
 	/* basic symbols */
-fix_value : NUMBER	{
+fix_value : INT		{
 				DBG_YY("fix_value 1");
 				DBG_YY("$1 = "<<$1);
 				$$ = New<CFixValue>(LINE_NO);
 				$$->type_ = 1;
-				$$->number_ = $1;
+				$$->int_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
-	| QSTRING	{
+	| LONG		{
 				DBG_YY("fix_value 2");
 				DBG_YY("$1 = "<<$1);
 				$$ = New<CFixValue>(LINE_NO);
 				$$->type_ = 2;
+				$$->long_ = $1;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	| I64		{
+				DBG_YY("fix_value 3");
+				DBG_YY("$1 = "<<$1);
+				$$ = New<CFixValue>(LINE_NO);
+				$$->type_ = 3;
+				$$->i64_ = $1;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	| QSTRING	{
+				DBG_YY("fix_value 4");
+				DBG_YY("$1 = "<<$1);
+				$$ = New<CFixValue>(LINE_NO);
+				$$->type_ = 4;
 				$$->strIdx_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}

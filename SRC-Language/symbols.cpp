@@ -9,14 +9,18 @@
 CFixValue::CFixValue(int ln)
     : lineno_(ln)
     , type_(0)
-    , number_(0)
+    , int_(0)
+    , long_(0)
+    , i64_(0)
     , strIdx_(0)
 {}
 
 std::string CFixValue::ToString() const{
     std::ostringstream oss;
     oss<<"(type_="<<type_
-        <<",number_="<<number_
+        <<",int_="<<int_
+        <<",long_="<<long_
+        <<",i64_="<<i64_
         <<",strIdx_="<<strIdx_
         <<")";
     return oss.str();

@@ -2,6 +2,8 @@ TARGET := a.out
 
 CC := g++
 YFLAGS := -d
+CXXFLAGS := -g
+CFLAGS := $(CXXFLAGS)
 
 LEX_SRC := $(wildcard *.l)
 YACC_SRC := $(wildcard *.y)
