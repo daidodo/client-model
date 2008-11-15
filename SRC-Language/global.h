@@ -3,10 +3,11 @@
 
 #include <cassert>
 #include "program.h"
+#include "errors.h"
 
 struct CGlobal
 {
-    static const int MAX_ERRORS = 3;
+    static const int MAX_ERRORS = 5;
     //parse infos
     int lineno;
     int err_count_;
@@ -22,7 +23,7 @@ public:
     }
     void ErrIncrease(){
         if(++err_count_ > MAX_ERRORS)
-            exit(1);
+            err_exit(1);
     }
 };
 
@@ -32,6 +33,7 @@ inline CProgram & program(){return global().program_;}
 
 #define CUR_TOK     (global().cur_tok)
 #define CUR_CMD     (program().CurCmd())
+#define CUR_VTB     (program().CurVarTable())
 #define LINE_NO     (global().lineno)
 #define ERR_INCR    {global().ErrIncrease();}
 

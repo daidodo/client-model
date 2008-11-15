@@ -35,14 +35,14 @@ public:
     CVariable * GetVar(const std::string & varname);
     CVariable * NewVar(const std::string & varname,CVariable * old = 0);
     const std::string & GetQstr(size_t i) const;
+    __VarTable & CurVarTable(){return (cur_cmd ? cur_cmd->var_table : var_table);}
     void AddStmt(CAssertExp * stmt);
     void AddStmt(CDeclare * stmt);
     void AddStmt(CFuncCall * stmt);
-    void CmdBegin(CVariable * var_name);
+    void CmdBegin(CVariable * var);
     void CmdEnd();
 private:
     CCommand * findCmd(const std::string & name) const;
-    __VarTable & curVarTable(){return (cur_cmd ? cur_cmd->var_table : var_table);}
 };
 
 #endif

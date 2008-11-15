@@ -1,7 +1,6 @@
 #include "global.h"
 #include "mm.h"
 #include "dbg.h"
-#include "errors.h"
 #include "util.h"
 #include "tokens.h"
 
@@ -120,6 +119,18 @@ std::string CExpr::Signature() const{
     return oss.str();
 }
 
+bool CExpr::CheckDefined(int lineno) const
+{
+    if(func_call_)
+        return func_call_->CheckDefined();
+    if(var_ && var_->Is1stDefine()){
+        GAMMAR_ERR(lineno,"undefined symbol '"<<var_->varname_<<"'");
+        CUR_VTB.erase(var_->varname_);
+        return false;
+    }
+    return true;
+}
+
 //CArrayType
 CArrayType::CArrayType(int ln)
     : lineno_(ln)
@@ -143,6 +154,12 @@ std::string CArrayType::Signature() const{
     std::ostringstream oss;
     oss<<"(LINE:"<<lineno_<<")";
     return oss.str();
+}
+
+bool CArrayType::CheckDefined(int lineno) const
+{
+    if(expr_)
+        return expr_->CheckDefined(lineno);
 }
 
 //CAssertExp
@@ -183,6 +200,16 @@ bool CAssertExp::Validate() const
     }else
         return true;
     return false;
+}
+
+bool CAssertExp::CheckDefined() const
+{
+    bool ret = true;
+    if(expr1_)
+        ret = expr1_->CheckDefined(lineno_);
+    if(expr2_)
+        ret = (expr2_->CheckDefined(lineno_) && ret);
+    return ret;
 }
 
 //CDeclare
@@ -236,6 +263,24 @@ bool CDeclare::Validate() const
     return false;
 }
 
+bool CDeclare::CheckDefined(CCommand * cur_cmd)
+{
+    bool ret = true;
+    CVariable *& shadow = var_->shadow_;
+    if(shadow){
+        --shadow->ref_count_;
+        if(cur_cmd == shadow->host_cmd_){
+            GAMMAR_ERR(lineno_,"redefine symbol '"<<var_->varname_
+                <<"', see LINE:"<<shadow->lineno_);
+            ret = false;
+        }
+        shadow = 0;
+    }
+    if(expr_)
+        ret = (expr_->CheckDefined(lineno_) && ret);
+    return ret;
+}
+
 //CArgList
 CArgList::CArgList(int ln)
     : lineno_(ln)
@@ -272,6 +317,14 @@ std::string CArgList::Signature() const{
     return oss.str();
 }
 
+bool CArgList::CheckDefined(int lineno) const
+{
+    bool ret = true;
+    for(size_t i = 0;i < args_.size();++i)
+        ret = (args_[i]->CheckDefined(lineno) && ret);
+    return ret;
+}
+
 //CFuncCall
 CFuncCall::CFuncCall(int ln)
     : lineno_(ln)
@@ -295,6 +348,15 @@ std::string CFuncCall::Signature() const{
     std::ostringstream oss;
     oss<<"(LINE:"<<lineno_<<")"<<ft_token_;
     return oss.str();
+}
+
+bool CFuncCall::CheckDefined() const
+{
+    if(FunNotNeedCheckkDefine(ft_token_))
+        return true;
+    if(arg_list_)
+        return arg_list_->CheckDefined(lineno_);
+    return true;
 }
 
 //CStmt

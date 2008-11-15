@@ -4,7 +4,6 @@
 #include "mm.h"
 #include "dbg.h"
 #include "util.h"
-#include "errors.h"
 
 int yylex();
 %}

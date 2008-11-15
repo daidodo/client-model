@@ -9,4 +9,6 @@ bool IsOnlyGlobalType(int type_token);
 
 bool CannotBeArray(int type_token);
 
+bool FunNotNeedCheckkDefine(int fun_token);
+
 #endif

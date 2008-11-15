@@ -2,7 +2,6 @@
 #include "global.h"
 #include "mm.h"
 #include "dbg.h"
-#include "errors.h"
 #include "util.h"
 #include "tokens.h"
 
@@ -80,27 +79,14 @@ void CProgram::AddStmt(CAssertExp * stmt)
     DBG_GMM("cur_cmd="<<signa(cur_cmd));
     YY_ASSERT(stmt);
     __Del<CAssertExp> g(stmt);
-    if(!stmt->Validate())
-        return;
+    bool good = stmt->Validate();
+    good = (stmt->CheckDefined() && good);
     if(isGlobal()){
         GAMMAR_ERR(stmt->lineno_,"invalid assertion in global scope");
-        return;
+        good = false;
     }
-    if(stmt->expr1_->IsVar() && stmt->expr1_->var_->ref_count_ == 0){
-        GAMMAR_ERR(stmt->lineno_,"undefined symbol '"
-            <<stmt->expr1_->var_->varname_<<"'");
-        YY_ASSERT(cur_cmd);
-        cur_cmd->var_table.erase(stmt->expr1_->var_->varname_);
+    if(!good)
         return;
-    }
-    if(stmt->expr2_ && stmt->expr2_->IsVar()
-        && stmt->expr2_->var_->ref_count_ == 0)
-    {
-        GAMMAR_ERR(stmt->lineno_,"undefined symbol '"
-            <<stmt->expr2_->var_->varname_<<"'");
-        cur_cmd->var_table.erase(stmt->expr2_->var_->varname_);
-        return;
-    }
     CStmt * st = New<CStmt>(stmt->lineno_);
     st->type_ = 1;
     st->assert_ = stmt;
@@ -115,36 +101,26 @@ void CProgram::AddStmt(CDeclare * stmt)
     DBG_GMM("cur_cmd="<<signa(cur_cmd));
     YY_ASSERT(stmt);
     __Del<CDeclare> g(stmt);
-    if(!stmt->Validate())
-        return;
+    bool good = stmt->Validate();
+    good = (stmt->CheckDefined(cur_cmd) && good);
     std::string name = stmt->var_->varname_;
     if(isGlobal()){ //global scope
         if(stmt->IsAssert()){
             GAMMAR_ERR(stmt->lineno_,"invalid assertion for '"<<name
                 <<"' in global scope");
-            return;
+            good = false;
         }
     }else{          //local scope
         if(stmt->IsGlobalOnly()){
             GAMMAR_ERR(stmt->lineno_,"invalid declaration of '"<<name
                 <<"' in local scope");
-            return;
+            good = false;
         }
     }
-    YY_ASSERT(stmt->var_);
-    CVariable *& shadow = stmt->var_->shadow_;
-    DBG_GMM("check shadow="<<to_str(shadow));
-    if(shadow){
-        --shadow->ref_count_;
-        if(cur_cmd == shadow->host_cmd_){
-            GAMMAR_ERR(stmt->lineno_,"redefine symbol '"<<name
-                <<"', see LINE:"<<shadow->lineno_);
-            return;
-        }
-        shadow = 0;
-    }
+    if(!good)
+        return;
     DBG_GMM("add var_="<<to_str(stmt->var_));
-    curVarTable()[name] = stmt->var_;
+    CurVarTable()[name] = stmt->var_;
     CStmt * st = New<CStmt>(stmt->lineno_);
     st->type_ = 2;
     st->declare_ = stmt;
@@ -158,6 +134,9 @@ void CProgram::AddStmt(CFuncCall * stmt)
     DBG_GMM("cur_cmd="<<signa(cur_cmd));
     YY_ASSERT(stmt);
     __Del<CFuncCall> g(stmt);
+    bool good = stmt->CheckDefined();
+    if(!good)
+        return;
     CStmt * st = New<CStmt>(stmt->lineno_);
     st->type_ = 3;
     st->func_call_ = stmt;
@@ -165,34 +144,42 @@ void CProgram::AddStmt(CFuncCall * stmt)
     DBG_GMM("succ add CFuncCall="<<signa(stmt));
 }
 
-void CProgram::CmdBegin(CVariable * var_name)
+void CProgram::CmdBegin(CVariable * var)
 {
-    DBG_GMM("new command CVariable="<<to_str(var_name));
+    DBG_GMM("new command CVariable="<<to_str(var));
     std::string name;
     int var_lineno = LINE_NO;
-    if(var_name){
-        name = var_name->varname_;
-        var_lineno = var_name->lineno_;
+    if(var){
+        name = var->varname_;
+        var_lineno = var->lineno_;
     }
-    if(var_name && var_name->ref_count_ > 0){
-        GAMMAR_ERR(LINE_NO,"cannot redefine symbol '"<<name<<"', see LINE:"
-            <<var_lineno);
-        return;
-    }
-    var_table.erase(name);
-    Delete(var_name);
+    bool good = true;
     if(!isGlobal()){
         GAMMAR_ERR(LINE_NO,"cannot define command '"<<name
             <<"' in local scope of '"<<cur_cmd->cmd_name_<<"', see LINE:"
             <<var_lineno);
-        return;
+        good = false;
     }
+    if(var){
+        if(!var->Is1stDefine()){
+            GAMMAR_ERR(LINE_NO,"cannot redefine symbol '"<<name<<"', see LINE:"
+                <<var_lineno);
+            good = false;
+        }else{
+            var_table.erase(name);
+            Delete(var);
+        }
+    }
+    if(!good)
+        return;
     CCommand *& cmd = cmd_table[name];
     if(cmd){
         GAMMAR_ERR(LINE_NO,"cannot redefine command '"<<name<<"', see LINE:"
             <<cmd->lineno_);
-        return;
+        good = false;
     }
+    if(!good)
+        return;
     cmd = cur_cmd = New<CCommand>(LINE_NO);
     cmd->cmd_name_ = name;
     DBG_GMM("succ new command="<<signa(cmd));
@@ -200,7 +187,9 @@ void CProgram::CmdBegin(CVariable * var_name)
 
 void CProgram::CmdEnd()
 {
-    assert(!isGlobal());
+    if(isGlobal()){
+        GAMMAR_ERR(LINE_NO,"invalid end of command");
+    }
     DBG_GMM("end command="<<signa(cur_cmd));
     cur_cmd = 0;
 }

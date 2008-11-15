@@ -11,4 +11,6 @@ void grammar_error(int lineno,const std::string & msg);
 
 #define GAMMAR_ERR(ln,msg)   do{std::ostringstream oss;oss<<msg;grammar_error(ln,oss.str());}while(0)
 
+void err_exit(int code);
+
 #endif
