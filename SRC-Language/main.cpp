@@ -3,10 +3,6 @@
 #include <iostream>
 #include "global.h"
 
-extern FILE * yyin;
-
-int yyparse();
-
 #ifdef TEST
 #   include "test.h"
 #endif
@@ -22,18 +18,11 @@ int main(int argc,const char ** argv){
         cerr<<"Usage: "<<argv[0]<<" file\n";
         return 1;
     }
-    FILE * fp = fopen(argv[1],"r");
-    if(!fp){
-        cerr<<"cannot open file '"<<argv[1]<<"'\n";
+    global().Init();
+    if(!global().Compile(argv[1]))
         return 1;
-    }
-    global().Init(argv[1]);
-    yyin = fp;
-    yyparse();
-    fclose(fp);
-    global().Init("");
-    yyin = 0;
-    err_exit(0);
+    if(!global().Build())
+        return 1;
 #endif
     return 0;
 }

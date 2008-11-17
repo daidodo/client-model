@@ -1,13 +1,11 @@
+#include <cassert>
 #include <iostream>
 #include "global.h"
 #include "mm.h"
 #include "dbg.h"
 #include "util.h"
+#include "errors.h"
 #include "tokens.h"
-
-CProgram::CProgram()
-    : tcp_default(true)
-{}
 
 size_t CProgram::AddQstr(const std::string qstr)
 {
@@ -109,7 +107,8 @@ void CProgram::AddStmt(CSharedPtr<CFuncCall> stmt)
     DBG_GMM("add CFuncCall="<<to_str(stmt));
     DBG_GMM("cur_cmd="<<signa(cur_cmd));
     YY_ASSERT(stmt);
-    bool good = stmt->CheckDefined();
+    bool good = stmt->Validate();
+    good = (stmt->CheckDefined() && good);
     if(!good)
         return;
     CSharedPtr<CStmt> st = New<CStmt>(stmt->lineno_);
@@ -147,14 +146,14 @@ void CProgram::CmdBegin(CSharedPtr<CVariable> var)
     }
     if(!good)
         return;
-    CSharedPtr<CCommand> & cmd = cmd_table[name];
+    CSharedPtr<CCmd> & cmd = cmd_table[name];
     if(cmd){
         GAMMAR_ERR(LINE_NO,"cannot redefine command '"<<name<<"', see LINE:"
             <<cmd->lineno_);
         return;
     }
     DBG_GMM("cmd="<<to_str(cmd)<<", cur_cmd="<<to_str(cur_cmd));
-    cur_cmd = New<CCommand>(LINE_NO);
+    cur_cmd = New<CCmd>(LINE_NO);
     cmd = cur_cmd;
     cmd->cmd_name_ = name;
     CSharedPtr<CStmt> st = New<CStmt>(LINE_NO);
@@ -173,9 +172,9 @@ void CProgram::CmdEnd()
     cur_cmd = 0;
 }
 
-CSharedPtr<CCommand> CProgram::findCmd(const std::string & name) const
+CSharedPtr<CCmd> CProgram::findCmd(const std::string & name) const
 {
-    typedef std::map<std::string,CSharedPtr<CCommand> >::const_iterator __Iter;
+    typedef std::map<std::string,CSharedPtr<CCmd> >::const_iterator __Iter;
     __Iter wh = cmd_table.find(name);
     return (wh == cmd_table.end() ? 0 : wh->second);
 }

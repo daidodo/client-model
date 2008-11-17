@@ -3,24 +3,17 @@
 
 #include "symbols.h"
 
-class CProgram
+struct CProgram
 {
     //vars and stmts
     std::vector<std::string> qstr_table;
     __VarTable var_table;
     std::vector<CSharedPtr<CStmt> > global_stmts;
-    //connections
-    bool tcp_default;
-    std::vector<CSharedPtr<CTcp> > tcp_table;
-    std::vector<CSharedPtr<CUdp> > udp_table;
     //commands
-    CSharedPtr<CCommand> cur_cmd;
-    std::map<std::string,CSharedPtr<CCommand> > cmd_table;
+    CSharedPtr<CCmd> cur_cmd;
+    std::map<std::string,CSharedPtr<CCmd> > cmd_table;
 //functions:
-    static CSharedPtr<CVariable> findVar(const __VarTable & vt,const std::string & name);
-public:
-    CProgram();
-    CSharedPtr<CCommand> & CurCmd(){return cur_cmd;}
+    CSharedPtr<CCmd> & CurCmd(){return cur_cmd;}
     bool isGlobal() const{return !cur_cmd;}
     size_t AddQstr(const std::string qstr);
     CSharedPtr<CVariable> GetVar(const std::string & varname);
@@ -33,8 +26,9 @@ public:
     void CmdBegin(CSharedPtr<CVariable> var);
     void CmdEnd();
 private:
-    CSharedPtr<CCommand> findCmd(const std::string & name) const;
+    CSharedPtr<CCmd> findCmd(const std::string & name) const;
     std::vector<CSharedPtr<CStmt> > & curStmtList(){return (cur_cmd ? cur_cmd->stmt_list_ : global_stmts);}
+    static CSharedPtr<CVariable> findVar(const __VarTable & vt,const std::string & name);
 };
 
 #endif

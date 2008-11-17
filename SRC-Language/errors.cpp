@@ -15,11 +15,3 @@ void grammar_error(int lineno,const std::string & msg)
     ERR_INCR;
 }
 
-void err_exit(int code)
-{
-    if(global().err_count_){
-        std::cerr<<"total "<<global().err_count_<<" error(s)\n";
-        exit(1);
-    }
-    exit(code);
-}
