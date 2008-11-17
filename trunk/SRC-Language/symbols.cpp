@@ -31,26 +31,55 @@ std::string CFixValue::Signature() const{
     return oss.str();
 }
 
-//CTcp
-CTcp::CTcp(int ln)
-    :   lineno_(ln)
+//CValue
+CValue::CValue()
+    : type_(0)
+    , u64_(0)
 {}
 
-std::string CTcp::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")";
-    return oss.str();
+bool CValue::FromFixValue(const CFixValue & fv)
+{
+    switch(fv.type_){
+        case 1:
+            type_ = 1;
+            int_ = fv.int_;
+            break;
+        case 2:
+            type_ = 2;
+            long_ = fv.long_;
+            break;
+        case 3:
+            type_ = 9;
+            s64_ = fv.i64_;
+            break;
+        case 4:
+            type_ = 11;
+            strIdx_ = fv.strIdx_;
+            break;
+        default:
+            return false;
+    }
+    return true;
 }
 
-//CUdp
-CUdp::CUdp(int ln)
-    : lineno_(ln)
-{}
-
-std::string CUdp::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")";
-    return oss.str();
+void CValue::FromVar(const CVariable & var,int lineno)
+{
+    if(var.IsArray()){
+        GAMMAR_ERR(lineno,"cannot evaluate array, see LINE:"<<var.lineno_);
+        return;
+    }
+    CSharedPtr<CDeclare> decl = runtime().FindVar(var.varname_);
+    if(!decl){
+        GAMMAR_ERR(lineno,"variable '"<<var.varname_
+            <<"' not found(internal error)");
+        return;
+    }
+    if(!decl->val_){
+        GAMMAR_ERR(lineno,"variable '"<<var.varname_
+            <<"' not initialized yet");
+        return;
+    }
+    *this = *decl->val_;
 }
 
 //CVariable
@@ -114,6 +143,70 @@ bool CExpr::CheckDefined(int lineno) const
     return true;
 }
 
+CSharedPtr<CValue> CExpr::Evaluate() const
+{
+    CSharedPtr<CValue> ret = New<CValue>();
+    switch(type_){      //fix value
+        case 1:
+            assert(fix_value_);
+            if(!ret->FromFixValue(*fix_value_)){
+                GAMMAR_ERR(lineno_,"invalid fixed value(internal error)");
+            }
+            break;
+        case 2:
+            assert(func_call_);
+            return func_call_->Evaluate();
+            break;
+        case 3:
+            assert(var_);
+            ret->FromVar(*var_,lineno_);
+            break;
+        default:
+            return 0;
+    }
+    return ret;
+}
+
+//CArgList
+CArgList::CArgList(int ln)
+    : lineno_(ln)
+{}
+
+CSharedPtr<CExpr> CArgList::operator [](size_t i) const{
+    assert(i < args_.size());
+    return args_[i];
+}
+
+void CArgList::Add(CSharedPtr<CExpr> arg){
+    args_.push_back(arg);
+}
+
+std::string CArgList::ToString() const{
+    std::ostringstream oss;
+    oss<<"(";
+    if(!args_.empty()){
+        oss<<"args_[0]="<<signa(args_[0]);
+        for(size_t i = 1;i < args_.size();++i)
+            oss<<",args_["<<i<<"]="<<signa(args_[i]);
+    }
+    oss<<")";
+    return oss.str();
+}
+
+std::string CArgList::Signature() const{
+    std::ostringstream oss;
+    oss<<"(LINE:"<<lineno_<<")";
+    return oss.str();
+}
+
+bool CArgList::CheckDefined(int lineno) const
+{
+    bool ret = true;
+    for(size_t i = 0;i < args_.size();++i)
+        ret = (args_[i]->CheckDefined(lineno) && ret);
+    return ret;
+}
+
 //CArrayType
 CArrayType::CArrayType(int ln)
     : lineno_(ln)
@@ -144,6 +237,7 @@ bool CArrayType::CheckDefined(int lineno) const
 CAssertExp::CAssertExp(int ln)
     : lineno_(ln)
     , op_token_(0)
+    , result_(false)
 {}
 
 std::string CAssertExp::ToString() const{
@@ -226,7 +320,7 @@ bool CDeclare::Validate() const
     return false;
 }
 
-bool CDeclare::CheckDefined(CSharedPtr<CCommand> cur_cmd)
+bool CDeclare::CheckDefined(CSharedPtr<CCmd> cur_cmd)
 {
     bool ret = true;
     CSharedPtr<CVariable>& shadow = var_->shadow_;
@@ -242,46 +336,6 @@ bool CDeclare::CheckDefined(CSharedPtr<CCommand> cur_cmd)
     }
     if(expr_)
         ret = (expr_->CheckDefined(lineno_) && ret);
-    return ret;
-}
-
-//CArgList
-CArgList::CArgList(int ln)
-    : lineno_(ln)
-{}
-
-CSharedPtr<CExpr> CArgList::operator [](size_t i) const{
-    assert(i < args_.size());
-    return args_[i];
-}
-
-void CArgList::Add(CSharedPtr<CExpr> arg){
-    args_.push_back(arg);
-}
-
-std::string CArgList::ToString() const{
-    std::ostringstream oss;
-    oss<<"(";
-    if(!args_.empty()){
-        oss<<"args_[0]="<<signa(args_[0]);
-        for(size_t i = 1;i < args_.size();++i)
-            oss<<",args_["<<i<<"]="<<signa(args_[i]);
-    }
-    oss<<")";
-    return oss.str();
-}
-
-std::string CArgList::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")";
-    return oss.str();
-}
-
-bool CArgList::CheckDefined(int lineno) const
-{
-    bool ret = true;
-    for(size_t i = 0;i < args_.size();++i)
-        ret = (args_[i]->CheckDefined(lineno) && ret);
     return ret;
 }
 
@@ -307,11 +361,25 @@ std::string CFuncCall::Signature() const{
 
 bool CFuncCall::CheckDefined() const
 {
-    if(FunNotNeedCheckkDefine(ft_token_))
+    if(FunNeedNotCheckDefine(ft_token_))
         return true;
     if(arg_list_)
         return arg_list_->CheckDefined(lineno_);
     return true;
+}
+
+bool CFuncCall::Validate() const
+{
+    if(!FunArgNumCheck(ft_token_,(arg_list_ ? arg_list_->args_.size() : 0))){
+        GAMMAR_ERR(lineno_,"number of args is invalid");
+        return false;
+    }
+    return true;
+}
+
+CSharedPtr<CValue> CFuncCall::Evaluate() const
+{
+    
 }
 
 //CStmt
@@ -337,12 +405,12 @@ std::string CStmt::Signature() const{
     return oss.str();
 }
 
-//CCommand
-CCommand::CCommand(int ln)
+//CCmd
+CCmd::CCmd(int ln)
     : lineno_(ln)
 {}
 
-std::string CCommand::ToString() const{
+std::string CCmd::ToString() const{
     std::ostringstream oss;
     oss<<"(cmd_name_="<<cmd_name_;
     for(size_t i = 0;i < stmt_list_.size();++i)
@@ -351,7 +419,7 @@ std::string CCommand::ToString() const{
     return oss.str();
 }
 
-std::string CCommand::Signature() const{
+std::string CCmd::Signature() const{
     std::ostringstream oss;
     oss<<"(LINE:"<<lineno_<<")"<<cmd_name_;
     return oss.str();

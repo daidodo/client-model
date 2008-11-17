@@ -1,9 +1,8 @@
 #ifndef DOZERG_GLOBAL_H_20081111
 #define DOZERG_GLOBAL_H_20081111
 
-#include <cassert>
 #include "program.h"
-#include "errors.h"
+#include "runtime.h"
 #include "common/SharedPtr.h"
 
 struct CGlobal
@@ -16,30 +15,27 @@ struct CGlobal
     std::string cur_tok;
     //program
     CSharedPtr<CProgram> program_;
+    //runtime
+    CSharedPtr<CRuntime> runtime_;
 private:
-    CGlobal():lineno(1),err_count_(0){}
+    CGlobal(){}
     ~CGlobal(){}
 public:
     static CGlobal & Inst(){
         static CGlobal inst;
         return inst;
     }
-    void ErrFound(){
-        if(++err_count_ > MAX_ERRORS)
-            err_exit(1);
-    }
-    void Init(const std::string & file){
-        lineno = 1;
-        err_count_ = 0;
-        input_file = file;
-        cur_tok.clear();
-        program_ = New<CProgram>();
-    }
+    void ErrFound();
+    void Init();
+    bool Compile(const std::string & fname);
+    bool Build();
 };
 
 inline CGlobal & global(){return CGlobal::Inst();}
 
 inline CProgram & program(){return *global().program_;}
+
+inline CRuntime & runtime(){return *global().runtime_;}
 
 #define CUR_TOK     (global().cur_tok)
 #define CUR_CMD     (program().CurCmd())

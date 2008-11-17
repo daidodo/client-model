@@ -1,9 +1,11 @@
 %{
+#include <cassert>
 #include <iostream>
 #include "global.h"
 #include "mm.h"
 #include "dbg.h"
 #include "util.h"
+#include "errors.h"
 #include "yystype.h"
 #include "yyhack.h"
 
@@ -12,7 +14,7 @@ int yylex();
 
 %token NL EOF_ IEQ
 %token CMD DEF
-%token U8 S8 U16 S16 U32 S32 U64 S64 STR RAW TCP UDP
+%token TP_U8 TP_S8 TP_U16 TP_S16 TP_U32 TP_S32 TP_U64 TP_S64 STR RAW TCP UDP
 %token FUN BEGIN_ END HBO NBO SEND RECV HEX UNHEX
 %token OP_LG OP_SM OP_LEQ OP_SEQ OP_EQ OP_NEQ OP_NOT OP_IN OP_OUT
 %token <int_> INT
@@ -444,14 +446,14 @@ func_name : FUN		{DBG_YY("func_name = FUN("<<FUN<<")");$$ = FUN;}
 	| UNHEX		{DBG_YY("func_name = UNHEX("<<UNHEX<<")");$$ = UNHEX;}
 	;
 
-simple_type : U8	{DBG_YY("simple_type = U8("<<U8<<")");$$ = U8;}
-	| S8		{DBG_YY("simple_type = S8("<<S8<<")");$$ = S8;}
-	| U16		{DBG_YY("simple_type = U16("<<U16<<")");$$ =  U16;}
-	| S16		{DBG_YY("simple_type = S16("<<S16<<")");$$ = S16;}
-	| U32		{DBG_YY("simple_type = U32("<<U32<<")");$$ = U32;}
-	| S32		{DBG_YY("simple_type = S32("<<S32<<")");$$ = S32;}
-	| U64		{DBG_YY("simple_type = U64("<<U64<<")");$$ = U64;}
-	| S64		{DBG_YY("simple_type = S64("<<S64<<")");$$ = S64;}
+simple_type : TP_U8	{DBG_YY("simple_type = U8("<<TP_U8<<")");$$ = TP_U8;}
+	| TP_S8		{DBG_YY("simple_type = S8("<<TP_S8<<")");$$ = TP_S8;}
+	| TP_U16	{DBG_YY("simple_type = U16("<<TP_U16<<")");$$ =  TP_U16;}
+	| TP_S16	{DBG_YY("simple_type = S16("<<TP_S16<<")");$$ = TP_S16;}
+	| TP_U32	{DBG_YY("simple_type = U32("<<TP_U32<<")");$$ = TP_U32;}
+	| TP_S32	{DBG_YY("simple_type = S32("<<TP_S32<<")");$$ = TP_S32;}
+	| TP_U64	{DBG_YY("simple_type = U64("<<TP_U64<<")");$$ = TP_U64;}
+	| TP_S64	{DBG_YY("simple_type = S64("<<TP_S64<<")");$$ = TP_S64;}
 	| STR		{DBG_YY("simple_type = STR("<<STR<<")");$$ = STR;}
 	| RAW		{DBG_YY("simple_type = RAW("<<RAW<<")");$$ =  RAW;}
 	| TCP		{DBG_YY("simple_type = TCP("<<TCP<<")");$$ = TCP;}

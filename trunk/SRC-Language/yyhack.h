@@ -11,13 +11,14 @@
 
 //realloc没法hack,因为我不知道数组原来的大小,
 //没法把原来的数据复制到新数组里
-//void * __realloc_hack(void * p,size_t sz)
-//{
-//    p = realloc(p,sz);
-//    if(p)
-//        memset(p,0,sz);
-//    return p;
-//}
+void * __realloc_hack(void * p,size_t sz)
+{
+    return 0;
+    //p = realloc(p,sz);
+    //if(p)
+    //    memset(p,0,sz);
+    //return p;
+}
 
 void * __malloc_hack(size_t sz)
 {

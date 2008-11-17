@@ -2,6 +2,7 @@
 #include <iostream>
 #include "global.h"
 #include "util.h"
+#include "errors.h"
 #include "dbg.h"
 #include "y.tab.h"
 #include "yystype.h"
@@ -82,14 +83,14 @@ i64_const	({int_const_val}{i64_suf}?)
 
 \"	{CUR_TOK.clear();BEGIN QSTR_S;}
 
-U8	{CUR_TOK = yytext;DBG_LEX("U8");return U8;}
-S8	{CUR_TOK = yytext;DBG_LEX("S8");return S8;}
-U16	{CUR_TOK = yytext;DBG_LEX("U16");return U16;}
-S16	{CUR_TOK = yytext;DBG_LEX("S16");return S16;}
-U32	{CUR_TOK = yytext;DBG_LEX("U32");return U32;}
-S32	{CUR_TOK = yytext;DBG_LEX("S32");return S32;}
-U64	{CUR_TOK = yytext;DBG_LEX("U64");return U64;}
-S64	{CUR_TOK = yytext;DBG_LEX("S64");return S64;}
+U8	{CUR_TOK = yytext;DBG_LEX("U8");return TP_U8;}
+S8	{CUR_TOK = yytext;DBG_LEX("S8");return TP_S8;}
+U16	{CUR_TOK = yytext;DBG_LEX("U16");return TP_U16;}
+S16	{CUR_TOK = yytext;DBG_LEX("S16");return TP_S16;}
+U32	{CUR_TOK = yytext;DBG_LEX("U32");return TP_U32;}
+S32	{CUR_TOK = yytext;DBG_LEX("S32");return TP_S32;}
+U64	{CUR_TOK = yytext;DBG_LEX("U64");return TP_U64;}
+S64	{CUR_TOK = yytext;DBG_LEX("S64");return TP_S64;}
 STR	{CUR_TOK = yytext;DBG_LEX("STR");return STR;}
 RAW	{CUR_TOK = yytext;DBG_LEX("RAW");return RAW;}
 TCP	{CUR_TOK = yytext;DBG_LEX("TCP");return TCP;}
