@@ -15,13 +15,13 @@ long str2long(const char * str,size_t len);
 
 long long str2i64(const char * str,size_t len);
 
-template<class T>
-std::string to_str(const T * p){
+template<class Ptr>
+std::string to_str(Ptr p){
     return (p ? p->ToString() : "0x0");
 }
 
-template<class T>
-std::string signa(const T * p){
+template<class Ptr>
+std::string signa(Ptr p){
     return (p ? p->Signature() : "0x0");
 }
 

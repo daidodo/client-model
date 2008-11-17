@@ -4,6 +4,7 @@
 #include "util.h"
 #include "dbg.h"
 #include "y.tab.h"
+#include "yystype.h"
 %}
 
 %x CHAR_S QSTR_S
