@@ -4,6 +4,8 @@
 #include "mm.h"
 #include "dbg.h"
 #include "util.h"
+#include "yystype.h"
+#include "yyhack.h"
 
 int yylex();
 %}
@@ -28,22 +30,6 @@ int yylex();
 %type <assert_exp_> assert_exp
 %type <declare_> simple_declare declare
 %type <func_call_> func_call
-
-%union{
-	int		int_;
-	long		long_;
-	long long	i64_;
-	size_t		strIdx_;
-	int		token_;
-	CFixValue *	fix_value_;
-	CVariable *	var_;
-	CArgList *	arg_list_;
-	CExpr *		expr_;
-	CArrayType *	array_type_;
-	CAssertExp *	assert_exp_;
-	CDeclare *	declare_;
-	CFuncCall *	func_call_;
-}
 
 %%
 	/* top */
@@ -183,7 +169,7 @@ simple_declare : array_type VAR_NAME
 				$$->var_ = $2;
 				if($$->var_->ref_count_ > 0){
 					//redefinition, but we need the whole declaration
-					CVariable * t = $$->var_;
+					CSharedPtr<CVariable> t = $$->var_;
 					$$->var_ = New<CVariable>(LINE_NO);
 					$$->var_->shadow_ = t;
 					$$->var_->varname_ = t->varname_;
@@ -371,7 +357,7 @@ sim_type_name : simple_type VAR_NAME
 				$$ = $2;
 				if($$->ref_count_ > 0){
 					//redefinition, but we need the whole declaration
-					CVariable * t = $$;
+					CSharedPtr<CVariable> t = $$;
 					$$ = New<CVariable>(LINE_NO);
 					$$->shadow_ = t;
 					$$->varname_ = t->varname_;

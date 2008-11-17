@@ -27,9 +27,12 @@ int main(int argc,const char ** argv){
         cerr<<"cannot open file '"<<argv[1]<<"'\n";
         return 1;
     }
-    global().input_file = argv[1];
+    global().Init(argv[1]);
     yyin = fp;
     yyparse();
+    fclose(fp);
+    global().Init("");
+    yyin = 0;
     err_exit(0);
 #endif
     return 0;

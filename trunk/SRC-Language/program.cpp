@@ -5,28 +5,9 @@
 #include "util.h"
 #include "tokens.h"
 
-//__Del
-template<class T>
-CProgram::__Del<T>::~__Del()
-{
-    Delete(p_);
-}
-
-//CProgram
 CProgram::CProgram()
     : tcp_default(true)
-    , cur_cmd(0)
 {}
-
-CProgram::~CProgram(){
-    //vars and stmts
-    for(__VarTable::iterator i = var_table.begin();i != var_table.end();++i)
-        Delete(i->second);
-    std::for_each(global_stmts.begin(),global_stmts.end(),Delete<CStmt>);
-    //connections
-    std::for_each(tcp_table.begin(),tcp_table.end(),Delete<CTcp>);
-    std::for_each(udp_table.begin(),udp_table.end(),Delete<CUdp>);
-}
 
 size_t CProgram::AddQstr(const std::string qstr)
 {
@@ -35,14 +16,14 @@ size_t CProgram::AddQstr(const std::string qstr)
     return ret;
 }
 
-CVariable * CProgram::findVar(const __VarTable & vt,const std::string & name){
+CSharedPtr<CVariable> CProgram::findVar(const __VarTable & vt,const std::string & name){
     typedef __VarTable::const_iterator __Iter;
     __Iter wh = vt.find(name);
     return (wh == vt.end() ? 0 : wh->second);
 }
 
-CVariable * CProgram::GetVar(const std::string & varname){
-    CVariable * ret = 0;
+CSharedPtr<CVariable> CProgram::GetVar(const std::string & varname){
+    CSharedPtr<CVariable> ret = 0;
     if(cur_cmd)
         ret = findVar(cur_cmd->var_table,varname);
     if(!ret)
@@ -53,10 +34,10 @@ CVariable * CProgram::GetVar(const std::string & varname){
     return ret;
 }
 
-CVariable * CProgram::NewVar(const std::string & varname,CVariable * old)
+CSharedPtr<CVariable> CProgram::NewVar(const std::string & varname,CSharedPtr<CVariable> old)
 {
     __VarTable & vt = (isGlobal() ? var_table : cur_cmd->var_table);
-    CVariable *& ret = vt[varname];
+    CSharedPtr<CVariable>& ret = vt[varname];
     assert(!ret);
     ret = New<CVariable>(LINE_NO);
     ret->varname_ = varname;
@@ -71,12 +52,11 @@ const std::string & CProgram::GetQstr(size_t i) const{
     return qstr_table[i];
 }
 
-void CProgram::AddStmt(CAssertExp * stmt)
+void CProgram::AddStmt(CSharedPtr<CAssertExp> stmt)
 {
     DBG_GMM("add CAssertExp="<<to_str(stmt));
     DBG_GMM("cur_cmd="<<signa(cur_cmd));
     YY_ASSERT(stmt);
-    __Del<CAssertExp> g(stmt);
     bool good = stmt->Validate();
     good = (stmt->CheckDefined() && good);
     if(isGlobal()){
@@ -85,20 +65,18 @@ void CProgram::AddStmt(CAssertExp * stmt)
     }
     if(!good)
         return;
-    CStmt * st = New<CStmt>(stmt->lineno_);
+    CSharedPtr<CStmt> st = New<CStmt>(stmt->lineno_);
     st->type_ = 1;
     st->assert_ = stmt;
-    cur_cmd->stmt_list_.push_back(st);
-    g.Succ();
+    curStmtList().push_back(st);
     DBG_GMM("succ add CAssertExp="<<signa(stmt));
 }
 
-void CProgram::AddStmt(CDeclare * stmt)
+void CProgram::AddStmt(CSharedPtr<CDeclare> stmt)
 {
     DBG_GMM("add CDeclare="<<to_str(stmt));
     DBG_GMM("cur_cmd="<<signa(cur_cmd));
     YY_ASSERT(stmt);
-    __Del<CDeclare> g(stmt);
     bool good = stmt->Validate();
     good = (stmt->CheckDefined(cur_cmd) && good);
     std::string name = stmt->var_->varname_;
@@ -119,30 +97,29 @@ void CProgram::AddStmt(CDeclare * stmt)
         return;
     DBG_GMM("add var_="<<to_str(stmt->var_));
     CurVarTable()[name] = stmt->var_;
-    CStmt * st = New<CStmt>(stmt->lineno_);
+    CSharedPtr<CStmt> st = New<CStmt>(stmt->lineno_);
     st->type_ = 2;
     st->declare_ = stmt;
-    g.Succ();
+    curStmtList().push_back(st);
     DBG_GMM("succ add CDeclare="<<signa(stmt));
 }
 
-void CProgram::AddStmt(CFuncCall * stmt)
+void CProgram::AddStmt(CSharedPtr<CFuncCall> stmt)
 {
     DBG_GMM("add CFuncCall="<<to_str(stmt));
     DBG_GMM("cur_cmd="<<signa(cur_cmd));
     YY_ASSERT(stmt);
-    __Del<CFuncCall> g(stmt);
     bool good = stmt->CheckDefined();
     if(!good)
         return;
-    CStmt * st = New<CStmt>(stmt->lineno_);
+    CSharedPtr<CStmt> st = New<CStmt>(stmt->lineno_);
     st->type_ = 3;
     st->func_call_ = stmt;
-    g.Succ();
+    curStmtList().push_back(st);
     DBG_GMM("succ add CFuncCall="<<signa(stmt));
 }
 
-void CProgram::CmdBegin(CVariable * var)
+void CProgram::CmdBegin(CSharedPtr<CVariable> var)
 {
     DBG_GMM("new command CVariable="<<to_str(var));
     std::string name;
@@ -165,24 +142,25 @@ void CProgram::CmdBegin(CVariable * var)
             good = false;
         }else{
             var_table.erase(name);
-            Delete(var);
+            var = 0;
         }
     }
     if(!good)
         return;
-    CCommand *& cmd = cmd_table[name];
+    CSharedPtr<CCommand> & cmd = cmd_table[name];
     if(cmd){
         GAMMAR_ERR(LINE_NO,"cannot redefine command '"<<name<<"', see LINE:"
             <<cmd->lineno_);
-        good = false;
-    }
-    if(!good)
         return;
-    cmd = cur_cmd = New<CCommand>(LINE_NO);
+    }
+    DBG_GMM("cmd="<<to_str(cmd)<<", cur_cmd="<<to_str(cur_cmd));
+    cur_cmd = New<CCommand>(LINE_NO);
+    cmd = cur_cmd;
     cmd->cmd_name_ = name;
-    CStmt * st = New<CStmt>(LINE_NO);
+    CSharedPtr<CStmt> st = New<CStmt>(LINE_NO);
     st->type_ = 4;
     st->cmd_ = cmd;
+    curStmtList().push_back(st);
     DBG_GMM("succ new command="<<signa(cmd));
 }
 
@@ -195,9 +173,9 @@ void CProgram::CmdEnd()
     cur_cmd = 0;
 }
 
-CCommand * CProgram::findCmd(const std::string & name) const
+CSharedPtr<CCommand> CProgram::findCmd(const std::string & name) const
 {
-    typedef std::map<std::string,CCommand *>::const_iterator __Iter;
+    typedef std::map<std::string,CSharedPtr<CCommand> >::const_iterator __Iter;
     __Iter wh = cmd_table.find(name);
     return (wh == cmd_table.end() ? 0 : wh->second);
 }

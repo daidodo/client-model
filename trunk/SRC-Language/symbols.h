@@ -7,6 +7,7 @@
 #include <sstream>
 #include <algorithm>
 #include "types.h"
+#include "common/SharedPtr.h"
 //#include "common/Sockets.h"
 
 struct CFixValue
@@ -41,24 +42,24 @@ struct CUdp// : public CUdpSocket
     std::string Signature() const;
 };
 
-struct CValue
-{
-    union{
-        U8  u8_;
-        S8  s8_;
-        U16 u16_;
-        S16 s16_;
-        U32 u32_;
-        S32 s32_;
-        U64 u64_;
-        S64 s64_;
-        size_t strIdx_;
-        CTcp * tcp_;
-        CUdp * udp_;
-    };
-    //functions:
-    CValue():u64_(0){}
-};
+//struct CValue
+//{
+//    union{
+//        U8  u8_;
+//        S8  s8_;
+//        U16 u16_;
+//        S16 s16_;
+//        U32 u32_;
+//        S32 s32_;
+//        U64 u64_;
+//        S64 s64_;
+//        size_t strIdx_;
+//    };
+//    CSharedPtr<CTcp> tcp_;
+//    CSharedPtr<CUdp> udp_;
+//    //functions:
+//    CValue():u64_(0){}
+//};
 
 struct CArrayType;
 
@@ -71,13 +72,11 @@ struct CVariable
     int type_;
     int simple_type_;
     int ref_count_;
-    CArrayType * array_type_;
-    CCommand * host_cmd_;
-    CVariable * shadow_;
-    std::vector<CValue> val_;
+    CSharedPtr<CArrayType> array_type_;
+    CSharedPtr<CCommand> host_cmd_;
+    CSharedPtr<CVariable> shadow_;
     //functions:
     explicit CVariable(int ln);
-    ~CVariable();
     std::string ToString() const;
     std::string Signature() const;
     bool IsGlobal() const{return !host_cmd_;}
@@ -90,12 +89,11 @@ struct CExpr
 {
     const int lineno_;
     int type_;
-    CFixValue * fix_value_;
-    CFuncCall * func_call_;
-    CVariable * var_;
+    CSharedPtr<CFixValue> fix_value_;
+    CSharedPtr<CFuncCall> func_call_;
+    CSharedPtr<CVariable> var_;
     //functions:
     explicit CExpr(int ln);
-    ~CExpr();
     std::string ToString() const;
     std::string Signature() const;
     bool CheckDefined(int lineno) const;
@@ -105,10 +103,9 @@ struct CArrayType
 {
     const int lineno_;
     int simple_type_;
-    CExpr * expr_;
+    CSharedPtr<CExpr> expr_;
     //functions:
     explicit CArrayType(int ln);
-    ~CArrayType();
     std::string ToString() const;
     std::string Signature() const;
     bool CheckDefined(int lineno) const;
@@ -118,11 +115,10 @@ struct CAssertExp
 {
     const int lineno_;
     int op_token_;
-    CExpr * expr1_;
-    CExpr * expr2_;
+    CSharedPtr<CExpr> expr1_;
+    CSharedPtr<CExpr> expr2_;
     //functions:
     explicit CAssertExp(int ln);
-    ~CAssertExp();
     std::string ToString() const;
     std::string Signature() const;
     bool Validate() const;
@@ -136,11 +132,10 @@ struct CDeclare
     int is_def_;
     int op_token;
     int simple_type;
-    CVariable * var_;
-    CExpr * expr_;
+    CSharedPtr<CVariable> var_;
+    CSharedPtr<CExpr> expr_;
     //functions:
     explicit CDeclare(int ln);
-    ~CDeclare();
     std::string ToString() const;
     std::string Signature() const;
     bool IsGlobalOnly() const;
@@ -150,18 +145,17 @@ struct CDeclare
     bool IsFixed() const{return type_ == 5 || type_ == 6;}
     bool IsAssert() const{return type_ == 7;}
     bool IsStream() const{return type_ == 8 || type_ == 9;}
-    bool CheckDefined(CCommand * cur_cmd);
+    bool CheckDefined(CSharedPtr<CCommand> cur_cmd);
 };
 
 struct CArgList
 {
     const int lineno_;
-    std::vector<CExpr *> args_;
+    std::vector<CSharedPtr<CExpr> > args_;
     //fuctions:
     explicit CArgList(int ln);
-    ~CArgList();
-    CExpr * operator [](size_t i) const;
-    void Add(CExpr * arg);
+    CSharedPtr<CExpr> operator [](size_t i) const;
+    void Add(CSharedPtr<CExpr> arg);
     std::string ToString() const;
     std::string Signature() const;
     bool CheckDefined(int lineno) const;
@@ -171,10 +165,9 @@ struct CFuncCall
 {
     const int lineno_;
     int ft_token_;
-    CArgList * arg_list_;
+    CSharedPtr<CArgList> arg_list_;
     //functions:
     explicit CFuncCall(int ln);
-    ~CFuncCall();
     std::string ToString() const;
     std::string Signature() const;
     bool CheckDefined() const;
@@ -184,28 +177,26 @@ struct CStmt
 {
     const int lineno_;
     int type_;
-    CAssertExp * assert_;
-    CDeclare * declare_;
-    CFuncCall * func_call_;
-    CCommand * cmd_;
+    CSharedPtr<CAssertExp> assert_;
+    CSharedPtr<CDeclare> declare_;
+    CSharedPtr<CFuncCall> func_call_;
+    CSharedPtr<CCommand> cmd_;
     //functions:
     explicit CStmt(int ln);
-    ~CStmt();
     std::string ToString() const;
     std::string Signature() const;
 };
 
-typedef std::map<std::string,CVariable *>   __VarTable;
+typedef std::map<std::string,CSharedPtr<CVariable> >   __VarTable;
 
 struct CCommand
 {
     const int lineno_;
     std::string cmd_name_;
     __VarTable var_table;
-    std::vector<CStmt *> stmt_list_;
+    std::vector<CSharedPtr<CStmt> > stmt_list_;
     //functions:
     explicit CCommand(int ln);
-    ~CCommand();
     std::string ToString() const;
     std::string Signature() const;
 };

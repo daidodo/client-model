@@ -59,14 +59,7 @@ CVariable::CVariable(int ln)
     , type_(0)
     , simple_type_(0)
     , ref_count_(0)
-    , array_type_(0)
-    , host_cmd_(0)
-    , shadow_(0)
 {}
-
-CVariable::~CVariable(){
-    Delete(array_type_);
-}
 
 std::string CVariable::ToString() const{
     std::ostringstream oss;
@@ -74,7 +67,6 @@ std::string CVariable::ToString() const{
         <<",type_="<<type_
         <<",simple_type_="<<simple_type_
         <<",array_type_="<<signa(array_type_)
-        <<",val_.size()="<<val_.size()
         <<",ref_count_="<<ref_count_
         <<",host_cmd_="<<signa(host_cmd_)
         <<",shadow_="<<to_str(shadow_)
@@ -92,16 +84,7 @@ std::string CVariable::Signature() const{
 CExpr::CExpr(int ln)
     : lineno_(ln)
     , type_(0)
-    , fix_value_(0)
-    , func_call_(0)
-    , var_(0)
 {}
-
-CExpr::~CExpr(){
-    Delete(fix_value_);
-    Delete(func_call_);
-    //Delete(var_);
-}
 
 std::string CExpr::ToString() const{
     std::ostringstream oss;
@@ -135,12 +118,7 @@ bool CExpr::CheckDefined(int lineno) const
 CArrayType::CArrayType(int ln)
     : lineno_(ln)
     , simple_type_(0)
-    , expr_(0)
 {}
-
-CArrayType::~CArrayType(){
-    Delete(expr_);
-}
 
 std::string CArrayType::ToString() const{
     std::ostringstream oss;
@@ -166,14 +144,7 @@ bool CArrayType::CheckDefined(int lineno) const
 CAssertExp::CAssertExp(int ln)
     : lineno_(ln)
     , op_token_(0)
-    , expr1_(0)
-    , expr2_(0)
 {}
-
-CAssertExp::~CAssertExp(){
-    Delete(expr1_);
-    Delete(expr2_);
-}
 
 std::string CAssertExp::ToString() const{
     std::ostringstream oss;
@@ -219,14 +190,7 @@ CDeclare::CDeclare(int ln)
     , is_def_(0)
     , op_token(0)
     , simple_type(0)
-    , var_(0)
-    , expr_(0)
 {}
-
-CDeclare::~CDeclare(){
-    //Delete(var_);
-    Delete(expr_);
-}
 
 std::string CDeclare::ToString() const{
     std::ostringstream oss;
@@ -252,9 +216,8 @@ bool CDeclare::IsGlobalOnly() const
 
 bool CDeclare::Validate() const
 {
-    //array type check
     if(var_->array_type_ && CannotBeArray(var_->array_type_->simple_type_)){
-        GAMMAR_ERR(lineno_,"error array type");
+        GAMMAR_ERR(lineno_,"invaid array type");
     }else if(IsAssert() && !IsBinaryPredict(op_token)){
         GAMMAR_ERR(lineno_,"prediction format error");
         return false;
@@ -263,16 +226,15 @@ bool CDeclare::Validate() const
     return false;
 }
 
-bool CDeclare::CheckDefined(CCommand * cur_cmd)
+bool CDeclare::CheckDefined(CSharedPtr<CCommand> cur_cmd)
 {
     bool ret = true;
-    CVariable *& shadow = var_->shadow_;
+    CSharedPtr<CVariable>& shadow = var_->shadow_;
     if(shadow){
         --shadow->ref_count_;
         if(cur_cmd == shadow->host_cmd_){
             GAMMAR_ERR(lineno_,"redefine symbol '"<<var_->varname_
                 <<"', see LINE:"<<shadow->lineno_);
-            Delete(var_);
             var_ = shadow;
             ret = false;
         }else
@@ -288,16 +250,12 @@ CArgList::CArgList(int ln)
     : lineno_(ln)
 {}
 
-CArgList::~CArgList(){
-    std::for_each(args_.begin(),args_.end(),Delete<CExpr>);
-}
-
-CExpr * CArgList::operator [](size_t i) const{
+CSharedPtr<CExpr> CArgList::operator [](size_t i) const{
     assert(i < args_.size());
     return args_[i];
 }
 
-void CArgList::Add(CExpr * arg){
+void CArgList::Add(CSharedPtr<CExpr> arg){
     args_.push_back(arg);
 }
 
@@ -331,12 +289,7 @@ bool CArgList::CheckDefined(int lineno) const
 CFuncCall::CFuncCall(int ln)
     : lineno_(ln)
     , ft_token_(0)
-    , arg_list_(0)
 {}
-
-CFuncCall::~CFuncCall(){
-    Delete(arg_list_);
-}
 
 std::string CFuncCall::ToString() const{
     std::ostringstream oss;
@@ -365,15 +318,7 @@ bool CFuncCall::CheckDefined() const
 CStmt::CStmt(int ln)
     : lineno_(ln)
     , type_(0)
-    , assert_(0)
 {}
-
-CStmt::~CStmt(){
-    Delete(assert_);
-    Delete(declare_);
-    Delete(func_call_);
-    Delete(cmd_);
-}
 
 std::string CStmt::ToString() const{
     std::ostringstream oss;
@@ -396,12 +341,6 @@ std::string CStmt::Signature() const{
 CCommand::CCommand(int ln)
     : lineno_(ln)
 {}
-
-CCommand::~CCommand(){
-    for(__VarTable::iterator i = var_table.begin();i != var_table.end();++i)
-        Delete(i->second);
-    std::for_each(stmt_list_.begin(),stmt_list_.end(),Delete<CStmt>);
-}
 
 std::string CCommand::ToString() const{
     std::ostringstream oss;
