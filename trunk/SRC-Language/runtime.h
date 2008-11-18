@@ -11,31 +11,33 @@ struct CRuntime
 {
     typedef std::vector<CSharedPtr<CStmt> >     __StmtList;
     typedef std::list<std::string>              __VnameList;
-    //typedef __VnameList::iterator               __VnameIter;
-    //typedef std::map<std::string,__VnameIter>   __VnameMap;
+    typedef __VnameList::iterator               __VnameIter;
+    typedef std::map<std::string,__VnameIter>   __VnameMap;
     //connections
-    bool default_tcp_;
-    std::vector<CSharedPtr<CTcp> > tcp_table_;
-    std::vector<CSharedPtr<CUdp> > udp_table_;
+    CSharedPtr<CTcp> default_tcp_;
+    CSharedPtr<CUdp> default_udp_;
     //variables
     std::map<std::string,CSharedPtr<CDeclare> > var_table_;
-    std::list<std::string> post_list_;     //延后求值列表
+    __VnameList post_list_;     //延后求值列表
+    __VnameMap  post_map_;
     //stmt list
     __StmtList stmts_list_;
 //functions:
-    CRuntime();
-    bool Interpret(CProgram & program);
-    CSharedPtr<CDeclare> FindVar(const std::string & vname);
+    void Interpret(CProgram & program);
+    CSharedPtr<CDeclare> FindVar(std::string vname);
+    double Priority(const std::string & vname) const;
+    bool IsPost(const std::string & vname) const;
 private:
-    //top
-    void processStmt(CStmt & stmt);
+    bool addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,const std::string & depend);
+    void addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl);
+    void addConnection(CSharedPtr<CValue> conn);
     //level 1
-    void processDeclare(CDeclare & decl);
-    void processFunc(CFuncCall & func);
-    void processCmd(CCmd & cmd);
+    void processDeclare(CSharedPtr<CDeclare> decl);
+    void processFunc(CSharedPtr<CFuncCall> func);
+    void processCmd(CSharedPtr<CCmd> cmd);
     //level 2
-    void processPost(CDeclare & decl);
-    void processFixed(CDeclare & decl);
+    void processPost(CSharedPtr<CDeclare> decl);
+    void processFixed(CSharedPtr<CDeclare> decl);
 };
 
 #endif

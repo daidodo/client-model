@@ -7,7 +7,7 @@
 //print syntax debug info
 #define __SYNTAX_DEBUG  1
 
-//print grammar debug info
-#define __GRAMMAR_DEBUG 1
+//print runtime debug info
+#define __RUNTIME_DEBUG 1
 
 #endif

@@ -199,7 +199,12 @@ simple_declare : array_type VAR_NAME
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 3;
 				$$->var_ = $1;
-				$$->expr_ = $3;
+				$$->expr_ = New<CExpr>($1->lineno_);
+				$$->expr_->type_ = 2;
+				$$->expr_->func_call_ = New<CFuncCall>($1->lineno_);
+				$$->expr_->func_call_->ft_token_ = $1->tp_token_;
+				$$->expr_->func_call_->arg_list_ = New<CArgList>($1->lineno_);
+				$$->expr_->func_call_->arg_list_->Add($3);
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	| sim_type_name '(' arg_list ')'
@@ -214,7 +219,7 @@ simple_declare : array_type VAR_NAME
 				$$->expr_ = New<CExpr>(LINE_NO);
 				$$->expr_->type_ = 2;
 				$$->expr_->func_call_ =  New<CFuncCall>(LINE_NO);
-				$$->expr_->func_call_->ft_token_ = $1->simple_type_;
+				$$->expr_->func_call_->ft_token_ = $1->tp_token_;
 				$$->expr_->func_call_->arg_list_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -227,7 +232,12 @@ simple_declare : array_type VAR_NAME
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 5;
 				$$->var_ = $1;
-				$$->expr_ = $3;
+				$$->expr_ = New<CExpr>($1->lineno_);
+				$$->expr_->type_ = 2;
+				$$->expr_->func_call_ = New<CFuncCall>($1->lineno_);
+				$$->expr_->func_call_->ft_token_ = $1->tp_token_;
+				$$->expr_->func_call_->arg_list_ = New<CArgList>($1->lineno_);
+				$$->expr_->func_call_->arg_list_->Add($3);
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	| sim_type_name ':' '(' arg_list ')'
@@ -242,7 +252,7 @@ simple_declare : array_type VAR_NAME
 				$$->expr_ = New<CExpr>(LINE_NO);
 				$$->expr_->type_ = 2;
 				$$->expr_->func_call_ =  New<CFuncCall>(LINE_NO);
-				$$->expr_->func_call_->ft_token_ = $1->simple_type_;
+				$$->expr_->func_call_->ft_token_ = $1->tp_token_;
 				$$->expr_->func_call_->arg_list_ = $4;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -256,7 +266,7 @@ simple_declare : array_type VAR_NAME
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 7;
 				$$->var_ = $1;
-				$$->op_token = $2;
+				$$->op_token_ = $2;
 				$$->expr_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -270,7 +280,7 @@ simple_declare : array_type VAR_NAME
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 8;
 				$$->var_ = $1;
-				$$->op_token = $2;
+				$$->op_token_ = $2;
 				$$->expr_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -284,8 +294,8 @@ simple_declare : array_type VAR_NAME
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 9;
 				$$->var_ = $1;
-				$$->op_token = $2;
-				$$->simple_type = $3;
+				$$->op_token_ = $2;
+				$$->tp_token_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
@@ -333,7 +343,7 @@ array_type : simple_type '[' ']'
 				DBG_YY("array_type 1");
 				DBG_YY("$1 = "<<$1);
 				$$ = New<CArrayType>(LINE_NO);
-				$$->simple_type_ = $1;
+				$$->tp_token_ = $1;
 				$$->expr_ = 0;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -344,7 +354,7 @@ array_type : simple_type '[' ']'
 				DBG_YY("$3 = "<<to_str($3));
 				YY_ASSERT($3);
 				$$ = New<CArrayType>(LINE_NO);
-				$$->simple_type_ = $1;
+				$$->tp_token_ = $1;
 				$$->expr_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -366,7 +376,7 @@ sim_type_name : simple_type VAR_NAME
 					$$->host_cmd_ = CUR_CMD;
 				}
 				$$->type_ = 1;
-				$$->simple_type_ = $1;
+				$$->tp_token_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;

@@ -52,8 +52,8 @@ const std::string & CProgram::GetQstr(size_t i) const{
 
 void CProgram::AddStmt(CSharedPtr<CAssertExp> stmt)
 {
-    DBG_GMM("add CAssertExp="<<to_str(stmt));
-    DBG_GMM("cur_cmd="<<signa(cur_cmd));
+    DBG_YY("add CAssertExp="<<to_str(stmt));
+    DBG_YY("cur_cmd="<<signa(cur_cmd));
     YY_ASSERT(stmt);
     bool good = stmt->Validate();
     good = (stmt->CheckDefined() && good);
@@ -67,13 +67,13 @@ void CProgram::AddStmt(CSharedPtr<CAssertExp> stmt)
     st->type_ = 1;
     st->assert_ = stmt;
     curStmtList().push_back(st);
-    DBG_GMM("succ add CAssertExp="<<signa(stmt));
+    DBG_YY("succ add CAssertExp="<<signa(stmt));
 }
 
 void CProgram::AddStmt(CSharedPtr<CDeclare> stmt)
 {
-    DBG_GMM("add CDeclare="<<to_str(stmt));
-    DBG_GMM("cur_cmd="<<signa(cur_cmd));
+    DBG_YY("add CDeclare="<<to_str(stmt));
+    DBG_YY("cur_cmd="<<signa(cur_cmd));
     YY_ASSERT(stmt);
     bool good = stmt->Validate();
     good = (stmt->CheckDefined(cur_cmd) && good);
@@ -93,19 +93,19 @@ void CProgram::AddStmt(CSharedPtr<CDeclare> stmt)
     }
     if(!good)
         return;
-    DBG_GMM("add var_="<<to_str(stmt->var_));
+    DBG_YY("add var_="<<to_str(stmt->var_));
     CurVarTable()[name] = stmt->var_;
     CSharedPtr<CStmt> st = New<CStmt>(stmt->lineno_);
     st->type_ = 2;
     st->declare_ = stmt;
     curStmtList().push_back(st);
-    DBG_GMM("succ add CDeclare="<<signa(stmt));
+    DBG_YY("succ add CDeclare="<<signa(stmt));
 }
 
 void CProgram::AddStmt(CSharedPtr<CFuncCall> stmt)
 {
-    DBG_GMM("add CFuncCall="<<to_str(stmt));
-    DBG_GMM("cur_cmd="<<signa(cur_cmd));
+    DBG_YY("add CFuncCall="<<to_str(stmt));
+    DBG_YY("cur_cmd="<<signa(cur_cmd));
     YY_ASSERT(stmt);
     bool good = stmt->Validate();
     good = (stmt->CheckDefined() && good);
@@ -115,12 +115,12 @@ void CProgram::AddStmt(CSharedPtr<CFuncCall> stmt)
     st->type_ = 3;
     st->func_call_ = stmt;
     curStmtList().push_back(st);
-    DBG_GMM("succ add CFuncCall="<<signa(stmt));
+    DBG_YY("succ add CFuncCall="<<signa(stmt));
 }
 
 void CProgram::CmdBegin(CSharedPtr<CVariable> var)
 {
-    DBG_GMM("new command CVariable="<<to_str(var));
+    DBG_YY("new command CVariable="<<to_str(var));
     std::string name;
     int var_lineno = LINE_NO;
     if(var){
@@ -152,7 +152,7 @@ void CProgram::CmdBegin(CSharedPtr<CVariable> var)
             <<cmd->lineno_);
         return;
     }
-    DBG_GMM("cmd="<<to_str(cmd)<<", cur_cmd="<<to_str(cur_cmd));
+    DBG_YY("cmd="<<to_str(cmd)<<", cur_cmd="<<to_str(cur_cmd));
     cur_cmd = New<CCmd>(LINE_NO);
     cmd = cur_cmd;
     cmd->cmd_name_ = name;
@@ -160,7 +160,7 @@ void CProgram::CmdBegin(CSharedPtr<CVariable> var)
     st->type_ = 4;
     st->cmd_ = cmd;
     curStmtList().push_back(st);
-    DBG_GMM("succ new command="<<signa(cmd));
+    DBG_YY("succ new command="<<signa(cmd));
 }
 
 void CProgram::CmdEnd()
@@ -168,7 +168,7 @@ void CProgram::CmdEnd()
     if(isGlobal()){
         GAMMAR_ERR(LINE_NO,"invalid end of command");
     }
-    DBG_GMM("end command="<<signa(cur_cmd));
+    DBG_YY("end command="<<signa(cur_cmd));
     cur_cmd = 0;
 }
 

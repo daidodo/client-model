@@ -49,5 +49,12 @@ bool CGlobal::Build()
         return false;
     }
     runtime_ = New<CRuntime>();
-    return runtime_->Interpret(*program_);
+    try{
+        runtime_->Interpret(*program_);
+    }catch(int){}
+    if(err_count_){
+        std::cerr<<"total "<<err_count_<<" error(s)\n";
+        return false;
+    }
+    return true;
 }
