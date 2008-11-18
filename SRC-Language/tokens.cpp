@@ -1,5 +1,6 @@
 #include "tokens.h"
 #include "symbols.h"
+#include "functions.h"
 #include "y.tab.h"
 
 bool IsBinaryPredict(int op_token){
@@ -17,7 +18,19 @@ bool IsUnaryPredict(int op_token){
     return (op_token == OP_NOT);
 }
 
-bool IsOnlyGlobalType(int type_token)
+bool IsGlobalOnlyToken(int type_token)
+{
+    return IsConnectionToken(type_token);
+}
+
+bool IsLocalOnlyToken(int type_token)
+{
+    return (type_token == SEND || type_token == RECV
+        || type_token == BEGIN_ || type_token == END
+        || type_token == FUN);
+}
+
+bool IsConnectionToken(int type_token)
 {
     return (type_token == TCP || type_token == UDP);
 }
@@ -46,8 +59,140 @@ bool FunArgNumCheck(int fun_token,size_t argn)
             return argn <= 1;
         case HEX:case UNHEX:
             return argn == 1;
+        case TCP:case UDP:
+        case FUN:
+            return argn == 1 || argn == 2;
         case BEGIN_:case END:
             return true;
     }
     return false;
+}
+
+int FunRetType(int fun_token)
+{
+    switch(fun_token){
+        case HBO:case NBO:
+        case SEND:case RECV:
+        case BEGIN_:case END:
+        case FUN:
+            return 0;   //void
+        case TP_U8:
+            return 3;   //CValue::u8_
+        case TP_S8:
+            return 4;   //CValue::s8_
+        case TP_U16:
+            return 5;   //CValue::u16_
+        case TP_S16:
+            return 6;   //CValue::s16_
+        case TP_U32:
+            return 7;   //CValue::u32_
+        case TP_S32:
+            return 8;   //CValue::s32_
+        case TP_U64:
+            return 9;   //CValue::u64_
+        case TP_S64:
+            return 10;  //CValue::s64_
+        case STR:case RAW:
+        case HEX:case UNHEX:
+            return 11;  //CValue::str_
+        case TCP:
+            return 12;  //CValue::tcp_
+        case UDP:
+            return 13;  //CValue::udp_
+    }
+    return -1;
+}
+
+size_t FunArgTypeCheck(int fun_token,std::vector<int> & types)
+{
+    switch(fun_token){
+        case HBO:case NBO:{         //no args
+            if(!types.empty())
+                return 1;
+            break;}
+        case TP_U8:case TP_S8:
+        case TP_U16:case TP_S16:
+        case TP_U32:case TP_S32:
+        case TP_U64:case TP_S64:{   //integer
+            if(!types.empty() && !(types[0] > 0 && types[0] <= 10))
+                return 1;
+            break;}
+        case STR:case RAW:{         //string
+            if(!types.empty() && types[0] != 11)
+                return 1;
+            break;}
+        case TCP:case UDP:{         //(string + (string or interger)) or (UDP xor TCP)
+            if(types.empty())
+                return 1;
+            else if(types.size() == 1){
+                if(fun_token == TCP){
+                    if(types[0] != 12)
+                        return 1;
+                }else{
+                    if(types[0] != 13)
+                        return 1;
+                }
+            }else if(types.size() == 2){
+                if(types[0] != 11)
+                    return 1;
+                if(!(types[1] > 0 && types[1] <= 11))
+                    return 2;
+            }else
+                return 3;
+            break;}
+        case SEND:case RECV:{       //CValue::tcp_ or CValue::udp_
+            if(!types.empty() && types[0] != 12 && types[0] != 13)
+                return 1;
+            break;}
+        case HEX:case UNHEX:{       //string
+            if(types.empty() || types[0] != 11)
+                return 1;
+            break;}
+        case FUN:{                  //* + integer
+            if(types.size() < 2)
+                return types.size() + 1;
+            else if(types.size() > 2)
+                return 3;
+            else if(!(types[1] > 0 && types[1] <= 10))
+                return 2;
+            break;}
+        case BEGIN_:case END:
+            break;
+    }
+    return 0;
+}
+
+CSharedPtr<CValue> FunEvaluate(int fun_token,const std::vector<CSharedPtr<CValue> > & args,int lineno)
+{
+    switch(fun_token){
+        case TP_U8:
+            return EvaluateU8(args,lineno);
+        case TP_S8:
+            return EvaluateS8(args,lineno);
+        case TP_U16:
+            return EvaluateU16(args,lineno);
+        case TP_S16:
+            return EvaluateS16(args,lineno);
+        case TP_U32:
+            return EvaluateU32(args,lineno);
+        case TP_S32:
+            return EvaluateS32(args,lineno);
+        case TP_U64:
+            return EvaluateU64(args,lineno);
+        case TP_S64:
+            return EvaluateS64(args,lineno);
+        case STR:
+            return EvaluateSTR(args,lineno);
+        case RAW:
+            return EvaluateRAW(args,lineno);
+        case TCP:
+            return EvaluateTCP(args,lineno);
+        case UDP:
+            return EvaluateUDP(args,lineno);
+        case HEX:
+            return EvaluateHEX(args,lineno);
+        case UNHEX:
+            return EvaluateUNHEX(args,lineno);
+    }
+    return 0;
 }

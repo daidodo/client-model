@@ -1,0 +1,42 @@
+#ifndef DOZERG_FUNCTIONS_H_20081119
+#define DOZERG_FUNCTIONS_H_20081119
+
+#include <vector>
+#include "symbols.h"
+#include "common/SharedPtr.h"
+
+typedef CSharedPtr<CValue> __ValuePtr;
+
+//no side effects
+__ValuePtr EvaluateU8(const std::vector<__ValuePtr> & args,int lineno);
+__ValuePtr EvaluateS8(const std::vector<__ValuePtr> & args,int lineno);
+
+__ValuePtr EvaluateU16(const std::vector<__ValuePtr> & args,int lineno);
+__ValuePtr EvaluateS16(const std::vector<__ValuePtr> & args,int lineno);
+
+__ValuePtr EvaluateU32(const std::vector<__ValuePtr> & args,int lineno);
+__ValuePtr EvaluateS32(const std::vector<__ValuePtr> & args,int lineno);
+
+__ValuePtr EvaluateU64(const std::vector<__ValuePtr> & args,int lineno);
+__ValuePtr EvaluateS64(const std::vector<__ValuePtr> & args,int lineno);
+
+__ValuePtr EvaluateSTR(const std::vector<__ValuePtr> & args,int lineno);
+__ValuePtr EvaluateRAW(const std::vector<__ValuePtr> & args,int lineno);
+
+__ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno);
+__ValuePtr EvaluateUDP(const std::vector<__ValuePtr> & args,int lineno);
+
+__ValuePtr EvaluateHEX(const std::vector<__ValuePtr> & args,int lineno);
+__ValuePtr EvaluateUNHEX(const std::vector<__ValuePtr> & args,int lineno);
+
+//have side effects
+
+        //case HBO:case NBO:
+        //case SEND:case RECV:
+        //case BEGIN_:case END:
+        //case FUN:
+
+
+
+
+#endif

@@ -1,6 +1,7 @@
 #include <cassert>  //assert
 #include <cstddef>  //size_t
 #include <cstdlib>  //atoi,atol
+#include <sstream>  //std::ostringstream
 #include "util.h"
 
 template<typename T,int Bytes = sizeof(T)>
@@ -149,5 +150,40 @@ long long str2i64(const char * str,size_t len)
     }else
         ret = atoll(str);
     return __number_unit(ret,str[len - 1]);
+}
+
+std::string DumpHex(const char * v,size_t sz,char sep,bool hasLen)
+{
+    const char DIGIT[] = "0123456789ABCDEF";
+    assert(v);
+    std::string ret;
+    if(hasLen){
+        std::ostringstream oss;
+        oss<<"("<<sz<<")";
+        ret = oss.str();
+    }
+    ret.reserve(ret.size() + (2 + (sep ? 1 : 0)) * sz);
+    for(size_t i = 0;i < sz;++i){
+        ret.push_back(DIGIT[(v[i] >> 4) & 0xF]);
+        ret.push_back(DIGIT[v[i] & 0xF]);
+        if(sep)
+            ret.push_back(sep);
+    }
+    return ret;
+}
+
+std::string UnHex(const char * v,size_t sz)
+{
+    assert(v && sz);
+    std::string ret;
+    ret.reserve(sz >> 1);
+    for(size_t i = 1;i < sz;i += 2){
+        int t1 = UnHexChar(v[i - 1]);
+        int t2 = UnHexChar(v[i]);
+        if(t1 < 0 || t2 < 0)
+            break;
+        ret.push_back((t1 << 4) + t2);
+    }
+    return ret;
 }
 

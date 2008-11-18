@@ -4,6 +4,66 @@
 #include "util.h"
 #include "tokens.h"
 
+//CValue
+CValue::CValue()
+    : type_(0)
+    , u64_(0)
+{}
+
+std::string CValue::ToString() const
+{
+    std::ostringstream oss;
+    oss<<"(type_="<<type_;
+    switch(type_){
+        case 1:
+            oss<<",int_="<<int_;
+            break;
+        case 2:
+            oss<<",long_="<<long_;
+            break;
+        case 3:
+            oss<<",u8_="<<u8_;
+            break;
+        case 4:
+            oss<<",s8_="<<s8_;
+            break;
+        case 5:
+            oss<<",u16_="<<u16_;
+            break;
+        case 6:
+            oss<<",s16_="<<s16_;
+            break;
+        case 7:
+            oss<<",u32_="<<u32_;
+            break;
+        case 8:
+            oss<<",s32_="<<s32_;
+            break;
+        case 9:
+            oss<<",u64_="<<u64_;
+            break;
+        case 10:
+            oss<<",s64_="<<s64_;
+            break;
+        case 11:
+            oss<<",str_="<<str_;
+            break;
+        case 12:
+            oss<<",tcp_="<<to_str(tcp_);
+            break;
+        case 13:
+            oss<<",udp_="<<to_str(udp_);
+            break;
+    }
+    oss<<")";
+    return oss.str();
+}
+
+std::string CValue::Signature() const
+{
+    return ToString();
+}
+
 //CFixValue
 CFixValue::CFixValue(int ln)
     : lineno_(ln)
@@ -31,62 +91,53 @@ std::string CFixValue::Signature() const{
     return oss.str();
 }
 
-//CValue
-CValue::CValue()
-    : type_(0)
-    , u64_(0)
-{}
-
-bool CValue::FromFixValue(const CFixValue & fv)
+int CFixValue::RetType() const
 {
-    switch(fv.type_){
+    switch(type_){
         case 1:
-            type_ = 1;
-            int_ = fv.int_;
-            break;
+            return 1;
         case 2:
-            type_ = 2;
-            long_ = fv.long_;
-            break;
+            return 2;
         case 3:
-            type_ = 9;
-            s64_ = fv.i64_;
-            break;
+            return 9;
         case 4:
-            type_ = 11;
-            strIdx_ = fv.strIdx_;
-            break;
-        default:
-            return false;
+            return 11;
     }
-    return true;
+    return -1;
 }
 
-void CValue::FromVar(const CVariable & var,int lineno)
+CSharedPtr<CValue> CFixValue::Evaluate(int lineno) const
 {
-    if(var.IsArray()){
-        GAMMAR_ERR(lineno,"cannot evaluate array, see LINE:"<<var.lineno_);
-        return;
+    CSharedPtr<CValue> ret = New<CValue>();
+    switch(type_){
+        case 1:
+            ret->type_ = 1;
+            ret->int_ = int_;
+            break;
+        case 2:
+            ret->type_ = 2;
+            ret->long_ = long_;
+            break;
+        case 3:
+            ret->type_ = 9;
+            ret->s64_ = i64_;
+            break;
+        case 4:
+            ret->type_ = 11;
+            ret->str_ = program().GetQstr(strIdx_);
+            break;
+        default:
+            GAMMAR_ERR(lineno,"invalid fixed value(internal error)");
+            return 0;
     }
-    CSharedPtr<CDeclare> decl = runtime().FindVar(var.varname_);
-    if(!decl){
-        GAMMAR_ERR(lineno,"variable '"<<var.varname_
-            <<"' not found(internal error)");
-        return;
-    }
-    if(!decl->val_){
-        GAMMAR_ERR(lineno,"variable '"<<var.varname_
-            <<"' not initialized yet");
-        return;
-    }
-    *this = *decl->val_;
+    return ret;
 }
 
 //CVariable
 CVariable::CVariable(int ln)
     : lineno_(ln)
     , type_(0)
-    , simple_type_(0)
+    , tp_token_(0)
     , ref_count_(0)
 {}
 
@@ -94,7 +145,7 @@ std::string CVariable::ToString() const{
     std::ostringstream oss;
     oss<<"(varname_="<<varname_
         <<",type_="<<type_
-        <<",simple_type_="<<simple_type_
+        <<",tp_token_="<<tp_token_
         <<",array_type_="<<signa(array_type_)
         <<",ref_count_="<<ref_count_
         <<",host_cmd_="<<signa(host_cmd_)
@@ -107,6 +158,36 @@ std::string CVariable::Signature() const{
     std::ostringstream oss;
     oss<<"(LINE:"<<lineno_<<")"<<varname_;
     return oss.str();
+}
+
+bool CVariable::IsConnection() const
+{
+    return IsConnectionToken(tp_token_);
+}
+
+int CVariable::RetType() const
+{
+    return (array_type_ ? array_type_->RetType() : FunRetType(tp_token_));
+}
+
+CSharedPtr<CValue> CVariable::Evaluate(int lineno) const
+{
+    if(array_type_){
+        GAMMAR_ERR(lineno,"cannot evaluate array, see LINE:"<<lineno_);
+        return 0;
+    }
+    CSharedPtr<CDeclare> decl = runtime().FindVar(varname_);
+    if(!decl){
+        GAMMAR_ERR(lineno,"variable '"<<varname_
+            <<"' not found(internal error)");
+        return 0;
+    }
+    if(!decl->val_){
+        GAMMAR_ERR(lineno,"variable '"<<varname_
+            <<"' not initialized yet");
+        return 0;
+    }
+    return decl->val_;
 }
 
 //CExpr
@@ -143,28 +224,56 @@ bool CExpr::CheckDefined(int lineno) const
     return true;
 }
 
-CSharedPtr<CValue> CExpr::Evaluate() const
+bool CExpr::Validate() const
 {
-    CSharedPtr<CValue> ret = New<CValue>();
-    switch(type_){      //fix value
+    if(fix_value_ && !fix_value_->Validate())
+        return false;
+    if(func_call_ && !func_call_->Validate())
+        return false;
+    if(var_ && !var_->Validate())
+        return false;
+    return true;
+}
+
+int CExpr::RetType() const
+{
+    switch(type_){
         case 1:
             assert(fix_value_);
-            if(!ret->FromFixValue(*fix_value_)){
-                GAMMAR_ERR(lineno_,"invalid fixed value(internal error)");
-            }
-            break;
+            return fix_value_->RetType();
+        case 2:
+            assert(func_call_);
+            return func_call_->RetType();
+        case 3:
+            assert(var_);
+            return var_->RetType();
+    }
+    return -1;
+}
+
+CSharedPtr<CValue> CExpr::Evaluate() const
+{
+    switch(type_){
+        case 1:
+            assert(fix_value_);
+            return fix_value_->Evaluate(lineno_);
         case 2:
             assert(func_call_);
             return func_call_->Evaluate();
-            break;
         case 3:
             assert(var_);
-            ret->FromVar(*var_,lineno_);
-            break;
-        default:
-            return 0;
+            return var_->Evaluate(lineno_);
     }
-    return ret;
+    return 0;
+}
+
+std::string CExpr::Depend() const
+{
+    if(func_call_)
+        return func_call_->Depend();
+    else if(var_ && runtime().IsPost(var_->varname_))
+        return var_->varname_;
+    return "";
 }
 
 //CArgList
@@ -207,15 +316,58 @@ bool CArgList::CheckDefined(int lineno) const
     return ret;
 }
 
+bool CArgList::Validate() const
+{
+    for(size_t i = 0;i < args_.size();++i)
+        if(!args_[i]->Validate())
+            return false;
+    return true;
+}
+
+void CArgList::RetType(std::vector<int> & ret) const
+{
+    ret.resize(args_.size());
+    for(size_t i = 0;i < args_.size();++i)
+        ret[i] = args_[i]->RetType();
+}
+
+bool CArgList::Evaluate(std::vector<CSharedPtr<CValue> > & ret,int lineno) const
+{
+    ret.resize(args_.size());
+    for(size_t i = 0;i < args_.size();++i){
+        ret[i] = args_[i]->Evaluate();
+        if(!ret[i]){
+            GAMMAR_ERR(lineno,"cannot evaluate argument "<<(i + 1));
+            return false;
+        }
+    }
+    return true;
+}
+
+std::string CArgList::Depend() const
+{
+    std::string ret;
+    double pri = 0;
+    for(size_t i = 0;i < args_.size();++i){
+        std::string vname = args_[i]->Depend();
+        double vp = runtime().Priority(vname);
+        if(vp > pri){
+            ret = vname;
+            pri = vp;
+        }
+    }
+    return ret;
+}
+
 //CArrayType
 CArrayType::CArrayType(int ln)
     : lineno_(ln)
-    , simple_type_(0)
+    , tp_token_(0)
 {}
 
 std::string CArrayType::ToString() const{
     std::ostringstream oss;
-    oss<<"(simple_type_="<<simple_type_
+    oss<<"(tp_token_="<<tp_token_
         <<",expr_="<<signa(expr_)
         <<")";
     return oss.str();
@@ -233,11 +385,15 @@ bool CArrayType::CheckDefined(int lineno) const
         return expr_->CheckDefined(lineno);
 }
 
+int CArrayType::RetType() const
+{
+    return FunRetType(tp_token_);
+}
+
 //CAssertExp
 CAssertExp::CAssertExp(int ln)
     : lineno_(ln)
     , op_token_(0)
-    , result_(false)
 {}
 
 std::string CAssertExp::ToString() const{
@@ -260,11 +416,17 @@ bool CAssertExp::Validate() const
     assert(expr1_);
     if(IsBinaryPredict(op_token_) && !expr2_){
         GAMMAR_ERR(lineno_,"prediction format error(binary)");
-    }else if(IsUnaryPredict(op_token_) && expr2_){
+        return false;
+    }
+    if(IsUnaryPredict(op_token_) && expr2_){
         GAMMAR_ERR(lineno_,"prediction format error(unary)");
-    }else
-        return true;
-    return false;
+        return false;
+    }
+    if(!expr1_->Validate())
+        return false;
+    if(expr2_ && !expr2_->Validate())
+        return false;
+    return true;
 }
 
 bool CAssertExp::CheckDefined() const
@@ -282,17 +444,20 @@ CDeclare::CDeclare(int ln)
     : lineno_(ln)
     , type_(0)
     , is_def_(0)
-    , op_token(0)
-    , simple_type(0)
+    , op_token_(0)
+    , tp_token_(0)
+    , eva_priority_(0)
 {}
 
 std::string CDeclare::ToString() const{
     std::ostringstream oss;
     oss<<"(type_="<<type_
         <<",var_="<<signa(var_)
-        <<",op_token="<<op_token
+        <<",op_token_="<<op_token_
         <<",expr_="<<signa(expr_)
-        <<",simple_type="<<simple_type
+        <<",tp_token_="<<tp_token_
+        <<",eva_priority_="<<eva_priority_
+        <<",val_="<<signa(val_)
         <<")";
     return oss.str();
 }
@@ -304,20 +469,25 @@ std::string CDeclare::Signature() const{
 bool CDeclare::IsGlobalOnly() const
 {
     if(var_->array_type_)
-        return IsOnlyGlobalType(var_->array_type_->simple_type_);
-    return IsOnlyGlobalType(var_->simple_type_);
+        return IsGlobalOnlyToken(var_->array_type_->tp_token_);
+    return IsGlobalOnlyToken(var_->tp_token_);
 }
 
 bool CDeclare::Validate() const
 {
-    if(var_->array_type_ && CannotBeArray(var_->array_type_->simple_type_)){
+    if(var_->array_type_ && CannotBeArray(var_->array_type_->tp_token_)){
         GAMMAR_ERR(lineno_,"invaid array type");
-    }else if(IsAssert() && !IsBinaryPredict(op_token)){
+        return false;
+    }
+    if(IsAssert() && !IsBinaryPredict(op_token_)){
         GAMMAR_ERR(lineno_,"prediction format error");
         return false;
-    }else
-        return true;
-    return false;
+    }
+    if(var_ && !var_->Validate())
+        return false;
+    if(expr_ && !expr_->Validate())
+        return false;
+    return true;
 }
 
 bool CDeclare::CheckDefined(CSharedPtr<CCmd> cur_cmd)
@@ -370,16 +540,59 @@ bool CFuncCall::CheckDefined() const
 
 bool CFuncCall::Validate() const
 {
+    if(arg_list_ && !arg_list_->Validate())
+        return false;
     if(!FunArgNumCheck(ft_token_,(arg_list_ ? arg_list_->args_.size() : 0))){
         GAMMAR_ERR(lineno_,"number of args is invalid");
+        return false;
+    }
+
+    std::vector<int> retTypes;
+    if(arg_list_)
+        arg_list_->RetType(retTypes);
+    size_t i = FunArgTypeCheck(ft_token_,retTypes);
+    if(i){
+        GAMMAR_ERR(lineno_,"type mismatch for argument "<<i);
         return false;
     }
     return true;
 }
 
+bool CFuncCall::IsConnection() const
+{
+    return IsConnectionToken(ft_token_);
+}
+
+bool CFuncCall::IsGlobalOnly() const
+{
+    return IsGlobalOnlyToken(ft_token_);
+}
+
+bool CFuncCall::IsLocalOnly() const
+{
+    return IsLocalOnlyToken(ft_token_);
+}
+
+int CFuncCall::RetType() const
+{
+    return FunRetType(ft_token_);
+}
+
 CSharedPtr<CValue> CFuncCall::Evaluate() const
 {
-    
+    std::vector<CSharedPtr<CValue> > args;
+    if(arg_list_){
+        if(!arg_list_->Evaluate(args,lineno_))
+            return 0;
+    }
+    return FunEvaluate(ft_token_,args,lineno_);
+}
+
+std::string CFuncCall::Depend() const
+{
+    if(arg_list_)
+        return arg_list_->Depend();
+    return "";
 }
 
 //CStmt
