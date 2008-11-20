@@ -15,8 +15,7 @@ struct CRuntime
     typedef __VnameList::iterator               __VnameIter;
     typedef std::map<std::string,__VnameIter>   __VnameMap;
     //connections
-    CSharedPtr<CTcp> default_tcp_;
-    CSharedPtr<CUdp> default_udp_;
+    CSharedPtr<CValue> default_conn_;  //默认连接
     //variables
     std::map<std::string,CSharedPtr<CDeclare> > var_table_;
     __VnameList post_list_;     //延后求值列表
@@ -28,7 +27,8 @@ struct CRuntime
 //functions:
     CRuntime();
     void Interpret(CProgram & program);
-    CSharedPtr<CDeclare> FindVar(std::string vname);
+    bool SetByteOrder(bool net_bo){net_byte_order_ = net_bo;}
+    CSharedPtr<CDeclare> FindVar(std::string vname,CSharedPtr<CCmd> cmd = 0);
     double Priority(const std::string & vname) const;
     bool IsPost(const std::string & vname) const;
 private:

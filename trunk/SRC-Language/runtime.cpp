@@ -20,13 +20,13 @@ void CRuntime::Interpret(CProgram & program)
     }
 }
 
-CSharedPtr<CDeclare> CRuntime::FindVar(std::string vname)
+CSharedPtr<CDeclare> CRuntime::FindVar(std::string vname,CSharedPtr<CCmd> cmd)
 {
-    std::map<std::string,CSharedPtr<CDeclare> >::const_iterator wh = var_table_.find(vname);
-    if(wh == var_table_.end()){
-        vname.push_back('$');
+    std::map<std::string,CSharedPtr<CDeclare> >::const_iterator wh = var_table_.end();
+    if(cmd)
+        wh = var_table_.find(localVarname(vname,*cmd));
+    if(wh == var_table_.end())
         wh = var_table_.find(vname);
-    }
     return (wh == var_table_.end() ? 0 : wh->second);
 }
 
@@ -65,7 +65,7 @@ bool CRuntime::addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,co
     }
     __VnameMap::const_iterator wh = post_map_.find(depend);
     if(wh == post_map_.end()){
-        RUNTIME_ERR("no symbol '"<<depend
+        RUNTIME_ERR(decl->lineno_,"no symbol '"<<depend
             <<"' in post map(internal error)");
         return false;
     }
@@ -92,14 +92,9 @@ void CRuntime::addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl)
 
 void CRuntime::addConnection(CSharedPtr<CValue> conn)
 {
-    if(!default_tcp_ && !default_udp_){
-        if(conn->tcp_){         //tcp
-            default_tcp_ = conn->tcp_;
-        }else if(conn->udp_){   //udp
-            default_udp_ = conn->udp_;
-        }else
-            assert(0);
-    }
+    assert(conn->IsConnection());
+    if(!default_conn_)
+        default_conn_ = conn;
 }
 
 void CRuntime::processStmt(CSharedPtr<CStmt> stmt,CSharedPtr<CCmd> cmd)
@@ -146,7 +141,7 @@ void CRuntime::processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         else if(decl->IsFixed())
             processFixed(decl,0);
         else{
-            RUNTIME_ERR("invalid declaration in global scope");
+            RUNTIME_ERR(decl->lineno_,"invalid declaration in global scope");
         }
     }else{
         decl->var_->varname_ = localVarname(decl->var_->varname_,*cmd);
@@ -158,7 +153,7 @@ void CRuntime::processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
             else if(decl->IsStreamIn())
                 processStreamIn(decl,cmd);
             else{
-                RUNTIME_ERR("invalid declaration in SEND command");
+                RUNTIME_ERR(decl->lineno_,"invalid declaration in SEND command");
             }
         }else{  //--------------recv cmd
             if(decl->IsArray())
@@ -170,7 +165,7 @@ void CRuntime::processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
             else if(decl->IsStreamOut())
                 processStreamOut(decl,cmd);
             else{
-                RUNTIME_ERR("invalid declaration in RECV command");
+                RUNTIME_ERR(decl->lineno_,"invalid declaration in RECV command");
             }
         }
     }
@@ -179,6 +174,10 @@ void CRuntime::processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 void CRuntime::processFunc(CSharedPtr<CFuncCall> func,CSharedPtr<CCmd> cmd)
 {
     if(!cmd){   //----------------global
+        if(func->IsConnection()){
+            addConnection(func->Evaluate());
+        }else
+            func->Invoke(0);
     }else if(cmd->IsSend()){    //send cmd
     }else{  //--------------------recv cmd
     }

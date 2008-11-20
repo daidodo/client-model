@@ -9,14 +9,11 @@
 #include <cassert>
 #include "types.h"
 #include "errors.h"
+#include "rt_structs.h"
 #include "common/SharedPtr.h"
-#include "common/Sockets.h"
 #include "common/DataStream.h"
 
-struct CValue;
 struct CFixValue;
-struct CTcp;
-struct CUdp;
 struct CVariable;
 struct CExpr;
 struct CArgList;
@@ -26,30 +23,6 @@ struct CDeclare;
 struct CFuncCall;
 struct CStmt;
 struct CCmd;
-
-struct CValue
-{
-    int type_;
-    union{
-        int int_;       //1
-        long long_;     //2
-        U8  u8_;        //3
-        S8  s8_;        //4
-        U16 u16_;       //5
-        S16 s16_;       //6
-        U32 u32_;       //7
-        S32 s32_;       //8
-        U64 u64_;       //9
-        S64 s64_;       //10
-    };
-    std::string str_;   //11
-    CSharedPtr<CTcp> tcp_;  //12
-    CSharedPtr<CUdp> udp_;  //13
-    //functions:
-    CValue();
-    std::string ToString() const;
-    std::string Signature() const;
- };
 
 struct CFixValue
 {
@@ -67,22 +40,6 @@ struct CFixValue
     CSharedPtr<CValue> Evaluate(int lineno) const;
 };
 
-struct CTcp : public CTcpConnSocket
-{
-    const int lineno_;
-    //functions:
-    //explicit CTcp(int ln);
-    //std::string Signature() const;
-};
-
-struct CUdp : public CUdpSocket
-{
-    const int lineno_;
-    //functions:
-    //explicit CUdp(int ln);
-    //std::string Signature() const;
-};
-
 struct CVariable
 {
     std::string varname_;
@@ -90,6 +47,7 @@ struct CVariable
     int type_;
     int tp_token_;
     int ref_count_;
+    ssize_t begin_;     //for BEGIN(var), END(var)
     CSharedPtr<CArrayType> array_type_;
     CSharedPtr<CCmd> host_cmd_;
     CSharedPtr<CVariable> shadow_;
@@ -216,9 +174,10 @@ struct CFuncCall
     bool IsLocalOnly() const;
     int RetType() const;
     bool HasSideEffect() const{return (RetType() == 0 || IsConnection());}
-    CSharedPtr<CValue> Evaluate() const;
     std::string Depend() const;
     int IsSendRecv() const; //0:false ; 1:send ; 2:recv
+    CSharedPtr<CValue> Evaluate() const;
+    void Invoke(CSharedPtr<CCmd> cmd) const;
 };
 
 struct CStmt
@@ -244,12 +203,19 @@ struct CCmd
     std::string cmd_name_;
     __VarTable var_table;
     std::vector<CSharedPtr<CStmt> > stmt_list_;
+    std::vector<CSharedPtr<CValue> > conn_list_;
     //functions:
     explicit CCmd(int ln);
     std::string ToString() const;
     std::string Signature() const;
     bool IsSend() const{return send_flag_ == 1;}
     bool IsRecv() const{return send_flag_ == 2;}
+    void SetByteOrder(bool net_bo);
+    void AddConnection(CSharedPtr<CValue> conn);
+    size_t DataOffset() const{
+        
+        return 0;
+    }
 };
 
 #endif

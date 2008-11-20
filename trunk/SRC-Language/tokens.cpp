@@ -63,7 +63,7 @@ bool FunArgNumCheck(int fun_token,size_t argn)
         case FUN:
             return argn == 1 || argn == 2;
         case BEGIN_:case END:
-            return true;
+            return argn > 0;
     }
     return false;
 }
@@ -160,14 +160,28 @@ size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgLis
                 return 3;
             break;}
         case BEGIN_:case END:{
-            if(arglist){
-                for(size_t i = 0;i < types.size();++i)
-                    if(!(*arglist)[i]->IsVar() || !(types[i] > 0 && types[i] <= 10))
-                        return (i + 1);
-            }
+            assert(arglist);
+            for(size_t i = 0;i < types.size();++i)
+                if(!(*arglist)[i]->IsVar() || !(types[i] > 0 && types[i] <= 10))
+                    return (i + 1);
             break;}
     }
     return 0;
+}
+
+int IsSendRecvToken(int fun_token)
+{
+    return (fun_token == SEND ? 1 : (fun_token == RECV ? 2 : 0));
+}
+
+int IsStreamInToken(int op_token)
+{
+    return op_token == OP_IN;
+}
+
+int IsStreamOutToken(int op_token)
+{
+    return op_token == OP_OUT;
 }
 
 CSharedPtr<CValue> FunEvaluate(int fun_token,const std::vector<CSharedPtr<CValue> > & args,int lineno)
@@ -205,17 +219,19 @@ CSharedPtr<CValue> FunEvaluate(int fun_token,const std::vector<CSharedPtr<CValue
     return 0;
 }
 
-int IsSendRecvToken(int fun_token)
+void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno_,CSharedPtr<CCmd> cmd)
 {
-    return (fun_token == SEND ? 1 : (fun_token == RECV ? 2 : 0));
-}
-
-int IsStreamInToken(int op_token)
-{
-    return op_token == OP_IN;
-}
-
-int IsStreamOutToken(int op_token)
-{
-    return op_token == OP_OUT;
+    switch(fun_token){
+        case HBO:case NBO:
+            InvokeBO((fun_token == NBO),cmd);
+            break;
+        case SEND:case RECV:
+            InvokeSendRecv((fun_token == SEND),args,lineno_,cmd);
+            break;
+        case BEGIN_:case END:
+            InvokeBeginEnd((fun_token == BEGIN_),args,lineno_,cmd);
+            break;
+        case FUN:
+            break;
+    }
 }
