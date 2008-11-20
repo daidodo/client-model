@@ -129,7 +129,7 @@ void CProgram::AddStmt(CSharedPtr<CFuncCall> stmt)
         GAMMAR_ERR(stmt->lineno_,"useless function");
         good = false;
     }
-    if(isGlobal()){
+    if(isGlobal()){ //global
         if(stmt->IsLocalOnly()){
             GAMMAR_ERR(stmt->lineno_,"invalid function in global scope");
             good = false;
@@ -140,7 +140,7 @@ void CProgram::AddStmt(CSharedPtr<CFuncCall> stmt)
             }else
                 conn_defined_ = true;
         }
-    }else{  //local
+    }else{          //local
         if(stmt->IsGlobalOnly()){
             GAMMAR_ERR(stmt->lineno_,"invalid function in local scope");
             good = false;

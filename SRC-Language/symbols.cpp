@@ -4,66 +4,6 @@
 #include "util.h"
 #include "tokens.h"
 
-//CValue
-CValue::CValue()
-    : type_(0)
-    , u64_(0)
-{}
-
-std::string CValue::ToString() const
-{
-    std::ostringstream oss;
-    oss<<"(type_="<<type_;
-    switch(type_){
-        case 1:
-            oss<<",int_="<<int_;
-            break;
-        case 2:
-            oss<<",long_="<<long_;
-            break;
-        case 3:
-            oss<<",u8_="<<u8_;
-            break;
-        case 4:
-            oss<<",s8_="<<s8_;
-            break;
-        case 5:
-            oss<<",u16_="<<u16_;
-            break;
-        case 6:
-            oss<<",s16_="<<s16_;
-            break;
-        case 7:
-            oss<<",u32_="<<u32_;
-            break;
-        case 8:
-            oss<<",s32_="<<s32_;
-            break;
-        case 9:
-            oss<<",u64_="<<u64_;
-            break;
-        case 10:
-            oss<<",s64_="<<s64_;
-            break;
-        case 11:
-            oss<<",str_="<<str_;
-            break;
-        case 12:
-            oss<<",tcp_="<<to_str(tcp_);
-            break;
-        case 13:
-            oss<<",udp_="<<to_str(udp_);
-            break;
-    }
-    oss<<")";
-    return oss.str();
-}
-
-std::string CValue::Signature() const
-{
-    return ToString();
-}
-
 //CFixValue
 CFixValue::CFixValue(int ln)
     : lineno_(ln)
@@ -139,6 +79,7 @@ CVariable::CVariable(int ln)
     , type_(0)
     , tp_token_(0)
     , ref_count_(0)
+    , begin_(-1)
 {}
 
 std::string CVariable::ToString() const{
@@ -150,6 +91,7 @@ std::string CVariable::ToString() const{
         <<",ref_count_="<<ref_count_
         <<",host_cmd_="<<signa(host_cmd_)
         <<",shadow_="<<to_str(shadow_)
+        <<",begin_="<<begin_
         <<")";
     return oss.str();
 }
@@ -578,16 +520,6 @@ int CFuncCall::RetType() const
     return FunRetType(ft_token_);
 }
 
-CSharedPtr<CValue> CFuncCall::Evaluate() const
-{
-    std::vector<CSharedPtr<CValue> > args;
-    if(arg_list_){
-        if(!arg_list_->Evaluate(args,lineno_))
-            return 0;
-    }
-    return FunEvaluate(ft_token_,args,lineno_);
-}
-
 std::string CFuncCall::Depend() const
 {
     if(arg_list_)
@@ -598,6 +530,21 @@ std::string CFuncCall::Depend() const
 int CFuncCall::IsSendRecv() const
 {
     return IsSendRecvToken(ft_token_);
+}
+
+CSharedPtr<CValue> CFuncCall::Evaluate() const
+{
+    std::vector<CSharedPtr<CValue> > args;
+    if(arg_list_){
+        if(!arg_list_->Evaluate(args,lineno_))
+            return 0;
+    }
+    return FunEvaluate(ft_token_,args,lineno_);
+}
+
+void CFuncCall::Invoke(CSharedPtr<CCmd> cmd) const
+{
+    FunInvoke(ft_token_,arg_list_,lineno_,cmd);
 }
 
 //CStmt
@@ -645,3 +592,13 @@ std::string CCmd::Signature() const{
     return oss.str();
 }
 
+void CCmd::SetByteOrder(bool net_bo)
+{
+
+}
+
+void CCmd::AddConnection(CSharedPtr<CValue> conn)
+{
+    assert(conn && conn->IsConnection());
+    conn_list_.push_back(conn);
+}

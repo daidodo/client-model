@@ -25,12 +25,14 @@ int FunRetType(int fun_token);
 
 size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgList> arglist);
 
-CSharedPtr<CValue> FunEvaluate(int fun_token,const std::vector<CSharedPtr<CValue> > & args,int lineno);
-
 int IsSendRecvToken(int fun_token);
 
 int IsStreamInToken(int op_token);
 
 int IsStreamOutToken(int op_token);
+
+CSharedPtr<CValue> FunEvaluate(int fun_token,const std::vector<CSharedPtr<CValue> > & args,int lineno);
+
+void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno_,CSharedPtr<CCmd> cmd);
 
 #endif

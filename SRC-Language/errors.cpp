@@ -15,8 +15,9 @@ void grammar_error(int lineno,const std::string & msg)
     ERR_INCR;
 }
 
-void runtime_error(const std::string & msg)
+void runtime_error(int lineno,const std::string & msg)
 {
-    std::cerr<<"RUNTIME:"<<msg<<std::endl;
+    std::cerr<<global().input_file<<":"<<lineno<<" - (runtime)"
+        <<msg<<std::endl;
     ERR_INCR;
 }
