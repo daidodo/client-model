@@ -125,16 +125,16 @@ void CRuntime::processStmt(CSharedPtr<CStmt> stmt,CSharedPtr<CCmd> cmd)
 
 void CRuntime::processAssertExp(CSharedPtr<CAssertExp> ass,CSharedPtr<CCmd> cmd)
 {
-    if(!cmd){   //----------------global
-    }else if(cmd->IsSend()){    //send cmd
-    }else{  //--------------------recv cmd
-    }
+    DBG_RT("processAssertExp ass="<<to_str(ass));
+    DBG_RT("processAssertExp cmd="<<to_str(cmd));
+    assert(cmd && cmd->IsRecv());
 
 }
 
 void CRuntime::processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processDeclare decl="<<to_str(decl));
+    DBG_RT("processDeclare cmd="<<to_str(cmd));
     if(!cmd){   //--------------global
         if(decl->IsSimplePost())
             processPost(decl,0);
@@ -173,39 +173,19 @@ void CRuntime::processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 
 void CRuntime::processFunc(CSharedPtr<CFuncCall> func,CSharedPtr<CCmd> cmd)
 {
-    if(!cmd){   //----------------global
-        if(func->IsConnection()){
-            addConnection(func->Evaluate());
-        }else
-            func->Invoke(0);
-    }else if(cmd->IsSend()){    //send cmd
-    }else{  //--------------------recv cmd
-    }
-    //DBG_RT("processFunc func="<<to_str(func));
-    //if(!func->HasSideEffect()){
-    //    GAMMAR_ERR(func->lineno_,"useless function");
-    //    return false;
-    //}else if(func->IsLocalOnly()){
-    //    if(!cmd){
-    //        GAMMAR_ERR(func->lineno_,"invalid function in global scope");
-    //        return false;
-    //    }
-    //}else if(func->IsConnection()){
-    //    if(cmd){
-    //        GAMMAR_ERR(func->lineno_,"invalid connection in local scope");
-    //        return false;
-    //    }else if(default_tcp_ || default_tcp_){
-    //        GAMMAR_ERR(func->lineno_,"connection will never be used");
-    //        return false;
-    //    }else
-    //        addConnection(func->Evaluate());
-    //    return false;
-    //}   //HBO NBO
-    //return true;
+    DBG_RT("processFunc func="<<to_str(func));
+    DBG_RT("processFunc cmd="<<to_str(cmd));
+    if(func->IsConnection()){
+        addConnection(func->Evaluate());
+    }else
+        func->Invoke(0);
 }
 
 void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
 {
+    DBG_RT("processCmd cmd="<<to_str(cmd));
+    assert(cmd->ds_.Size() == 0);
+    cmd->SetByteOrder(net_byte_order_);
     for(std::vector<CSharedPtr<CStmt> >::iterator i = cmd->stmt_list_.begin();
         i != cmd->stmt_list_.end();++i)
     {
@@ -217,10 +197,14 @@ void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
 
 void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
+    DBG_RT("processArray decl="<<to_str(decl));
+    DBG_RT("processArray cmd="<<to_str(cmd));
 }
 
 void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
+    DBG_RT("processPost decl="<<to_str(decl));
+    DBG_RT("processPost cmd="<<to_str(cmd));
     if(!cmd){   //----------------global
     }else if(cmd->IsSend()){    //send cmd
     }else{  //--------------------recv cmd
@@ -255,34 +239,41 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 
 void CRuntime::processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
-    if(!cmd){   //----------------global
-    }else if(cmd->IsSend()){    //send cmd
-    }else{  //--------------------recv cmd
+    DBG_RT("processFixed decl="<<to_str(decl));
+    DBG_RT("processFixed cmd="<<to_str(cmd));
+    assert(decl->expr_);
+    const std::string vname = decl->var_->varname_;
+    decl->val_ = decl->expr_->Evaluate();
+    DBG_RT("processFixed Evaluate decl="<<to_str(decl->val_));
+    if(decl->val_){
+        if(decl->IsConnection())
+            addConnection(decl->val_);
+        else
+            decl->FixRaw();
+    }else{
+        RUNTIME_ERR(decl->lineno_,"cannot evaluate '"<<vname
+            <<"'");
     }
-    //DBG_RT("processFixed decl="<<to_str(decl));
-    //std::string vname = decl->var_->varname_;
-    //decl->val_ = decl->expr_->Evaluate();
-    //DBG_RT("processFixed Evaluate decl="<<to_str(decl->val_));
-    //if(decl->val_){
-    //    if(decl->IsConnection())
-    //        addConnection(decl->val_);
-    //}else{
-    //    GAMMAR_ERR(decl->lineno_,"cannot evaluate '"<<vname
-    //        <<"'");
-    //    return false;
-    //}
-    //var_table_[vname] = decl;
-    //return !decl->is_def_;
+    var_table_[vname] = decl;
+    if(!decl->is_def_ && cmd && cmd->IsSend() && !cmd->AddData(decl->val_)){
+        RUNTIME_ERR(decl->lineno_,"cannot pack '"<<vname<<"'");
+    }
 }
 
 void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
+    DBG_RT("processDeclAssert decl="<<to_str(decl));
+    DBG_RT("processDeclAssert cmd="<<to_str(cmd));
 }
 
 void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
+    DBG_RT("processStreamIn decl="<<to_str(decl));
+    DBG_RT("processStreamIn cmd="<<to_str(cmd));
 }
 
 void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
+    DBG_RT("processStreamOut decl="<<to_str(decl));
+    DBG_RT("processStreamOut cmd="<<to_str(cmd));
 }

@@ -1,6 +1,7 @@
 #include <sstream>
 #include "rt_structs.h"
 #include "util.h"
+#include "errors.h"
 
 //CValue
 CValue::CValue()
@@ -52,6 +53,9 @@ std::string CValue::ToString() const
         case 13:
             oss<<",udp_="<<to_str(udp_);
             break;
+        case 14:
+            oss<<",raw_="<<str_;
+            break;
     }
     oss<<")";
     return oss.str();
@@ -62,4 +66,27 @@ std::string CValue::Signature() const
     return ToString();
 }
 
+void CValue::FixRaw()
+{
+    assert(IsString());
+    type_ = 14;
+}
 
+
+COutByteStream & operator <<(COutByteStream & ds,const CValue & v)
+{
+    switch(v.type_){
+        case 3:ds<<v.u8_;break;
+        case 4:ds<<v.s8_;break;
+        case 5:ds<<v.u16_;break;
+        case 6:ds<<v.s16_;break;
+        case 7:ds<<v.u32_;break;
+        case 8:ds<<v.s32_;break;
+        case 9:ds<<v.u64_;break;
+        case 10:ds<<v.s64_;break;
+        case 11:ds<<v.str_;break;
+        case 14:ds<<Manip::raw(v.str_.c_str(),v.str_.length());break;
+        default:ds.Status(1);
+    }
+    return ds;
+}

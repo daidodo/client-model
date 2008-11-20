@@ -35,6 +35,11 @@ bool IsConnectionToken(int type_token)
     return (type_token == TCP || type_token == UDP);
 }
 
+bool IsRawToken(int type_token)
+{
+    return type_token == RAW;
+}
+
 bool CannotBeArray(int type_token)
 {
     return (type_token == TCP || type_token == UDP || type_token == RAW);
@@ -92,9 +97,11 @@ int FunRetType(int fun_token)
             return 9;   //CValue::u64_
         case TP_S64:
             return 10;  //CValue::s64_
-        case STR:case RAW:
+        case STR:
         case HEX:case UNHEX:
             return 11;  //CValue::str_
+        case RAW:
+            return 14;  //CValue::str_
         case TCP:
             return 12;  //CValue::tcp_
         case UDP:
@@ -118,7 +125,7 @@ size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgLis
                 return 1;
             break;}
         case STR:case RAW:{         //string
-            if(!types.empty() && types[0] != 11)
+            if(!types.empty() && !CValue::IsString(types[0]))
                 return 1;
             break;}
         case TCP:case UDP:{         //(string + (string or interger)) or (UDP xor TCP)
@@ -133,9 +140,10 @@ size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgLis
                         return 1;
                 }
             }else if(types.size() == 2){
-                if(types[0] != 11)
+                if(!CValue::IsString(types[0]))
                     return 1;
-                if(!(types[1] > 0 && types[1] <= 11))
+                if(!(types[1] > 0 && types[1] <= 10) && //integer
+                    !CValue::IsString(types[1]))        //string
                     return 2;
             }else
                 return 3;
@@ -148,7 +156,7 @@ size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgLis
             }
             break;}
         case HEX:case UNHEX:{       //string
-            if(types.empty() || types[0] != 11)
+            if(types.empty() || !CValue::IsString(types[0]))
                 return 1;
             break;}
         case FUN:{                  //VAR or VAR + integer
@@ -232,6 +240,7 @@ void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno_,CSharedPtr<CC
             InvokeBeginEnd((fun_token == BEGIN_),args,lineno_,cmd);
             break;
         case FUN:
+            InvokeFUN(args,lineno_,cmd);
             break;
     }
 }
