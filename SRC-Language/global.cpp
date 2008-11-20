@@ -48,6 +48,10 @@ bool CGlobal::Build()
         std::cerr<<"program not ready!\n";
         return false;
     }
+    if(err_count_){
+        std::cerr<<"please fix errors first!\n";
+        return false;
+    }
     runtime_ = New<CRuntime>();
     try{
         runtime_->Interpret(*program_);

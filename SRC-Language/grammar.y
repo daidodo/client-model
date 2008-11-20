@@ -83,7 +83,7 @@ declare : simple_declare
 			{
 				DBG_YY("declare 1");
 				DBG_YY("$1 = "<<to_str($1));
-				YY_ASSERT($1);
+				assert($1);
 				$$ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 				program().AddStmt($$);
@@ -92,7 +92,7 @@ declare : simple_declare
 			{
 				DBG_YY("declare 2");
 				DBG_YY("$2 = "<<to_str($2));
-				YY_ASSERT($2);
+				assert($2);
 				$$ = $2;
 				$$->is_def_ = 1;
 				DBG_YY("$$ = "<<to_str($$));
@@ -115,7 +115,7 @@ func_call : func_name
 				DBG_YY("func_call 2");
 				DBG_YY("$1 = "<<$1);
 				DBG_YY("$3 = "<<to_str($3));
-				YY_ASSERT($3);
+				assert($3);
 				$$ = New<CFuncCall>(LINE_NO);
 				$$->ft_token_ = $1;
 				$$->arg_list_ = $3;
@@ -165,7 +165,7 @@ simple_declare : array_type VAR_NAME
 				DBG_YY("simple_declare 1");
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$2 = "<<to_str($2));
-				YY_ASSERT($1 && $2);
+				assert($1 && $2);
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 1;
 				$$->var_ = $2;
@@ -184,10 +184,14 @@ simple_declare : array_type VAR_NAME
 	| sim_type_name	{
 				DBG_YY("simple_declare 2");
 				DBG_YY("$1 = "<<to_str($1));
-				YY_ASSERT($1);
+				assert($1);
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 2;
 				$$->var_ = $1;
+				$$->expr_ = New<CExpr>($1->lineno_);
+				$$->expr_->type_ = 2;
+				$$->expr_->func_call_ = New<CFuncCall>($1->lineno_);
+				$$->expr_->func_call_->ft_token_ = $1->tp_token_;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	| sim_type_name '=' expr
@@ -195,7 +199,7 @@ simple_declare : array_type VAR_NAME
 				DBG_YY("simple_declare 3");
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$3 = "<<to_str($3));
-				YY_ASSERT($1 && $3);
+				assert($1 && $3);
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 3;
 				$$->var_ = $1;
@@ -212,7 +216,7 @@ simple_declare : array_type VAR_NAME
 				DBG_YY("simple_declare 4");
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$3 = "<<to_str($3));
-				YY_ASSERT($1);
+				assert($1);
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 4;
 				$$->var_ = $1;
@@ -228,7 +232,7 @@ simple_declare : array_type VAR_NAME
 				DBG_YY("simple_declare 5");
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$3 = "<<to_str($3));
-				YY_ASSERT($1 && $3);
+				assert($1 && $3);
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 5;
 				$$->var_ = $1;
@@ -245,7 +249,7 @@ simple_declare : array_type VAR_NAME
 				DBG_YY("simple_declare 6");
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$4 = "<<to_str($4));
-				YY_ASSERT($1);
+				assert($1);
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 6;
 				$$->var_ = $1;
@@ -262,7 +266,7 @@ simple_declare : array_type VAR_NAME
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$2 = "<<$2);
 				DBG_YY("$3 = "<<to_str($3));
-				YY_ASSERT($1 && $3);
+				assert($1 && $3);
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 7;
 				$$->var_ = $1;
@@ -276,7 +280,7 @@ simple_declare : array_type VAR_NAME
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$2 = "<<$2);
 				DBG_YY("$3 = "<<to_str($3));
-				YY_ASSERT($1 && $3);
+				assert($1 && $3);
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 8;
 				$$->var_ = $1;
@@ -290,12 +294,15 @@ simple_declare : array_type VAR_NAME
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$2 = "<<$2);
 				DBG_YY("$3 = "<<$3);
-				YY_ASSERT($1);
+				assert($1);
 				$$ = New<CDeclare>($1->lineno_);
 				$$->type_ = 9;
 				$$->var_ = $1;
 				$$->op_token_ = $2;
-				$$->tp_token_ = $3;
+				$$->expr_ = New<CExpr>(LINE_NO);
+				$$->expr_->type_ = 2;
+				$$->expr_->func_call_ =  New<CFuncCall>(LINE_NO);
+				$$->expr_->func_call_->ft_token_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
@@ -311,7 +318,7 @@ arg_list : /* empty */
 			{
 				DBG_YY("arg_list 2");
 				DBG_YY("$1 = "<<to_str($1));
-				YY_ASSERT($1);
+				assert($1);
 				$$ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -321,7 +328,7 @@ arg_list_not_empty : expr
 			{
 				DBG_YY("arg_list_not_empty 1");
 				DBG_YY("$1 = "<<to_str($1));
-				YY_ASSERT($1);
+				assert($1);
 				$$ = New<CArgList>(LINE_NO);
 				$$->Add($1);
 				DBG_YY("$$ = "<<to_str($$));
@@ -331,7 +338,7 @@ arg_list_not_empty : expr
 				DBG_YY("arg_list_not_empty 2");
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$3 = "<<to_str($3));
-				YY_ASSERT($1 && $3);
+				assert($1 && $3);
 				$$ = $1;
 				$$->Add($3);
 				DBG_YY("$$ = "<<to_str($$));
@@ -352,7 +359,7 @@ array_type : simple_type '[' ']'
 				DBG_YY("array_type 2");
 				DBG_YY("$1 = "<<$1);
 				DBG_YY("$3 = "<<to_str($3));
-				YY_ASSERT($3);
+				assert($3);
 				$$ = New<CArrayType>(LINE_NO);
 				$$->tp_token_ = $1;
 				$$->expr_ = $3;
@@ -365,7 +372,7 @@ sim_type_name : simple_type VAR_NAME
 				DBG_YY("sim_type_name 1");
 				DBG_YY("$1 = "<<$1);
 				DBG_YY("$2 = "<<to_str($2));
-				YY_ASSERT($2);
+				assert($2);
 				$$ = $2;
 				if($$->ref_count_ > 0){
 					//redefinition, but we need the whole declaration
@@ -384,7 +391,7 @@ sim_type_name : simple_type VAR_NAME
 expr : fix_value	{
 				DBG_YY("expr 1");
 				DBG_YY("$1 = "<<to_str($1));
-				YY_ASSERT($1);
+				assert($1);
 				$$ = New<CExpr>(LINE_NO);
 				$$->type_ = 1;
 				$$->fix_value_ = $1;
@@ -393,7 +400,7 @@ expr : fix_value	{
 	| func_call	{
 				DBG_YY("expr 2");
 				DBG_YY("$1 = "<<to_str($1));
-				YY_ASSERT($1);
+				assert($1);
 				$$ = New<CExpr>(LINE_NO);
 				$$->type_ = 2;
 				$$->func_call_ = $1;
@@ -402,7 +409,7 @@ expr : fix_value	{
 	| VAR_NAME	{
 				DBG_YY("expr 3");
 				DBG_YY("$1 = "<<to_str($1));
-				YY_ASSERT($1);
+				assert($1);
 				$$ = New<CExpr>(LINE_NO);
 				$$->type_ = 3;
 				$$->var_ = $1;

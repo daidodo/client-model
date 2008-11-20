@@ -226,11 +226,7 @@ bool CExpr::CheckDefined(int lineno) const
 
 bool CExpr::Validate() const
 {
-    if(fix_value_ && !fix_value_->Validate())
-        return false;
     if(func_call_ && !func_call_->Validate())
-        return false;
-    if(var_ && !var_->Validate())
         return false;
     return true;
 }
@@ -445,17 +441,16 @@ CDeclare::CDeclare(int ln)
     , type_(0)
     , is_def_(0)
     , op_token_(0)
-    , tp_token_(0)
     , eva_priority_(0)
 {}
 
 std::string CDeclare::ToString() const{
     std::ostringstream oss;
     oss<<"(type_="<<type_
+        <<",is_def_="<<is_def_
         <<",var_="<<signa(var_)
         <<",op_token_="<<op_token_
         <<",expr_="<<signa(expr_)
-        <<",tp_token_="<<tp_token_
         <<",eva_priority_="<<eva_priority_
         <<",val_="<<signa(val_)
         <<")";
@@ -468,8 +463,6 @@ std::string CDeclare::Signature() const{
 
 bool CDeclare::IsGlobalOnly() const
 {
-    if(var_->array_type_)
-        return IsGlobalOnlyToken(var_->array_type_->tp_token_);
     return IsGlobalOnlyToken(var_->tp_token_);
 }
 
@@ -483,11 +476,19 @@ bool CDeclare::Validate() const
         GAMMAR_ERR(lineno_,"prediction format error");
         return false;
     }
-    if(var_ && !var_->Validate())
-        return false;
     if(expr_ && !expr_->Validate())
         return false;
     return true;
+}
+
+bool CDeclare::IsStreamIn() const
+{
+    return (IsStream() && IsStreamInToken(op_token_));
+}
+
+bool CDeclare::IsStreamOut() const
+{
+    return (IsStream() && IsStreamOutToken(op_token_));
 }
 
 bool CDeclare::CheckDefined(CSharedPtr<CCmd> cur_cmd)
@@ -546,13 +547,12 @@ bool CFuncCall::Validate() const
         GAMMAR_ERR(lineno_,"number of args is invalid");
         return false;
     }
-
     std::vector<int> retTypes;
     if(arg_list_)
         arg_list_->RetType(retTypes);
-    size_t i = FunArgTypeCheck(ft_token_,retTypes);
+    size_t i = FunArgTypeCheck(ft_token_,retTypes,arg_list_);
     if(i){
-        GAMMAR_ERR(lineno_,"type mismatch for argument "<<i);
+        GAMMAR_ERR(lineno_,"type or variable mismatch for argument "<<i);
         return false;
     }
     return true;
@@ -595,6 +595,11 @@ std::string CFuncCall::Depend() const
     return "";
 }
 
+int CFuncCall::IsSendRecv() const
+{
+    return IsSendRecvToken(ft_token_);
+}
+
 //CStmt
 CStmt::CStmt(int ln)
     : lineno_(ln)
@@ -621,11 +626,13 @@ std::string CStmt::Signature() const{
 //CCmd
 CCmd::CCmd(int ln)
     : lineno_(ln)
+    , send_flag_(0)
 {}
 
 std::string CCmd::ToString() const{
     std::ostringstream oss;
-    oss<<"(cmd_name_="<<cmd_name_;
+    oss<<"(cmd_name_="<<cmd_name_
+        <<",send_flag_="<<send_flag_;
     for(size_t i = 0;i < stmt_list_.size();++i)
         oss<<",stmt_list_["<<i<<"]="<<signa(stmt_list_[i]);
     oss<<")";

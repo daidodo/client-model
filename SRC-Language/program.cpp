@@ -7,6 +7,10 @@
 #include "errors.h"
 #include "tokens.h"
 
+CProgram::CProgram()
+    : conn_defined_(false)
+{}
+
 size_t CProgram::AddQstr(const std::string qstr)
 {
     size_t ret = qstr_table.size();
@@ -35,7 +39,7 @@ CSharedPtr<CVariable> CProgram::GetVar(const std::string & varname){
 CSharedPtr<CVariable> CProgram::NewVar(const std::string & varname,CSharedPtr<CVariable> old)
 {
     __VarTable & vt = (isGlobal() ? var_table : cur_cmd->var_table);
-    CSharedPtr<CVariable>& ret = vt[varname];
+    CSharedPtr<CVariable> & ret = vt[varname];
     assert(!ret);
     ret = New<CVariable>(LINE_NO);
     ret->varname_ = varname;
@@ -54,7 +58,7 @@ void CProgram::AddStmt(CSharedPtr<CAssertExp> stmt)
 {
     DBG_YY("add CAssertExp="<<to_str(stmt));
     DBG_YY("cur_cmd="<<signa(cur_cmd));
-    YY_ASSERT(stmt);
+    assert(stmt);
     bool good = stmt->Validate();
     good = (stmt->CheckDefined() && good);
     if(isGlobal()){
@@ -74,20 +78,32 @@ void CProgram::AddStmt(CSharedPtr<CDeclare> stmt)
 {
     DBG_YY("add CDeclare="<<to_str(stmt));
     DBG_YY("cur_cmd="<<signa(cur_cmd));
-    YY_ASSERT(stmt);
+    assert(stmt);
     bool good = stmt->Validate();
     good = (stmt->CheckDefined(cur_cmd) && good);
     std::string name = stmt->var_->varname_;
     if(isGlobal()){ //global scope
-        if(stmt->IsAssert()){
-            GAMMAR_ERR(stmt->lineno_,"invalid assertion for '"<<name
-                <<"' in global scope");
+        if(stmt->IsLocalOnly()){
+            GAMMAR_ERR(stmt->lineno_,"invalid declaration in global scope");
             good = false;
-        }
+        }else if(stmt->IsConnection())
+            conn_defined_ = true;
     }else{          //local scope
         if(stmt->IsGlobalOnly()){
-            GAMMAR_ERR(stmt->lineno_,"invalid declaration of '"<<name
-                <<"' in local scope");
+            GAMMAR_ERR(stmt->lineno_,"invalid declaration in local scope");
+            good = false;
+        }else if(cur_cmd->IsSend()){
+            if(stmt->IsRecvOnly()){
+                GAMMAR_ERR(stmt->lineno_,"invalid declaration in SEND command");
+                good = false;
+            }
+        }else if(cur_cmd->IsRecv()){
+            if(stmt->IsSendOnly()){
+                GAMMAR_ERR(stmt->lineno_,"invalid declaration in RECV command");
+                good = false;
+            }
+        }else{
+            GAMMAR_ERR(stmt->lineno_,"invalid declaration before SEND/RECV flag");
             good = false;
         }
     }
@@ -106,9 +122,41 @@ void CProgram::AddStmt(CSharedPtr<CFuncCall> stmt)
 {
     DBG_YY("add CFuncCall="<<to_str(stmt));
     DBG_YY("cur_cmd="<<signa(cur_cmd));
-    YY_ASSERT(stmt);
+    assert(stmt);
     bool good = stmt->Validate();
     good = (stmt->CheckDefined() && good);
+    if(!stmt->HasSideEffect()){
+        GAMMAR_ERR(stmt->lineno_,"useless function");
+        good = false;
+    }
+    if(isGlobal()){
+        if(stmt->IsLocalOnly()){
+            GAMMAR_ERR(stmt->lineno_,"invalid function in global scope");
+            good = false;
+        }else if(stmt->IsConnection()){
+            if(conn_defined_){
+                GAMMAR_ERR(stmt->lineno_,"connection will never be used");
+                good = false;
+            }else
+                conn_defined_ = true;
+        }
+    }else{  //local
+        if(stmt->IsGlobalOnly()){
+            GAMMAR_ERR(stmt->lineno_,"invalid function in local scope");
+            good = false;
+        }
+        int sr = stmt->IsSendRecv();
+        if(sr){
+            if(!conn_defined_){
+                GAMMAR_ERR(stmt->lineno_,"no connection yet");
+                good = false;
+            }else if(sr != cur_cmd->send_flag_){
+                GAMMAR_ERR(stmt->lineno_,"cannot change SEND/RECV flag");
+                good = false;
+            }else if(!cur_cmd->send_flag_)
+                cur_cmd->send_flag_ = sr;
+        }
+    }
     if(!good)
         return;
     CSharedPtr<CStmt> st = New<CStmt>(stmt->lineno_);
@@ -169,6 +217,11 @@ void CProgram::CmdEnd()
         GAMMAR_ERR(LINE_NO,"invalid end of command");
     }
     DBG_YY("end command="<<signa(cur_cmd));
+    if(cur_cmd->send_flag_ == 0){
+        GAMMAR_ERR(LINE_NO,"missing SEND/RECV flag for command '"
+            <<cur_cmd->cmd_name_<<"', see LINE:"<<cur_cmd->lineno_);
+        global_stmts.pop_back();    //保持cmd_name_在cmd_table内
+    }
     cur_cmd = 0;
 }
 

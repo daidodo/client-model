@@ -12,7 +12,10 @@ struct CProgram
     //commands
     CSharedPtr<CCmd> cur_cmd;
     std::map<std::string,CSharedPtr<CCmd> > cmd_table;
+    //connection
+    bool conn_defined_; //是否已有默认连接
 //functions:
+    CProgram();
     CSharedPtr<CCmd> & CurCmd(){return cur_cmd;}
     bool isGlobal() const{return !cur_cmd;}
     size_t AddQstr(const std::string qstr);
