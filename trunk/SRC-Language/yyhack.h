@@ -1,5 +1,5 @@
 /*
-    因为yacc生成的是C语言，而我的YYSTYPE是C++类型，
+    因为yacc生成的是C语言，而YYSTYPE是C++类型，
     所以需要对realloc和malloc进行一些“加工”，
     其实我需要的只是一个memset...
 //*/
@@ -9,7 +9,7 @@
 #include <cstdlib>  //for malloc
 #include <cstring>  //for memset
 
-//realloc没法hack,因为我不知道数组原来的大小,
+//realloc没法hack,因为不知道数组原来的大小,
 //没法把原来的数据复制到新数组里
 void * __realloc_hack(void * p,size_t sz)
 {

@@ -23,6 +23,4 @@
 #   define DBG_RT(msg)
 #endif
 
-#define YY_ASSERT(expr)     {assert(expr);}
-
 #endif

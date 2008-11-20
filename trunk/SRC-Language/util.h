@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <byteswap.h>   //bswap_16,bswap_32,bswap_64
 
 template<typename T>
 T str2num_base16(const char * str,size_t len);
@@ -87,5 +88,38 @@ inline int UnHexChar(unsigned char a){
     return UnHexChar(char(a));
 }
 
+//struct CByteOrderTraits
+template<typename T,size_t N>
+struct CByteOrderTraits{};
+
+template<typename T>struct CByteOrderTraits<T,1>{
+    static T Swap(T a){
+        return a;
+    }
+};
+
+template<typename T>struct CByteOrderTraits<T,2>{
+    static T Swap(T a){
+        return bswap_16(a);
+    }
+};
+
+template<typename T>struct CByteOrderTraits<T,4>{
+    static T Swap(T a){
+        return bswap_32(a);
+    }
+};
+
+template<typename T>struct CByteOrderTraits<T,8>{
+    static T Swap(T a){
+        return bswap_64(a);
+    }
+};
+
+//改变v的byte order.要求T是原始数据类型
+template<typename T>
+T SwapByteOrder(T v){
+    return CByteOrderTraits<T,sizeof(T)>::Swap(v);
+}
 
 #endif

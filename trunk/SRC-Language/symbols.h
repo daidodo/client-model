@@ -11,6 +11,7 @@
 #include "errors.h"
 #include "common/SharedPtr.h"
 #include "common/Sockets.h"
+#include "common/DataStream.h"
 
 struct CValue;
 struct CFixValue;
@@ -62,7 +63,6 @@ struct CFixValue
     explicit CFixValue(int ln);
     std::string ToString() const;
     std::string Signature() const;
-    bool Validate() const{return true;}
     int RetType() const;
     CSharedPtr<CValue> Evaluate(int lineno) const;
 };
@@ -98,9 +98,8 @@ struct CVariable
     std::string ToString() const;
     std::string Signature() const;
     bool IsGlobal() const{return !host_cmd_;}
-    bool Is1stDefine() const{return !ref_count_;}
+    bool Is1stDefine() const{return ref_count_ == 0;}
     bool IsArray() const{return type_ == 2;}
-    bool Validate() const{return true;}
     bool IsConnection() const;
     int RetType() const;
     CSharedPtr<CValue> Evaluate(int lineno) const;
@@ -117,6 +116,7 @@ struct CExpr
     explicit CExpr(int ln);
     std::string ToString() const;
     std::string Signature() const;
+    bool IsVar() const{return type_ == 3;}
     bool CheckDefined(int lineno) const;
     bool Validate() const;
     int RetType() const;
@@ -174,7 +174,6 @@ struct CDeclare
     int type_;
     int is_def_;
     int op_token_;
-    int tp_token_;
     CSharedPtr<CVariable> var_;
     CSharedPtr<CExpr> expr_;
     double eva_priority_;
@@ -186,11 +185,17 @@ struct CDeclare
     bool IsGlobalOnly() const;
     bool Validate() const;
     bool IsArray() const{return type_ == 1;}
-    bool IsPost() const{return !IsFixed();}
+    bool IsSimplePost() const{return type_ == 2 || type_ == 3 || type_ == 4;}
     bool IsFixed() const{return type_ == 5 || type_ == 6;}
+    bool IsPost() const{return !IsFixed();}
     bool IsAssert() const{return type_ == 7;}
     bool IsStream() const{return type_ == 8 || type_ == 9;}
+    bool IsStreamIn() const;
+    bool IsStreamOut() const;
     bool IsConnection() const{return var_->IsConnection();}
+    bool IsLocalOnly() const{return IsArray() || IsAssert() || IsStream();}
+    bool IsRecvOnly() const{return IsArray() || IsAssert() || IsStreamOut();}
+    bool IsSendOnly() const{return IsFixed() || IsStreamIn();}
     bool CheckDefined(CSharedPtr<CCmd> cur_cmd);
     std::string Depend() const{return (expr_ ? expr_->Depend() : "");}
 };
@@ -210,9 +215,10 @@ struct CFuncCall
     bool IsGlobalOnly() const;
     bool IsLocalOnly() const;
     int RetType() const;
-    bool HasSideEffect() const{return RetType() == 0;}
+    bool HasSideEffect() const{return (RetType() == 0 || IsConnection());}
     CSharedPtr<CValue> Evaluate() const;
     std::string Depend() const;
+    int IsSendRecv() const; //0:false ; 1:send ; 2:recv
 };
 
 struct CStmt
@@ -234,6 +240,7 @@ typedef std::map<std::string,CSharedPtr<CVariable> >   __VarTable;
 struct CCmd
 {
     const int lineno_;
+    int send_flag_; //0:unknown ; 1:send ; 2:recv
     std::string cmd_name_;
     __VarTable var_table;
     std::vector<CSharedPtr<CStmt> > stmt_list_;
@@ -241,6 +248,8 @@ struct CCmd
     explicit CCmd(int ln);
     std::string ToString() const;
     std::string Signature() const;
+    bool IsSend() const{return send_flag_ == 1;}
+    bool IsRecv() const{return send_flag_ == 2;}
 };
 
 #endif

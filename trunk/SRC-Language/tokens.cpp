@@ -103,7 +103,7 @@ int FunRetType(int fun_token)
     return -1;
 }
 
-size_t FunArgTypeCheck(int fun_token,std::vector<int> & types)
+size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgList> arglist)
 {
     switch(fun_token){
         case HBO:case NBO:{         //no args
@@ -141,23 +141,31 @@ size_t FunArgTypeCheck(int fun_token,std::vector<int> & types)
                 return 3;
             break;}
         case SEND:case RECV:{       //CValue::tcp_ or CValue::udp_
-            if(!types.empty() && types[0] != 12 && types[0] != 13)
-                return 1;
+            if(arglist){
+                for(size_t i = 0;i < types.size();++i)
+                    if(!(*arglist)[i]->IsVar() || (types[0] != 12 && types[0] != 13))
+                        return (i + 1);
+            }
             break;}
         case HEX:case UNHEX:{       //string
             if(types.empty() || types[0] != 11)
                 return 1;
             break;}
-        case FUN:{                  //* + integer
-            if(types.size() < 2)
-                return types.size() + 1;
+        case FUN:{                  //VAR or VAR + integer
+            if(types.empty() || !(*arglist)[0]->IsVar())
+                return 1;
+            else if(types.size() == 2 && !(types[1] > 0 && types[1] <= 10))
+                return 2;
             else if(types.size() > 2)
                 return 3;
-            else if(!(types[1] > 0 && types[1] <= 10))
-                return 2;
             break;}
-        case BEGIN_:case END:
-            break;
+        case BEGIN_:case END:{
+            if(arglist){
+                for(size_t i = 0;i < types.size();++i)
+                    if(!(*arglist)[i]->IsVar() || !(types[i] > 0 && types[i] <= 10))
+                        return (i + 1);
+            }
+            break;}
     }
     return 0;
 }
@@ -195,4 +203,19 @@ CSharedPtr<CValue> FunEvaluate(int fun_token,const std::vector<CSharedPtr<CValue
             return EvaluateUNHEX(args,lineno);
     }
     return 0;
+}
+
+int IsSendRecvToken(int fun_token)
+{
+    return (fun_token == SEND ? 1 : (fun_token == RECV ? 2 : 0));
+}
+
+int IsStreamInToken(int op_token)
+{
+    return op_token == OP_IN;
+}
+
+int IsStreamOutToken(int op_token)
+{
+    return op_token == OP_OUT;
 }
