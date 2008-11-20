@@ -302,11 +302,13 @@ std::string CArgList::Depend() const
 CArrayType::CArrayType(int ln)
     : lineno_(ln)
     , tp_token_(0)
+    , sz_(-1)
 {}
 
 std::string CArrayType::ToString() const{
     std::ostringstream oss;
     oss<<"(tp_token_="<<tp_token_
+        <<",sz_="<<sz_
         <<",expr_="<<signa(expr_)
         <<")";
     return oss.str();
@@ -385,6 +387,7 @@ CDeclare::CDeclare(int ln)
     , is_def_(0)
     , op_token_(0)
     , eva_priority_(0)
+    , offset_(-1)
 {}
 
 std::string CDeclare::ToString() const{
@@ -582,6 +585,7 @@ std::string CStmt::Signature() const{
 CCmd::CCmd(int ln)
     : lineno_(ln)
     , send_flag_(0)
+    , inds_(recv_data_)
 {}
 
 std::string CCmd::ToString() const{
@@ -605,14 +609,17 @@ void CCmd::SetByteOrder(bool net_bo)
 
 }
 
-void CCmd::AddConnection(CSharedPtr<CValue> conn)
+void CCmd::AddConnection(CSharedPtr<CValue> conn,int lineno)
 {
     assert(conn && conn->IsConnection());
-    conn_list_.push_back(conn);
+    if(!conn_list_.empty()){
+        RUNTIME_ERR(lineno,"only one connction is supported for one command");
+    }else
+        conn_list_.push_back(conn);
 }
 
-bool CCmd::AddData(CSharedPtr<CValue> data)
+bool CCmd::SendValue(CSharedPtr<CValue> v)
 {
-    assert(data);
-    return (ds_<<*data);
+    assert(v);
+    return (outds_<<*v);
 }

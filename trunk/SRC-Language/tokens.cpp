@@ -62,6 +62,7 @@ bool FunArgNumCheck(int fun_token,size_t argn)
         case STR:case RAW:
         case SEND:case RECV:
             return argn <= 1;
+            return true;
         case HEX:case UNHEX:
             return argn == 1;
         case TCP:case UDP:

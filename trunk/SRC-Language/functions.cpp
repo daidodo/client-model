@@ -191,7 +191,7 @@ void InvokeSendRecv(bool is_send,CSharedPtr<CArgList> args,int lineno,CSharedPtr
         if(!runtime().default_conn_){
             RUNTIME_ERR(lineno,"no default connection");
         }else
-            cmd->AddConnection(runtime().default_conn_);
+            cmd->AddConnection(runtime().default_conn_,lineno);
     }else{
         for(size_t i = 0;i < args->args_.size();++i){
             assert((*args)[i]->var_);  //MUST be variable
@@ -205,7 +205,7 @@ void InvokeSendRecv(bool is_send,CSharedPtr<CArgList> args,int lineno,CSharedPtr
                     <<"' is not initialized");
                 return;
             }
-            cmd->AddConnection(decl->val_);
+            cmd->AddConnection(decl->val_,lineno);
         }
     }
 }
@@ -233,10 +233,10 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
             continue;
         }
         if(is_begin){
-            (*args)[i]->var_->begin_ = cmd->DataOffset();
+            (*args)[i]->var_->begin_ = cmd->SendDataOffset();
         }else{  //END
             assert(decl->val_);
-            size_t dis = cmd->DataOffset() - decl->var_->begin_;
+            size_t dis = cmd->SendDataOffset() - decl->var_->begin_;
             if(!decl->val_->FromInteger(dis)){
                 RUNTIME_ERR(lineno,"variable '"<<(*args)[i]->var_->varname_
                     <<"' is too small to hold offset("<<dis<<")");
