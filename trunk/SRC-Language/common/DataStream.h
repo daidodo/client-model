@@ -58,6 +58,7 @@ public:
     }
     //设置字节序类型
     void OrderType(EOrderType ot){need_reverse_ = NeedReverse(ot);}
+    void OrderType(bool netOrder){need_reverse_ = NeedReverse(netOrder);}
     //按照dir指定的方向设置cur_指针偏移
     //返回cur_最后的绝对偏移
     size_t Seek(ssize_t off,ESeekDir dir){
@@ -224,6 +225,7 @@ public:
         , need_reverse_(NeedReverse(netByteOrder))
     {}
     //设置/获取字节序类型
+    void OrderType(bool netOrder){need_reverse_ = NeedReverse(netOrder);}
     void OrderType(EOrderType ot){need_reverse_ = NeedReverse(ot);}
     EOrderType OrderType() const{return (need_reverse_ ? HostOrder : NetOrder);}
     //按照dir指定的方向设置cur_指针偏移

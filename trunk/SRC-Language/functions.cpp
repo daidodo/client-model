@@ -5,83 +5,6 @@
 #include "util.h"
 #include "functions.h"
 
-//template<typename T>
-//static void IntegerCtor(const std::vector<__ValuePtr> & args,int lineno,
-//                              T & res,const char * type_str)
-//{
-//    assert(args.size() < 2);
-//    if(args.empty())
-//        return;
-//    __ValuePtr arg = args[0];
-//    const T MIN = std::numeric_limits<T>::min();
-//    const T MAX = std::numeric_limits<T>::max();
-//    switch(arg->type_){
-//        case 1:{    //int_
-//            if(arg->int_ < MIN || arg->int_ > MAX){
-//                RUNTIME_ERR(lineno,"invalid value for "<<type_str);
-//            }
-//            res = arg->int_;
-//            break;}
-//        case 2:{    //long_
-//            if(arg->long_ < MIN || arg->long_ > MAX){
-//                RUNTIME_ERR(lineno,"invalid conversion from long to "<<type_str);
-//            }
-//            res = arg->long_;
-//            break;}
-//        case 3:{    //u8_
-//            if(arg->u8_ < MIN || arg->u8_ > MAX){
-//                RUNTIME_ERR(lineno,"invalid conversion from U8 to "<<type_str);
-//            }
-//            res = arg->u8_;
-//            break;}
-//        case 4:{    //s8_
-//            if(arg->s8_ < MIN || arg->s8_ > MAX){
-//                RUNTIME_ERR(lineno,"invalid conversion from S8 to "<<type_str);
-//            }
-//            res = arg->s8_;
-//            break;}
-//        case 5:{    //u16_
-//            if(arg->u16_ < MIN || arg->u16_ > MAX){
-//                RUNTIME_ERR(lineno,"invalid conversion from U16 to "<<type_str);
-//            }
-//            res = arg->u16_;
-//            break;}
-//        case 6:{    //s16_
-//            if(arg->s16_ < MIN || arg->s16_ > MAX){
-//                RUNTIME_ERR(lineno,"invalid conversion from U16 to "<<type_str);
-//            }
-//            res = arg->s16_;
-//            break;}
-//        case 7:{    //u32_
-//            if(arg->u32_ < MIN || arg->u32_ > MAX){
-//                RUNTIME_ERR(lineno,"invalid conversion from U16 to "<<type_str);
-//            }
-//            res = arg->u32_;
-//            break;}
-//        case 8:{    //s32_
-//            break;}
-//            if(arg->s32_ < MIN || arg->s32_ > MAX){
-//                RUNTIME_ERR(lineno,"invalid conversion from U16 to "<<type_str);
-//            }
-//            res = arg->s32_;
-//        case 9:{    //u64_
-//            if(arg->u64_ < MIN || arg->u64_ > MAX){
-//                RUNTIME_ERR(lineno,"invalid conversion from U16 to "<<type_str);
-//            }
-//            res = arg->u64_;
-//            break;}
-//        case 10:{   //s64_
-//            if(arg->s64_ < MIN || arg->s64_ > MAX){
-//                RUNTIME_ERR(lineno,"invalid conversion from U16 to "<<type_str);
-//            }
-//            res = arg->s64_;
-//            break;}
-//        default:{
-//            RUNTIME_ERR(lineno,"invalid conversion to "<<type_str);
-//        }
-//    }
-//}
-
 __ValuePtr EvaluateU8(const std::vector<__ValuePtr> & args,int lineno)
 {
     __ValuePtr ret = New<CValue>();
@@ -168,7 +91,7 @@ __ValuePtr EvaluateSTR(const std::vector<__ValuePtr> & args,int lineno)
     __ValuePtr ret = New<CValue>();
     ret->type_ = 11;
     if(!args.empty()){
-        if(args[0]->type_ != 11){
+        if(!args[0]->IsString()){
             RUNTIME_ERR(lineno,"invalid conversion to STR");
         }else
             ret->str_ = args[0]->str_;
@@ -178,9 +101,9 @@ __ValuePtr EvaluateSTR(const std::vector<__ValuePtr> & args,int lineno)
 __ValuePtr EvaluateRAW(const std::vector<__ValuePtr> & args,int lineno)
 {
     __ValuePtr ret = New<CValue>();
-    ret->type_ = 11;
+    ret->type_ = 14;
     if(!args.empty()){
-        if(args[0]->type_ != 11){
+        if(!args[0]->IsString()){
             RUNTIME_ERR(lineno,"invalid conversion to RAW");
         }else
             ret->str_ = args[0]->str_;
@@ -195,7 +118,7 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
             return args[0];
         RUNTIME_ERR(lineno,"invalid conversion to TCP");
     }else if(args.size() == 2){
-        assert(args[0]->type_ == 11);   //string
+        assert(args[0]->IsString());   //string
         __ValuePtr ret = New<CValue>();
         ret->type_ = 12;
     //make tcp connection
@@ -213,7 +136,7 @@ __ValuePtr EvaluateUDP(const std::vector<__ValuePtr> & args,int lineno)
             return args[0];
         RUNTIME_ERR(lineno,"invalid conversion to TCP");
     }else if(args.size() == 2){
-        assert(args[0]->type_ == 11);   //string
+        assert(args[0]->IsString());   //string
         __ValuePtr ret = New<CValue>();
         ret->type_ = 13;
     //make udp connection
@@ -231,7 +154,7 @@ __ValuePtr EvaluateHEX(const std::vector<__ValuePtr> & args,int lineno)
     __ValuePtr ret = New<CValue>();
     ret->type_ = 11;
     if(!args.empty()){
-        if(args[0]->type_ != 11){
+        if(!args[0]->IsString()){
             RUNTIME_ERR(lineno,"invalid conversion to RAW");
         }else
             ret->str_ = DumpHex(args[0]->str_);
@@ -243,7 +166,7 @@ __ValuePtr EvaluateUNHEX(const std::vector<__ValuePtr> & args,int lineno)
     __ValuePtr ret = New<CValue>();
     ret->type_ = 11;
     if(!args.empty()){
-        if(args[0]->type_ != 11){
+        if(!args[0]->IsString()){
             RUNTIME_ERR(lineno,"invalid conversion to RAW");
         }else
             ret->str_ = UnHex(args[0]->str_);
@@ -294,41 +217,36 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
         assert((*args)[i]->var_);  //MUST be variable
         if(is_begin && (*args)[i]->var_->begin_ != -1){
             RUNTIME_ERR(lineno,"cannot BEGIN '"<<(*args)[i]->var_->varname_<<"' again");
-            return;
-        }else if(!is_begin && (*args)[i]->var_->begin_ == -1){
+            continue;
+        }else if(!is_begin && (*args)[i]->var_->begin_ < 0){
             RUNTIME_ERR(lineno,"END '"<<(*args)[i]->var_->varname_<<"' before BEGIN");
-            return;
+            continue;
         }
         CSharedPtr<CDeclare> decl = runtime().FindVar((*args)[i]->var_->varname_,cmd);
         if(!decl){
             RUNTIME_ERR(lineno,"no symbol '"<<(*args)[i]->var_->varname_<<"' found");
-            return;
+            continue;
         }
         if(decl->expr_){
             RUNTIME_ERR(lineno,"variable '"<<(*args)[i]->var_->varname_
                 <<"' is evaluated by expression, see LINE:"<<(*args)[i]->var_->lineno_);
-            return;
+            continue;
         }
         if(is_begin){
             (*args)[i]->var_->begin_ = cmd->DataOffset();
         }else{  //END
             assert(decl->val_);
-            decl->val_->FromInteger(cmd->DataOffset() - size_t(decl->var_->begin_));
+            size_t dis = cmd->DataOffset() - decl->var_->begin_;
+            if(!decl->val_->FromInteger(dis)){
+                RUNTIME_ERR(lineno,"variable '"<<(*args)[i]->var_->varname_
+                    <<"' is too small to hold offset("<<dis<<")");
+            }
+            decl->var_->begin_ = -2;
         }
-
-
-        //}else{  //END
-        //    if((*args)[i]->var_->begin_ == -1){
-        //        RUNTIME_ERR(lineno,"END '"<<(*args)[i]->var_->varname_<<"' before BEGIN");
-        //        return;
-        //    }
-        //    CSharedPtr<CDeclare> decl = runtime().FindVar((*args)[i]->var_->varname_,cmd);
-        //    if(!decl){
-        //        RUNTIME_ERR(lineno,"no symbol '"<<(*args)[i]->var_->varname_<<"' found");
-        //        return;
-        //    }
-
-        //    (*args)[i]->var_->end_ = cmd->DataOffset();
-        //}
     }
+}
+
+void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
+{
+    assert(args && cmd);
 }

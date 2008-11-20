@@ -59,6 +59,7 @@ struct CVariable
     bool Is1stDefine() const{return ref_count_ == 0;}
     bool IsArray() const{return type_ == 2;}
     bool IsConnection() const;
+    bool IsRaw() const;
     int RetType() const;
     CSharedPtr<CValue> Evaluate(int lineno) const;
 };
@@ -156,6 +157,7 @@ struct CDeclare
     bool IsSendOnly() const{return IsFixed() || IsStreamIn();}
     bool CheckDefined(CSharedPtr<CCmd> cur_cmd);
     std::string Depend() const{return (expr_ ? expr_->Depend() : "");}
+    void FixRaw();
 };
 
 struct CFuncCall
@@ -204,6 +206,7 @@ struct CCmd
     __VarTable var_table;
     std::vector<CSharedPtr<CStmt> > stmt_list_;
     std::vector<CSharedPtr<CValue> > conn_list_;
+    COutByteStream ds_;
     //functions:
     explicit CCmd(int ln);
     std::string ToString() const;
@@ -216,6 +219,7 @@ struct CCmd
         
         return 0;
     }
+    bool AddData(CSharedPtr<CValue> data);
 };
 
 #endif

@@ -36,12 +36,6 @@ void InvokeSendRecv(bool is_send,CSharedPtr<CArgList> args,int lineno,CSharedPtr
 
 void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd);
 
-        //case HBO:case NBO:
-        //case SEND:case RECV:
-        //case BEGIN_:case END:
-        //case FUN:
-
-
-
+void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd);
 
 #endif

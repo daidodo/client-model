@@ -34,14 +34,10 @@ std::string CFixValue::Signature() const{
 int CFixValue::RetType() const
 {
     switch(type_){
-        case 1:
-            return 1;
-        case 2:
-            return 2;
-        case 3:
-            return 9;
-        case 4:
-            return 11;
+        case 1:return 1;
+        case 2:return 2;
+        case 3:return 9;
+        case 4:return 11;
     }
     return -1;
 }
@@ -105,6 +101,11 @@ std::string CVariable::Signature() const{
 bool CVariable::IsConnection() const
 {
     return IsConnectionToken(tp_token_);
+}
+
+bool CVariable::IsRaw() const
+{
+    return IsRawToken(tp_token_);
 }
 
 int CVariable::RetType() const
@@ -452,6 +453,13 @@ bool CDeclare::CheckDefined(CSharedPtr<CCmd> cur_cmd)
     return ret;
 }
 
+void CDeclare::FixRaw()
+{
+    assert(val_ && var_);
+    if(var_->IsRaw())
+        val_->FixRaw();
+}
+
 //CFuncCall
 CFuncCall::CFuncCall(int ln)
     : lineno_(ln)
@@ -601,4 +609,10 @@ void CCmd::AddConnection(CSharedPtr<CValue> conn)
 {
     assert(conn && conn->IsConnection());
     conn_list_.push_back(conn);
+}
+
+bool CCmd::AddData(CSharedPtr<CValue> data)
+{
+    assert(data);
+    return (ds_<<*data);
 }

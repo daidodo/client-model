@@ -15,6 +15,8 @@ bool IsLocalOnlyToken(int type_token);
 
 bool IsConnectionToken(int type_token);
 
+bool IsRawToken(int type_token);
+
 bool CannotBeArray(int type_token);
 
 bool FunNeedNotCheckDefine(int fun_token);

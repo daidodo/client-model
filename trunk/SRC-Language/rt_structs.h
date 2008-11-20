@@ -5,6 +5,7 @@
 #include <limits>
 #include "common/Sockets.h"
 #include "common/SharedPtr.h"
+#include "common/DataStream.h"
 
 struct CTcp : public CTcpConnSocket
 {
@@ -53,7 +54,8 @@ struct CValue
         U64 u64_;       //9
         S64 s64_;       //10
     };
-    std::string str_;   //11
+    std::string str_;   //11  STR
+                        //14  RAW
     CSharedPtr<CTcp> tcp_;  //12
     CSharedPtr<CUdp> udp_;  //13
     //functions:
@@ -62,6 +64,9 @@ struct CValue
     std::string Signature() const;
     bool IsConnection() const{return type_ == 12 || type_ == 13;}
     bool IsInteger() const{return type_ >= 1 && type_ <= 10;}
+    static bool IsString(int type){return type == 11 || type == 14;}
+    bool IsString() const{return IsString(type_);}
+    void FixRaw();
     template<typename T>
     bool ToInteger(T & res){
         switch(type_){
@@ -100,6 +105,7 @@ struct CValue
     }
  };
 
+COutByteStream & operator <<(COutByteStream & ds,const CValue & v);
 
 #undef __FROM_INTEGER
 #undef __TO_INTEGER
