@@ -150,8 +150,8 @@ void CRuntime::processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
                 processPost(decl,cmd);
             else if(decl->IsFixed())
                 processFixed(decl,cmd);
-            else if(decl->IsStreamIn())
-                processStreamIn(decl,cmd);
+            else if(decl->IsStreamOut())
+                processStreamOut(decl,cmd);
             else{
                 RUNTIME_ERR(decl->lineno_,"invalid declaration in SEND command");
             }
@@ -162,8 +162,8 @@ void CRuntime::processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
                 processPost(decl,cmd);
             else if(decl->IsAssert())
                 processDeclAssert(decl,cmd);
-            else if(decl->IsStreamOut())
-                processStreamOut(decl,cmd);
+            else if(decl->IsStreamIn())
+                processStreamIn(decl,cmd);
             else{
                 RUNTIME_ERR(decl->lineno_,"invalid declaration in RECV command");
             }
@@ -184,7 +184,6 @@ void CRuntime::processFunc(CSharedPtr<CFuncCall> func,CSharedPtr<CCmd> cmd)
 void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processCmd cmd="<<to_str(cmd));
-    assert(cmd->ds_.Size() == 0);
     cmd->SetByteOrder(net_byte_order_);
     for(std::vector<CSharedPtr<CStmt> >::iterator i = cmd->stmt_list_.begin();
         i != cmd->stmt_list_.end();++i)
@@ -192,49 +191,75 @@ void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
         assert(*i);
         processStmt(*i,cmd);
     }
-    //send data or something else ..........
+    //send data or do something else ..........
+
+
 }
 
 void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processArray decl="<<to_str(decl));
     DBG_RT("processArray cmd="<<to_str(cmd));
+    assert(decl->var_->array_type_);
+    if(decl->var_->array_type_->expr_){
+        CSharedPtr<CValue> sv = decl->var_->array_type_->expr_->Evaluate();
+        if(!sv){
+            RUNTIME_ERR(decl->lineno_,"cannot evaluate size of array '"
+                <<decl->var_->varname_<<"'");
+            return;
+        }
+        decl->var_->array_type_->expr_ = 0;
+        if(!sv->ToInteger(decl->var_->array_type_->sz_)){
+            RUNTIME_ERR(decl->lineno_,"type mismatch for size of array '"
+                <<decl->var_->varname_<<"'");
+            return;
+        }
+    }
+    assert(cmd && cmd->IsRecv());
+
+
+
 }
 
 void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processPost decl="<<to_str(decl));
     DBG_RT("processPost cmd="<<to_str(cmd));
-    if(!cmd){   //----------------global
-    }else if(cmd->IsSend()){    //send cmd
-    }else{  //--------------------recv cmd
+    std::string vname = decl->var_->varname_;
+    if(decl->IsConnection())
+        processFixed(decl,0);
+    else{
+        assert(decl->expr_);
+        decl->val_ = decl->expr_->Evaluate();
+        if(!decl->val_){
+            RUNTIME_ERR(decl->lineno_,"cannot evaluate '"<<vname
+                <<"'");
+            return;
+        }
+        DBG_RT("processPost Evaluate "<<vname<<"="<<to_str(decl->val_));
+        std::string depend = decl->Depend();
+        if(depend.empty()){
+            decl->expr_ = 0;
+            addPostVar(vname,decl);
+        }else if(!addPostVar(vname,decl,depend)){
+            GAMMAR_ERR(decl->lineno_,"add symbol '"<<vname
+                <<"' to post list error, depend is '"<<depend
+                <<"'(internal error)");
+        }
+        var_table_[vname] = decl;
     }
-    //DBG_RT("processPost decl="<<to_str(decl));
-    //if(decl->IsConnection()){
-    //    processFixed(decl);
-    //    return false;
-    //}else{
-    //    std::string vname = decl->var_->varname_;
-    //    std::string depend = decl->Depend();
-    //    if(depend.empty()){
-    //        decl->val_ = decl->expr_->Evaluate();
-    //        DBG_RT("processPost Evaluate decl="<<to_str(decl->val_));
-    //        if(!decl->val_){
-    //            GAMMAR_ERR(decl->lineno_,"cannot evaluate '"<<vname
-    //                <<"'");
-    //            return false;
-    //        }
-    //        decl->expr_ = 0;
-    //        addPostVar(vname,decl);
-    //    }else if(!addPostVar(vname,decl,depend)){
-    //        GAMMAR_ERR(decl->lineno_,"add symbol '"<<vname
-    //            <<"' to post map error, depend '"<<depend
-    //            <<"'(internal error)");
-    //        return false;
-    //    }
-    //    var_table_[vname] = decl;
-    //}
-    //return !decl->is_def_;
+    if(!decl->is_def_ && cmd){
+        if(cmd->IsSend()){
+            decl->offset_ = cmd->SendDataOffset();
+            if(!cmd->SendValue(decl->val_)){
+                RUNTIME_ERR(decl->lineno_,"cannot pack '"<<vname<<"'");
+            }
+        }else{  //recv
+
+
+
+        }
+    }
 }
 
 void CRuntime::processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
@@ -244,18 +269,18 @@ void CRuntime::processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     assert(decl->expr_);
     const std::string vname = decl->var_->varname_;
     decl->val_ = decl->expr_->Evaluate();
-    DBG_RT("processFixed Evaluate decl="<<to_str(decl->val_));
+    DBG_RT("processFixed Evaluate "<<vname<<"="<<to_str(decl->val_));
     if(decl->val_){
         if(decl->IsConnection())
             addConnection(decl->val_);
         else
-            decl->FixRaw();
+            decl->FixRaw(); //区分STR和RAW类型
     }else{
         RUNTIME_ERR(decl->lineno_,"cannot evaluate '"<<vname
             <<"'");
     }
     var_table_[vname] = decl;
-    if(!decl->is_def_ && cmd && cmd->IsSend() && !cmd->AddData(decl->val_)){
+    if(!decl->is_def_ && cmd && cmd->IsSend() && !cmd->SendValue(decl->val_)){
         RUNTIME_ERR(decl->lineno_,"cannot pack '"<<vname<<"'");
     }
 }
@@ -264,16 +289,19 @@ void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processDeclAssert decl="<<to_str(decl));
     DBG_RT("processDeclAssert cmd="<<to_str(cmd));
+
 }
 
 void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processStreamIn decl="<<to_str(decl));
     DBG_RT("processStreamIn cmd="<<to_str(cmd));
+    assert(cmd && cmd->IsRecv());
 }
 
 void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processStreamOut decl="<<to_str(decl));
     DBG_RT("processStreamOut cmd="<<to_str(cmd));
+    assert(cmd && cmd->IsSend());
 }

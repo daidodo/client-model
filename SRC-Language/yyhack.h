@@ -43,7 +43,7 @@ void * __malloc_hack(size_t sz)
 }
 //*/
 
-//#define realloc __realloc_hack
+#define realloc __realloc_hack
 #define malloc  __malloc_hack
 
 #endif

@@ -104,6 +104,7 @@ struct CArrayType
 {
     const int lineno_;
     int tp_token_;
+    int sz_;     //数组大小
     CSharedPtr<CExpr> expr_;
     //functions:
     explicit CArrayType(int ln);
@@ -136,7 +137,9 @@ struct CDeclare
     CSharedPtr<CVariable> var_;
     CSharedPtr<CExpr> expr_;
     double eva_priority_;
+    //value
     CSharedPtr<CValue> val_;
+    ssize_t offset_;    //for post evaluation
     //functions:
     explicit CDeclare(int ln);
     std::string ToString() const;
@@ -153,8 +156,8 @@ struct CDeclare
     bool IsStreamOut() const;
     bool IsConnection() const{return var_->IsConnection();}
     bool IsLocalOnly() const{return IsArray() || IsAssert() || IsStream();}
-    bool IsRecvOnly() const{return IsArray() || IsAssert() || IsStreamOut();}
-    bool IsSendOnly() const{return IsFixed() || IsStreamIn();}
+    bool IsRecvOnly() const{return IsArray() || IsAssert() || IsStreamIn();}
+    bool IsSendOnly() const{return IsFixed() || IsStreamOut();}
     bool CheckDefined(CSharedPtr<CCmd> cur_cmd);
     std::string Depend() const{return (expr_ ? expr_->Depend() : "");}
     void FixRaw();
@@ -206,7 +209,11 @@ struct CCmd
     __VarTable var_table;
     std::vector<CSharedPtr<CStmt> > stmt_list_;
     std::vector<CSharedPtr<CValue> > conn_list_;
-    COutByteStream ds_;
+    //send cmd
+    COutByteStream outds_;
+    //recv cmd
+    std::vector<char> recv_data_;
+    CInByteStream inds_;
     //functions:
     explicit CCmd(int ln);
     std::string ToString() const;
@@ -214,12 +221,9 @@ struct CCmd
     bool IsSend() const{return send_flag_ == 1;}
     bool IsRecv() const{return send_flag_ == 2;}
     void SetByteOrder(bool net_bo);
-    void AddConnection(CSharedPtr<CValue> conn);
-    size_t DataOffset() const{
-        
-        return 0;
-    }
-    bool AddData(CSharedPtr<CValue> data);
+    void AddConnection(CSharedPtr<CValue> conn,int lineno);
+    size_t SendDataOffset() const{return outds_.Size();}
+    bool SendValue(CSharedPtr<CValue> v);
 };
 
 #endif
