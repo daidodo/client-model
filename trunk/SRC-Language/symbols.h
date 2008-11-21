@@ -150,7 +150,7 @@ struct CDeclare
     bool IsArray() const{return type_ == 1;}
     bool IsSimplePost() const{return type_ == 2 || type_ == 3 || type_ == 4;}
     bool IsFixed() const{return type_ == 5 || type_ == 6;}
-    bool IsPost() const{return !IsFixed();}
+    bool IsPost() const{return IsSimplePost() || IsStreamOut();}
     bool IsAssert() const{return type_ == 7;}
     bool IsStream() const{return type_ == 8 || type_ == 9;}
     bool IsStreamIn() const;
@@ -231,6 +231,7 @@ struct CCmd
     void RecvValue(CSharedPtr<CValue> v);
     void RecvArray(CSharedPtr<CDeclare> d){}
     void RecvAssert(CSharedPtr<CDeclare> d){}
+    void RecvStreamIn(CSharedPtr<CDeclare> d){}
 };
 
 #endif

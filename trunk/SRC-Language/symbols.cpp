@@ -498,7 +498,9 @@ void CDeclare::FixRaw()
 
 CSharedPtr<CValue> CDeclare::Evaluate()
 {
-    if(expr_)
+    if(IsStreamOut()){
+        val_ = FunEvaluate(var_->tp_token_,std::vector<CSharedPtr<CValue> >(),lineno_);
+    }else if(expr_)
         val_ = expr_->Evaluate();
     if(!val_){
         RUNTIME_ERR(lineno_,"cannot evaluate '"<<var_->varname_
