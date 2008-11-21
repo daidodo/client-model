@@ -208,7 +208,7 @@ void CProgram::CmdBegin(CSharedPtr<CVariable> var)
     CSharedPtr<CStmt> st = New<CStmt>(LINE_NO);
     st->type_ = 4;
     st->cmd_ = cmd;
-    curStmtList().push_back(st);
+    global_stmts.push_back(st);
     DBG_YY("succ new command="<<signa(cmd));
 }
 
