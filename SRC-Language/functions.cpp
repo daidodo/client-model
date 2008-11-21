@@ -183,6 +183,7 @@ void InvokeBO(bool net_bo,CSharedPtr<CCmd> cmd)
 
 void InvokeSendRecv(bool is_send,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
 {
+    assert(cmd);
     if(is_send){
         assert(cmd->IsSend());
     }else{

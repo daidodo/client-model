@@ -285,6 +285,7 @@ void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processDeclAssert cmd="<<to_str(cmd));
     assert(cmd && cmd->IsRecv());
     cmd->RecvAssert(decl);
+    var_table_[decl->var_->varname_] = decl;
 }
 
 void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
@@ -292,6 +293,8 @@ void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processStreamIn decl="<<to_str(decl));
     DBG_RT("processStreamIn cmd="<<to_str(cmd));
     assert(cmd && cmd->IsRecv());
+    cmd->RecvStreamIn(decl);
+    var_table_[decl->var_->varname_] = decl;
 }
 
 void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
@@ -299,4 +302,24 @@ void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processStreamOut decl="<<to_str(decl));
     DBG_RT("processStreamOut cmd="<<to_str(cmd));
     assert(cmd && cmd->IsSend());
+    std::string vname = decl->var_->varname_;
+    decl->Evaluate();
+    DBG_RT("processStreamOut Evaluate "<<vname<<"="<<to_str(decl->val_));
+    decl->eva_priority_ = maxPriority() + 1000; //解决自赋值问题
+    std::string depend = decl->Depend();
+    if(depend.empty()){
+        decl->expr_ = 0;
+        addPostVar(vname,decl);
+    }else{
+        if(vname == depend){
+            GAMMAR_ERR(decl->lineno_,"symbol '"<<vname<<"' is self-depended");
+        }
+        if(!addPostVar(vname,decl,depend)){
+            GAMMAR_ERR(decl->lineno_,"add symbol '"<<vname
+                <<"' to post list error, depend is '"<<depend
+                <<"'");
+        }
+    }
+    decl->offset_ = cmd->SendDataOffset();  //在延后求值的时候AddValue
+    var_table_[vname] = decl;
 }

@@ -2,7 +2,7 @@
 
 STR server_ip := "127.0.0.1"
 U16 server_port := 9527
-TCP server_port (server_port,server_port)
+TCP server_port1 (server_ip,server_port1)
 
 TCP conn(server_ip,server_port)
 HBO
