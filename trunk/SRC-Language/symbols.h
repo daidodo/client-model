@@ -3,6 +3,7 @@
 
 #include <map>
 #include <vector>
+#include <list>
 #include <string>
 #include <sstream>
 #include <algorithm>
@@ -91,6 +92,7 @@ struct CArgList
     explicit CArgList(int ln);
     CSharedPtr<CExpr> operator [](size_t i) const;
     void Add(CSharedPtr<CExpr> arg);
+    void Erase(CSharedPtr<CExpr> arg);
     std::string ToString() const;
     std::string Signature() const;
     bool CheckDefined(int lineno) const;
@@ -206,11 +208,13 @@ typedef std::map<std::string,CSharedPtr<CVariable> >   __VarTable;
 struct CCmd
 {
     const int lineno_;
+    int endlineno_;
     int send_flag_; //0:unknown ; 1:send ; 2:recv
     std::string cmd_name_;
     __VarTable var_table;
     std::vector<CSharedPtr<CStmt> > stmt_list_;
     std::vector<CSharedPtr<CValue> > conn_list_;
+    CSharedPtr<CArgList> begin_list_;    //BEGIN的变量名堆栈
     //send cmd
     COutByteStream outds_;
     //recv cmd
@@ -229,6 +233,8 @@ struct CCmd
     bool SendValue(CSharedPtr<CValue> v);
     bool PostSendValue(CSharedPtr<CValue> v,size_t offset);
     bool PostInsertValue(CSharedPtr<CValue> v,size_t offset){return true;}
+    void Begin(CSharedPtr<CExpr> v);
+    void End(CSharedPtr<CExpr> v);
     //recv cmd
     void RecvValue(CSharedPtr<CValue> v);
     void RecvArray(CSharedPtr<CDeclare> d){}

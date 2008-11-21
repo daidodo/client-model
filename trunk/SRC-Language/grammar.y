@@ -84,7 +84,12 @@ cmd_begin : CMD		{DBG_YY("cmd_begin 1");program().CmdBegin(0);}
 	| CMD VAR_NAME	{DBG_YY("cmd_begin 2");program().CmdBegin($2);}
 	;
 
-cmd_end : END CMD	{DBG_YY("cmd_end");program().CmdEnd();}
+cmd_end : END CMD	{
+				DBG_YY("cmd_end");
+				assert(CUR_CMD);
+				CUR_CMD->endlineno_ = LINE_NO;
+				program().CmdEnd();
+			}
 	;
 
 declare : simple_declare

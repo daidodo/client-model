@@ -2,6 +2,8 @@
 #include <cstddef>  //size_t
 #include <cstdlib>  //atoi,atol
 #include <sstream>  //std::ostringstream
+#include <iomanip>  //std::setw
+#include <locale>   //std::isgraph
 #include "util.h"
 
 template<typename T,int Bytes = sizeof(T)>
@@ -187,3 +189,22 @@ std::string UnHex(const char * v,size_t sz)
     return ret;
 }
 
+std::string Dump(const char * v,size_t sz)
+{
+    assert(v && sz);
+    const size_t CHARS_PER_LINE = 16;
+    std::ostringstream oss;
+    oss.fill('0');
+    for(size_t ln = 0;ln < sz;ln += CHARS_PER_LINE){
+        oss<<std::setw(4)<<std::hex<<ln<<"h: ";
+        const size_t left = std::min(CHARS_PER_LINE,sz - ln);
+        oss<<DumpHex(v + ln,left,' ',false);
+        for(size_t i = left;i < CHARS_PER_LINE;++i)
+            oss<<"   ";
+        oss<<"; ";
+        for(size_t i = 0;i < left;++i)
+            oss<<(std::isprint(v[ln + i]) ? v[ln + i] : '.');
+        oss<<std::endl;
+    }
+    return oss.str();
+}

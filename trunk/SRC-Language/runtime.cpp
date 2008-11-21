@@ -3,6 +3,7 @@
 #include "errors.h"
 #include "runtime.h"
 #include "util.h"
+#include "functions.h"
 #include "dbg.h"
 
 CRuntime::CRuntime()
@@ -240,11 +241,15 @@ void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
         processStmt(*i,cmd);
     }
     if(cmd->IsSend()){
+        if(cmd->begin_list_){
+            InvokeBeginEnd(false,cmd->begin_list_,cmd->endlineno_,cmd);
+            cmd->begin_list_ = 0;
+        }
         postEvaluate(cmd);
         //print data buffer
         std::vector<char> buf;
         cmd->outds_.ExportData(buf);
-        DBG_RT("processCmd send buffer="<<DumpHex(buf));
+        DBG_RT("processCmd send buffer=\n"<<Dump(buf));
         //send data
 
     }else{  //RECV

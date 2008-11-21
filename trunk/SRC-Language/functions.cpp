@@ -215,7 +215,7 @@ void InvokeSendRecv(bool is_send,CSharedPtr<CArgList> args,int lineno,CSharedPtr
 
 void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
 {
-    assert(cmd && args && !args->args_.empty());
+    assert(cmd && args);
     for(size_t i = 0;i < args->args_.size();++i){
         assert((*args)[i]->var_);  //MUST be variable
         if(is_begin && (*args)[i]->var_->begin_ != -1){
@@ -237,6 +237,7 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
         }
         if(is_begin){
             (*args)[i]->var_->begin_ = cmd->SendDataOffset();
+            cmd->Begin((*args)[i]);
         }else{  //END
             assert(decl->val_);
             size_t dis = cmd->SendDataOffset() - decl->var_->begin_;
@@ -245,6 +246,7 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
                     <<"' is too small to hold offset("<<dis<<")");
             }
             decl->var_->begin_ = -2;
+            cmd->End((*args)[i]);
         }
     }
 }
@@ -252,4 +254,6 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
 void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
 {
     assert(args && cmd);
+
+
 }
