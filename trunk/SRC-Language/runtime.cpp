@@ -165,7 +165,7 @@ void CRuntime::processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         }else{  //--------------recv cmd
             if(decl->IsArray())
                 processArray(decl,cmd);
-            if(decl->IsSimplePost())
+            else if(decl->IsSimplePost())
                 processPost(decl,cmd);
             else if(decl->IsAssert())
                 processDeclAssert(decl,cmd);
@@ -203,7 +203,7 @@ void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
     if(cmd->IsSend()){
         std::vector<char> buf;
         cmd->outds_.ExportData(buf);
-        DBG_RT("processCmd buffer="<<DumpHex(buf));
+        DBG_RT("processCmd send buffer="<<DumpHex(buf));
     }
     //send data
 

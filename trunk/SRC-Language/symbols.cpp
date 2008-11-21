@@ -638,10 +638,8 @@ CCmd::CCmd(int ln)
 std::string CCmd::ToString() const{
     std::ostringstream oss;
     oss<<"(cmd_name_="<<cmd_name_
-        <<",send_flag_="<<send_flag_;
-    for(size_t i = 0;i < stmt_list_.size();++i)
-        oss<<",stmt_list_["<<i<<"]="<<signa(stmt_list_[i]);
-    oss<<")";
+        <<",send_flag_="<<send_flag_
+        <<")";
     return oss.str();
 }
 
