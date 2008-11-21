@@ -104,6 +104,7 @@ struct CValue
         return true;
     }
     bool operator <(const CValue & v) const;
+    bool StreamOut(const CValue & v,int lineno){return true;}
 private:
     template<typename T>
     bool operator <(T v) const{

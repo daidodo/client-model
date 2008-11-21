@@ -675,6 +675,12 @@ bool CCmd::SendValue(CSharedPtr<CValue> v)
     return (outds_<<*v);
 }
 
+bool CCmd::PostSendValue(CSharedPtr<CValue> v,size_t offset)
+{
+    assert(v);
+    return (outds_<<Manip::offset_value(offset,*v));
+}
+
 void CCmd::RecvValue(CSharedPtr<CValue> v)
 {
     assert(v);

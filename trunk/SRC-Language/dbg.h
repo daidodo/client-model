@@ -1,6 +1,7 @@
 #ifndef DOZERG_COMMON_H_20081111
 #define DOZERG_COMMON_H_20081111
 
+#include <iostream>
 #include "config.h"
 
 #if __LEXICAL_DEBUG

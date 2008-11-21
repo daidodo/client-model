@@ -48,6 +48,9 @@ bool CValue::operator <(const CValue & v) const
 {
     assert(IsInteger() && v.IsInteger());
     if(!IsInteger()){
+
+
+
     }
 }
 

@@ -64,6 +64,47 @@ double CRuntime::maxPriority() const
     return Priority(post_list_.back());
 }
 
+void CRuntime::postEvaluate(CSharedPtr<CCmd> cmd)
+{
+    assert(cmd && cmd->IsSend());
+    for(__VnameList::iterator i = post_list_.begin();i != post_list_.end();++i){
+        CSharedPtr<CDeclare> decl = FindVar(*i);
+        if(!decl){
+            INTERNAL_ERR("declaration for '"<<*i<<"' not found");
+            continue;
+        }
+        if(decl->is_def_)
+            continue;
+        if(decl->offset_ < 0){
+            INTERNAL_ERR("offset("<<decl->offset_<<") of '"<<*i
+                <<"' is invalid, see LINE:"<<decl->lineno_);
+            continue;
+        }
+        if(decl->IsSimplePost()){
+            CSharedPtr<CValue> v = decl->Evaluate();
+            if(v && !cmd->PostSendValue(v,decl->offset_)){
+                INTERNAL_ERR("cannot post pack '"<<*i<<"'");
+            }
+        }else if(decl->IsStreamOut()){
+            if(!decl->val_){
+                RUNTIME_ERR(decl->lineno_,"left hand variable is not initialized");
+                continue;
+            }
+            assert(decl->expr_);
+            CSharedPtr<CValue> v = decl->expr_->Evaluate();
+            if(!v){
+                RUNTIME_ERR(decl->lineno_,"cannot evaluate right hand expression");
+                continue;
+            }
+            if(decl->val_->StreamOut(*v,decl->lineno_) && !cmd->PostInsertValue(v,decl->offset_)){
+                INTERNAL_ERR("cannot post insert '"<<*i<<"'");
+            }
+        }else{
+            INTERNAL_ERR("invalid post evaluation for symbol '"<<*i<<"'");
+        }
+    }
+}
+
 bool CRuntime::addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,const std::string & depend)
 {
     if(depend.empty()){
@@ -198,16 +239,18 @@ void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
         assert(*i);
         processStmt(*i,cmd);
     }
-    //post evaluation
-    //print data buffer
     if(cmd->IsSend()){
+        postEvaluate(cmd);
+        //print data buffer
         std::vector<char> buf;
         cmd->outds_.ExportData(buf);
         DBG_RT("processCmd send buffer="<<DumpHex(buf));
+        //send data
+
+    }else{  //RECV
+
+
     }
-    //send data
-
-
 }
 
 void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)

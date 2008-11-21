@@ -9,10 +9,14 @@ void grammar_error(int lineno,const std::string & msg);
 
 void runtime_error(int lineno,const std::string & msg);
 
+void interal_error(const std::string & msg);
+
 #define SYNTAX_ERR(msg)     {std::ostringstream oss;oss<<msg;yyerror(oss.str().c_str());}
 
 #define GAMMAR_ERR(ln,msg)  {std::ostringstream oss;oss<<msg;grammar_error(ln,oss.str());}
 
 #define RUNTIME_ERR(ln,msg) {std::ostringstream oss;oss<<msg;runtime_error(ln,oss.str());}
+
+#define INTERNAL_ERR(msg)   {std::ostringstream oss;oss<<msg;interal_error(oss.str());}
 
 #endif
