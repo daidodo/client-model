@@ -3,6 +3,7 @@
 #include "mm.h"
 #include "errors.h"
 #include "util.h"
+#include "dbg.h"
 #include "functions.h"
 
 __ValuePtr EvaluateU8(const std::vector<__ValuePtr> & args,int lineno)

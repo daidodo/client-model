@@ -21,3 +21,10 @@ void runtime_error(int lineno,const std::string & msg)
         <<msg<<std::endl;
     ERR_INCR;
 }
+
+void interal_error(const std::string & msg)
+{
+    std::cerr<<"(internal error) - "<<msg<<std::endl;
+    ERR_INCR;
+    throw 0;
+}

@@ -227,20 +227,20 @@ CSharedPtr<CValue> FunEvaluate(int fun_token,const std::vector<CSharedPtr<CValue
     return 0;
 }
 
-void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno_,CSharedPtr<CCmd> cmd)
+void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
 {
     switch(fun_token){
         case HBO:case NBO:
             InvokeBO((fun_token == NBO),cmd);
             break;
         case SEND:case RECV:
-            InvokeSendRecv((fun_token == SEND),args,lineno_,cmd);
+            InvokeSendRecv((fun_token == SEND),args,lineno,cmd);
             break;
         case BEGIN_:case END:
-            InvokeBeginEnd((fun_token == BEGIN_),args,lineno_,cmd);
+            InvokeBeginEnd((fun_token == BEGIN_),args,lineno,cmd);
             break;
         case FUN:
-            InvokeFUN(args,lineno_,cmd);
+            InvokeFUN(args,lineno,cmd);
             break;
     }
 }

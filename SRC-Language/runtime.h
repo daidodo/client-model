@@ -10,7 +10,6 @@
 
 struct CRuntime
 {
-    //typedef std::vector<CSharedPtr<CStmt> >     __StmtList;
     typedef std::list<std::string>              __VnameList;
     typedef __VnameList::iterator               __VnameIter;
     typedef std::map<std::string,__VnameIter>   __VnameMap;
@@ -20,8 +19,6 @@ struct CRuntime
     std::map<std::string,CSharedPtr<CDeclare> > var_table_;
     __VnameList post_list_;     //延后求值列表
     __VnameMap  post_map_;
-    //stmt list
-    //__StmtList stmts_list_;
     //byte order
     bool net_byte_order_;      //当前的字节序设置
 //functions:
@@ -37,6 +34,7 @@ private:
     void addConnection(CSharedPtr<CValue> conn);
     static std::string localVarname(const std::string & name,const CCmd & cmd);
     double maxPriority() const;
+    void postEvaluate(CSharedPtr<CCmd> cmd);
     //top
     void processStmt(CSharedPtr<CStmt> stmt,CSharedPtr<CCmd> cmd);
     //level 1

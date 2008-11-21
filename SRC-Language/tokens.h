@@ -35,7 +35,7 @@ int IsStreamOutToken(int op_token);
 
 CSharedPtr<CValue> FunEvaluate(int fun_token,const std::vector<CSharedPtr<CValue> > & args,int lineno);
 
-void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno_,CSharedPtr<CCmd> cmd);
+void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd);
 
 bool FunAssert(int op_token,CSharedPtr<CValue> v1,CSharedPtr<CValue> v2);
 

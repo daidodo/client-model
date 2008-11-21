@@ -227,6 +227,8 @@ struct CCmd
     size_t SendDataOffset() const{return outds_.Size();}
     //send cmd
     bool SendValue(CSharedPtr<CValue> v);
+    bool PostSendValue(CSharedPtr<CValue> v,size_t offset);
+    bool PostInsertValue(CSharedPtr<CValue> v,size_t offset){return true;}
     //recv cmd
     void RecvValue(CSharedPtr<CValue> v);
     void RecvArray(CSharedPtr<CDeclare> d){}
