@@ -103,6 +103,12 @@ struct CValue
         }
         return true;
     }
+    bool operator <(const CValue & v) const;
+private:
+    template<typename T>
+    bool operator <(T v) const{
+        return true;
+    }
  };
 
 COutByteStream & operator <<(COutByteStream & ds,const CValue & v);

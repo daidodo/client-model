@@ -121,7 +121,7 @@ void CProgram::AddStmt(CSharedPtr<CDeclare> stmt)
 void CProgram::AddStmt(CSharedPtr<CFuncCall> stmt)
 {
     DBG_YY("add CFuncCall="<<to_str(stmt));
-    DBG_YY("cur_cmd="<<signa(cur_cmd));
+    DBG_YY("cur_cmd="<<to_str(cur_cmd));
     assert(stmt);
     bool good = stmt->Validate();
     good = (stmt->CheckDefined() && good);
@@ -150,11 +150,12 @@ void CProgram::AddStmt(CSharedPtr<CFuncCall> stmt)
             if(!conn_defined_){
                 GAMMAR_ERR(stmt->lineno_,"no connection yet");
                 good = false;
+            }else if(!cur_cmd->send_flag_){
+                cur_cmd->send_flag_ = sr;
             }else if(sr != cur_cmd->send_flag_){
                 GAMMAR_ERR(stmt->lineno_,"cannot change SEND/RECV flag");
                 good = false;
-            }else if(!cur_cmd->send_flag_)
-                cur_cmd->send_flag_ = sr;
+            }
         }
     }
     if(!good)

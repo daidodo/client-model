@@ -57,6 +57,13 @@ std::string CRuntime::localVarname(const std::string & name,const CCmd & cmd)
     return ret;
 }
 
+double CRuntime::maxPriority() const
+{
+    if(post_list_.empty())
+        return 0;
+    return Priority(post_list_.back());
+}
+
 bool CRuntime::addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,const std::string & depend)
 {
     if(depend.empty()){
@@ -178,7 +185,7 @@ void CRuntime::processFunc(CSharedPtr<CFuncCall> func,CSharedPtr<CCmd> cmd)
     if(func->IsConnection()){
         addConnection(func->Evaluate());
     }else
-        func->Invoke(0);
+        func->Invoke(cmd);
 }
 
 void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
@@ -216,9 +223,7 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         }
     }
     assert(cmd && cmd->IsRecv());
-
-
-
+    cmd->RecvArray(decl);
 }
 
 void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
@@ -230,21 +235,22 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         processFixed(decl,0);
     else{
         assert(decl->expr_);
-        decl->val_ = decl->expr_->Evaluate();
-        if(!decl->val_){
-            RUNTIME_ERR(decl->lineno_,"cannot evaluate '"<<vname
-                <<"'");
-            return;
-        }
+        decl->Evaluate();
         DBG_RT("processPost Evaluate "<<vname<<"="<<to_str(decl->val_));
+        decl->eva_priority_ = maxPriority() + 1000; //解决自赋值问题
         std::string depend = decl->Depend();
         if(depend.empty()){
             decl->expr_ = 0;
             addPostVar(vname,decl);
-        }else if(!addPostVar(vname,decl,depend)){
-            GAMMAR_ERR(decl->lineno_,"add symbol '"<<vname
-                <<"' to post list error, depend is '"<<depend
-                <<"'(internal error)");
+        }else{
+            if(vname == depend){
+                GAMMAR_ERR(decl->lineno_,"symbol '"<<vname<<"' is self-depended");
+            }
+            if(!addPostVar(vname,decl,depend)){
+                GAMMAR_ERR(decl->lineno_,"add symbol '"<<vname
+                    <<"' to post list error, depend is '"<<depend
+                    <<"'");
+            }
         }
         var_table_[vname] = decl;
     }
@@ -254,11 +260,8 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
             if(!cmd->SendValue(decl->val_)){
                 RUNTIME_ERR(decl->lineno_,"cannot pack '"<<vname<<"'");
             }
-        }else{  //recv
-
-
-
-        }
+        }else  //recv
+            cmd->RecvValue(decl->val_);
     }
 }
 
@@ -268,17 +271,8 @@ void CRuntime::processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processFixed cmd="<<to_str(cmd));
     assert(decl->expr_);
     const std::string vname = decl->var_->varname_;
-    decl->val_ = decl->expr_->Evaluate();
-    DBG_RT("processFixed Evaluate "<<vname<<"="<<to_str(decl->val_));
-    if(decl->val_){
-        if(decl->IsConnection())
-            addConnection(decl->val_);
-        else
-            decl->FixRaw(); //区分STR和RAW类型
-    }else{
-        RUNTIME_ERR(decl->lineno_,"cannot evaluate '"<<vname
-            <<"'");
-    }
+    if(decl->Evaluate() && decl->IsConnection())
+        addConnection(decl->val_);
     var_table_[vname] = decl;
     if(!decl->is_def_ && cmd && cmd->IsSend() && !cmd->SendValue(decl->val_)){
         RUNTIME_ERR(decl->lineno_,"cannot pack '"<<vname<<"'");
@@ -289,7 +283,8 @@ void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processDeclAssert decl="<<to_str(decl));
     DBG_RT("processDeclAssert cmd="<<to_str(cmd));
-
+    assert(cmd && cmd->IsRecv());
+    cmd->RecvAssert(decl);
 }
 
 void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)

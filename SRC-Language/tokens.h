@@ -37,4 +37,6 @@ CSharedPtr<CValue> FunEvaluate(int fun_token,const std::vector<CSharedPtr<CValue
 
 void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno_,CSharedPtr<CCmd> cmd);
 
+bool FunAssert(int op_token,CSharedPtr<CValue> v1,CSharedPtr<CValue> v2);
+
 #endif

@@ -380,6 +380,33 @@ bool CAssertExp::CheckDefined() const
     return ret;
 }
 
+bool CAssertExp::Assert() const
+{
+    assert(expr1_);
+    CSharedPtr<CValue> v1 = expr1_->Evaluate();
+    if(!v1){
+        RUNTIME_ERR(lineno_,"cannot evaluate left hand expression");
+        return false;
+    }
+    if(!v1->IsInteger()){
+        RUNTIME_ERR(lineno_,"invalid assertion for non-integer type");
+        return false;
+    }
+    CSharedPtr<CValue> v2;
+    if(expr2_){
+        v2 = expr2_->Evaluate();
+        if(!v2){
+            RUNTIME_ERR(lineno_,"cannot evaluate right hand expression");
+            return false;
+        }
+        if(!v2->IsInteger()){
+            RUNTIME_ERR(lineno_,"invalid assertion for non-integer type");
+            return false;
+        }
+    }
+    return FunAssert(op_token_,v1,v2);
+}
+
 //CDeclare
 CDeclare::CDeclare(int ln)
     : lineno_(ln)
@@ -414,9 +441,15 @@ bool CDeclare::IsGlobalOnly() const
 
 bool CDeclare::Validate() const
 {
-    if(var_->array_type_ && CannotBeArray(var_->array_type_->tp_token_)){
-        GAMMAR_ERR(lineno_,"invaid array type");
-        return false;
+    if(var_->array_type_){
+        if(CannotBeArray(var_->array_type_->tp_token_)){
+            GAMMAR_ERR(lineno_,"invaid array type");
+            return false;
+        }
+        if(is_def_){
+            GAMMAR_ERR(lineno_,"invalid DEF for array type");
+            return false;
+        }
     }
     if(IsAssert() && !IsBinaryPredict(op_token_)){
         GAMMAR_ERR(lineno_,"prediction format error");
@@ -461,6 +494,18 @@ void CDeclare::FixRaw()
     assert(val_ && var_);
     if(var_->IsRaw())
         val_->FixRaw();
+}
+
+CSharedPtr<CValue> CDeclare::Evaluate()
+{
+    if(expr_)
+        val_ = expr_->Evaluate();
+    if(!val_){
+        RUNTIME_ERR(lineno_,"cannot evaluate '"<<var_->varname_
+            <<"'");
+    }else
+        FixRaw();   //区分STR和RAW类型
+    return val_;
 }
 
 //CFuncCall
@@ -606,7 +651,13 @@ std::string CCmd::Signature() const{
 
 void CCmd::SetByteOrder(bool net_bo)
 {
-
+    if(IsSend())
+        outds_.OrderType(net_bo);
+    else if(IsRecv())
+        inds_.OrderType(net_bo);
+    else{
+        assert(0);
+    }
 }
 
 void CCmd::AddConnection(CSharedPtr<CValue> conn,int lineno)
@@ -622,4 +673,12 @@ bool CCmd::SendValue(CSharedPtr<CValue> v)
 {
     assert(v);
     return (outds_<<*v);
+}
+
+void CCmd::RecvValue(CSharedPtr<CValue> v)
+{
+    assert(v);
+
+
+
 }

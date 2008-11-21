@@ -59,9 +59,17 @@ cmd_define : cmd_begin stmt_assert_list cmd_end stmt_sep
 
 	/* level 2 */
 func_call_list : func_call
-			{DBG_YY("func_call_list 1 ");}
+			{
+				DBG_YY("func_call_list 1 ");
+				DBG_YY("$1 = "<<to_str($1));
+				program().AddStmt($1);
+			}
 	| func_call_list func_call
-			{DBG_YY("func_call_list 2");}
+			{
+				DBG_YY("func_call_list 2");
+				DBG_YY("$2 = "<<to_str($2));
+				program().AddStmt($2);
+			}
 	;
 
 stmt_assert_list : stmt
@@ -108,7 +116,6 @@ func_call : func_name
 				$$ = New<CFuncCall>(LINE_NO);
 				$$->ft_token_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
-				program().AddStmt($$);
 			}
 	| func_name '(' arg_list ')'
 			{
@@ -120,7 +127,6 @@ func_call : func_name
 				$$->ft_token_ = $1;
 				$$->arg_list_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
-				program().AddStmt($$);
 			}
 	| simple_type '(' arg_list ')'
 			{
@@ -131,7 +137,6 @@ func_call : func_name
 				$$->ft_token_ = $1;
 				$$->arg_list_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
-				program().AddStmt($$);
 			}
 	;
 
