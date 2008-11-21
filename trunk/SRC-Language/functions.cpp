@@ -177,7 +177,8 @@ __ValuePtr EvaluateUNHEX(const std::vector<__ValuePtr> & args,int lineno)
 void InvokeBO(bool net_bo,CSharedPtr<CCmd> cmd)
 {
     runtime().SetByteOrder(net_bo);
-    cmd->SetByteOrder(net_bo);
+    if(cmd)
+        cmd->SetByteOrder(net_bo);
 }
 
 void InvokeSendRecv(bool is_send,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)

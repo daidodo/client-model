@@ -126,6 +126,7 @@ struct CAssertExp
     std::string Signature() const;
     bool Validate() const;
     bool CheckDefined() const;
+    bool Assert() const;
 };
 
 struct CDeclare
@@ -161,6 +162,7 @@ struct CDeclare
     bool CheckDefined(CSharedPtr<CCmd> cur_cmd);
     std::string Depend() const{return (expr_ ? expr_->Depend() : "");}
     void FixRaw();
+    CSharedPtr<CValue> Evaluate();
 };
 
 struct CFuncCall
@@ -223,7 +225,12 @@ struct CCmd
     void SetByteOrder(bool net_bo);
     void AddConnection(CSharedPtr<CValue> conn,int lineno);
     size_t SendDataOffset() const{return outds_.Size();}
+    //send cmd
     bool SendValue(CSharedPtr<CValue> v);
+    //recv cmd
+    void RecvValue(CSharedPtr<CValue> v);
+    void RecvArray(CSharedPtr<CDeclare> d){}
+    void RecvAssert(CSharedPtr<CDeclare> d){}
 };
 
 #endif

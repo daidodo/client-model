@@ -36,6 +36,7 @@ private:
     void addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl);
     void addConnection(CSharedPtr<CValue> conn);
     static std::string localVarname(const std::string & name,const CCmd & cmd);
+    double maxPriority() const;
     //top
     void processStmt(CSharedPtr<CStmt> stmt,CSharedPtr<CCmd> cmd);
     //level 1

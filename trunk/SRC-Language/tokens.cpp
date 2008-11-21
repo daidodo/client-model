@@ -1,5 +1,4 @@
 #include "tokens.h"
-#include "symbols.h"
 #include "functions.h"
 #include "y.tab.h"
 
@@ -243,5 +242,18 @@ void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno_,CSharedPtr<CC
         case FUN:
             InvokeFUN(args,lineno_,cmd);
             break;
+    }
+}
+
+bool FunAssert(int op_token,CSharedPtr<CValue> v1,CSharedPtr<CValue> v2)
+{
+    switch(op_token){
+        case OP_LG:break;
+        case OP_SM:break;
+        case OP_LEQ:break;
+        case OP_SEQ:break;
+        case OP_EQ:break;
+        case OP_NEQ:break;
+        case OP_NOT:break;
     }
 }
