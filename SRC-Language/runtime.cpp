@@ -198,7 +198,14 @@ void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
         assert(*i);
         processStmt(*i,cmd);
     }
-    //send data or do something else ..........
+    //post evaluation
+    //print data buffer
+    if(cmd->IsSend()){
+        std::vector<char> buf;
+        cmd->outds_.ExportData(buf);
+        DBG_RT("processCmd buffer="<<DumpHex(buf));
+    }
+    //send data
 
 
 }
