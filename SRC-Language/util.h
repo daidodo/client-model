@@ -122,4 +122,23 @@ T SwapByteOrder(T v){
     return CByteOrderTraits<T,sizeof(T)>::Swap(v);
 }
 
+//转换字符串为16进制，并显示可视的字符
+std::string Dump(const char * v,size_t sz);
+
+inline std::string Dump(const unsigned char * v,size_t sz){
+    return Dump((const char *)v,sz);
+}
+
+inline std::string Dump(const signed char * v,size_t sz){
+    return Dump((const char *)v,sz);
+}
+
+inline std::string Dump(const std::vector<char> & v){
+    return Dump(&v[0],v.size());
+}
+
+inline std::string Dump(std::string v){
+    return Dump(v.c_str(),v.length());
+}
+
 #endif

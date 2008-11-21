@@ -229,6 +229,14 @@ void CArgList::Add(CSharedPtr<CExpr> arg){
     args_.push_back(arg);
 }
 
+void CArgList::Erase(CSharedPtr<CExpr> arg)
+{
+    for(size_t i = 0;i < args_.size();++i){
+        if(args_[i]->var_ == arg->var_)
+            args_.erase(args_.begin() + i);         //性能损失的地方
+    }
+}
+
 std::string CArgList::ToString() const{
     std::ostringstream oss;
     oss<<"(";
@@ -631,6 +639,7 @@ std::string CStmt::Signature() const{
 //CCmd
 CCmd::CCmd(int ln)
     : lineno_(ln)
+    , endlineno_(0)
     , send_flag_(0)
     , inds_(recv_data_)
 {}
@@ -679,6 +688,20 @@ bool CCmd::PostSendValue(CSharedPtr<CValue> v,size_t offset)
 {
     assert(v);
     return (outds_<<Manip::offset_value(offset,*v));
+}
+
+void CCmd::Begin(CSharedPtr<CExpr> v)
+{
+    assert(v);
+    if(!begin_list_)
+        begin_list_ = New<CArgList>(lineno_);
+    begin_list_->Add(v);
+}
+
+void CCmd::End(CSharedPtr<CExpr> v)
+{
+    assert(begin_list_ && v);
+    begin_list_->Erase(v);
 }
 
 void CCmd::RecvValue(CSharedPtr<CValue> v)
