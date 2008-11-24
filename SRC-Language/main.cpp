@@ -24,5 +24,6 @@ int main(int argc,const char ** argv){
     if(!global().Build())
         return 1;
 #endif
+    sleep(1);
     return 0;
 }

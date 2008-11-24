@@ -192,11 +192,13 @@ std::string UnHex(const char * v,size_t sz)
 std::string Dump(const char * v,size_t sz)
 {
     assert(v && sz);
+    const size_t LINE_WIDTH = 4;
     const size_t CHARS_PER_LINE = 16;
     std::ostringstream oss;
     oss.fill('0');
+    oss<<std::hex;
     for(size_t ln = 0;ln < sz;ln += CHARS_PER_LINE){
-        oss<<std::setw(4)<<std::hex<<ln<<"h: ";
+        oss<<std::setw(LINE_WIDTH)<<ln<<"h: ";
         const size_t left = std::min(CHARS_PER_LINE,sz - ln);
         oss<<DumpHex(v + ln,left,' ',false);
         for(size_t i = left;i < CHARS_PER_LINE;++i)

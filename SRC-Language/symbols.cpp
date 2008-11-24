@@ -678,16 +678,22 @@ void CCmd::AddConnection(CSharedPtr<CValue> conn,int lineno)
         conn_list_.push_back(conn);
 }
 
-bool CCmd::SendValue(CSharedPtr<CValue> v)
+bool CCmd::PutValue(CSharedPtr<CValue> v)
 {
     assert(v);
     return (outds_<<*v);
 }
 
-bool CCmd::PostSendValue(CSharedPtr<CValue> v,size_t offset)
+bool CCmd::PostPutValue(CSharedPtr<CValue> v,size_t offset)
 {
     assert(v);
     return (outds_<<Manip::offset_value(offset,*v));
+}
+
+bool CCmd::PostInsertValue(CSharedPtr<CValue> v,size_t offset)
+{
+    assert(v);
+    return (outds_<<Manip::insert(offset,*v));
 }
 
 void CCmd::Begin(CSharedPtr<CExpr> v)
@@ -702,6 +708,35 @@ void CCmd::End(CSharedPtr<CExpr> v)
 {
     assert(begin_list_ && v);
     begin_list_->Erase(v);
+}
+
+bool CCmd::SendData(const std::vector<char> & buf) const
+{
+    for(std::vector<CSharedPtr<CValue> >::const_iterator i = conn_list_.begin();
+        i != conn_list_.end();++i)
+    {
+        assert(*i);
+        const CValue & v = **i;
+        assert(v.IsConnection());
+        if(v.type_ == 12){  //tcp
+            assert(v.tcp_);
+            ssize_t n = v.tcp_->SendData(buf);
+            if(n < 0){
+                RUNTIME_ERR(endlineno_,"send tcp data to "<<v.tcp_->ToString()
+                    <<" error,"<<CSocket::ErrMsg());
+                return false;
+            }
+        }else{              //udp
+            assert(v.udp_);
+            ssize_t n = v.udp_->SendData(buf);
+            if(n < 0){
+                RUNTIME_ERR(endlineno_,"send udp data to "<<v.udp_->ToString()
+                    <<" error,"<<CSocket::ErrMsg());
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 void CCmd::RecvValue(CSharedPtr<CValue> v)

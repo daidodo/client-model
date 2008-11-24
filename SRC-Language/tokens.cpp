@@ -65,6 +65,7 @@ bool FunArgNumCheck(int fun_token,size_t argn)
         case HEX:case UNHEX:
             return argn == 1;
         case TCP:case UDP:
+            return argn >= 1 && argn <= 3;
         case FUN:
             return argn == 1 || argn == 2;
         case BEGIN_:case END:
@@ -139,14 +140,16 @@ size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgLis
                     if(types[0] != 13)
                         return 1;
                 }
-            }else if(types.size() == 2){
+            }else if(types.size() <= 3){
                 if(!CValue::IsString(types[0]))
                     return 1;
                 if(!(types[1] > 0 && types[1] <= 10) && //integer
                     !CValue::IsString(types[1]))        //string
                     return 2;
+                if(!(types[1] > 0 && types[1] <= 10))   //integer
+                    return 3;
             }else
-                return 3;
+                return 4;
             break;}
         case SEND:case RECV:{       //CValue::tcp_ or CValue::udp_
             if(arglist){

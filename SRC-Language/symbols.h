@@ -230,11 +230,12 @@ struct CCmd
     void AddConnection(CSharedPtr<CValue> conn,int lineno);
     size_t SendDataOffset() const{return outds_.Size();}
     //send cmd
-    bool SendValue(CSharedPtr<CValue> v);
-    bool PostSendValue(CSharedPtr<CValue> v,size_t offset);
-    bool PostInsertValue(CSharedPtr<CValue> v,size_t offset){return true;}
+    bool PutValue(CSharedPtr<CValue> v);
+    bool PostPutValue(CSharedPtr<CValue> v,size_t offset);
+    bool PostInsertValue(CSharedPtr<CValue> v,size_t offset);
     void Begin(CSharedPtr<CExpr> v);
     void End(CSharedPtr<CExpr> v);
+    bool SendData(const std::vector<char> & buf) const;
     //recv cmd
     void RecvValue(CSharedPtr<CValue> v);
     void RecvArray(CSharedPtr<CDeclare> d){}

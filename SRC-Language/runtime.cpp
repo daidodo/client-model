@@ -83,7 +83,7 @@ void CRuntime::postEvaluate(CSharedPtr<CCmd> cmd)
         }
         if(decl->IsSimplePost()){
             CSharedPtr<CValue> v = decl->Evaluate();
-            if(v && !cmd->PostSendValue(v,decl->offset_)){
+            if(v && !cmd->PostPutValue(v,decl->offset_)){
                 INTERNAL_ERR("cannot post pack '"<<*i<<"'");
             }
         }else if(decl->IsStreamOut()){
@@ -97,13 +97,14 @@ void CRuntime::postEvaluate(CSharedPtr<CCmd> cmd)
                 RUNTIME_ERR(decl->lineno_,"cannot evaluate right hand expression");
                 continue;
             }
-            if(decl->val_->StreamOut(*v,decl->lineno_) && !cmd->PostInsertValue(v,decl->offset_)){
+            if(decl->val_->StreamOut(*v,decl->lineno_) && !cmd->PostInsertValue(decl->val_,decl->offset_)){
                 INTERNAL_ERR("cannot post insert '"<<*i<<"'");
             }
         }else{
             INTERNAL_ERR("invalid post evaluation for symbol '"<<*i<<"'");
         }
     }
+    post_list_.clear();
 }
 
 bool CRuntime::addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,const std::string & depend)
@@ -251,6 +252,7 @@ void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
         cmd->outds_.ExportData(buf);
         DBG_RT("processCmd send buffer=\n"<<Dump(buf));
         //send data
+        cmd->SendData(buf);
 
     }else{  //RECV
 
@@ -312,7 +314,7 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     if(!decl->is_def_ && cmd){
         if(cmd->IsSend()){
             decl->offset_ = cmd->SendDataOffset();
-            if(!cmd->SendValue(decl->val_)){
+            if(!cmd->PutValue(decl->val_)){
                 RUNTIME_ERR(decl->lineno_,"cannot pack '"<<vname<<"'");
             }
         }else  //recv
@@ -329,7 +331,7 @@ void CRuntime::processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     if(decl->Evaluate() && decl->IsConnection())
         addConnection(decl->val_);
     var_table_[vname] = decl;
-    if(!decl->is_def_ && cmd && cmd->IsSend() && !cmd->SendValue(decl->val_)){
+    if(!decl->is_def_ && cmd && cmd->IsSend() && !cmd->PutValue(decl->val_)){
         RUNTIME_ERR(decl->lineno_,"cannot pack '"<<vname<<"'");
     }
 }

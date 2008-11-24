@@ -118,14 +118,40 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
         if(args[0]->type_ == 12)
             return args[0];
         RUNTIME_ERR(lineno,"invalid conversion to TCP");
-    }else if(args.size() == 2){
-        assert(args[0]->IsString());   //string
+        return 0;
+    }
+    if(args.size() == 2){
+        assert(args[0]->IsString());
+        const std::string ip = args[0]->str_;
+        DBG_RT("remote ip="<<ip);
+        CSockAddr addr;
+        if(args[1]->IsInteger()){
+            int port = -1;
+            if(!args[1]->ToInteger(port)){
+                RUNTIME_ERR(lineno,"remote port error");
+                return 0;
+            }
+            DBG_RT("remote port="<<port);
+            addr.SetAddr(ip,port);
+        }else if(args[1]->IsString()){
+            DBG_RT("remote port="<<args[1]->str_);
+            addr.SetAddr(ip,args[1]->str_);
+        }else{
+            RUNTIME_ERR(lineno,"invalid conversion to int");
+            return 0;
+        }
+        if(!addr.IsValid()){
+            RUNTIME_ERR(lineno,"invalid ip or port,"<<CSockAddr::ErrMsg());
+            return 0;
+        }
+        DBG_RT("remote addr="<<addr.ToString());
         __ValuePtr ret = New<CValue>();
         ret->type_ = 12;
-    //make tcp connection
-
-
-
+        ret->tcp_ = New<CTcp>(lineno);
+        if(!ret->tcp_->Connect(addr)){
+            RUNTIME_ERR(lineno,"cannot connect remote address,"<<CSocket::ErrMsg());
+            return 0;
+        }
         return ret;
     }
     return 0;

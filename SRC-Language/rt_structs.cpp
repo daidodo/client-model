@@ -3,6 +3,18 @@
 #include "util.h"
 #include "errors.h"
 
+//CTcp
+CTcp::CTcp(int ln)
+    : lineno_(ln)
+    , timeout_(5)
+{}
+
+//CUdp
+CUdp::CUdp(int ln)
+    : lineno_(ln)
+    , timeout_(5)
+{}
+
 //CValue
 CValue::CValue()
     : type_(0)
@@ -52,6 +64,37 @@ bool CValue::operator <(const CValue & v) const
 
 
     }
+}
+
+bool CValue::StreamOut(const CValue & v,int lineno)
+{
+    if(!IsString()){
+        RUNTIME_ERR(lineno,"invalid left hand type for stream out operator");
+        return false;
+    }
+    if(v.IsString()){
+        str_ = v.str_;
+        return true;
+    }
+    std::ostringstream oss;
+    switch(v.type_){
+        case 1:oss<<v.int_;break;
+        case 2:oss<<v.long_;break;
+        case 3:oss<<v.u8_;break;
+        case 4:oss<<v.s8_;break;
+        case 5:oss<<v.u16_;break;
+        case 6:oss<<v.s16_;break;
+        case 7:oss<<v.u32_;break;
+        case 8:oss<<v.s32_;break;
+        case 9:oss<<v.u64_;break;
+        case 10:oss<<v.s64_;break;
+        default:{
+            RUNTIME_ERR(lineno,"invalid right hand type for stream out operator");
+            return false;
+        }
+    }
+    str_ = oss.str();
+    return true;
 }
 
 COutByteStream & operator <<(COutByteStream & ds,const CValue & v)
