@@ -10,17 +10,17 @@
 struct CTcp : public CTcpConnSocket
 {
     const int lineno_;
+    U32 timeout_;       //send/recv timeout(seconds)
     //functions:
-    //explicit CTcp(int ln);
-    //std::string Signature() const;
+    explicit CTcp(int ln);
 };
 
 struct CUdp : public CUdpSocket
 {
     const int lineno_;
+    U32 timeout_;       //send/recv timeout(seconds)
     //functions:
-    //explicit CUdp(int ln);
-    //std::string Signature() const;
+    explicit CUdp(int ln);
 };
 
 #define __FROM_INTEGER(T,mem,v) {   \
@@ -104,7 +104,7 @@ struct CValue
         return true;
     }
     bool operator <(const CValue & v) const;
-    bool StreamOut(const CValue & v,int lineno){return true;}
+    bool StreamOut(const CValue & v,int lineno);
 private:
     template<typename T>
     bool operator <(T v) const{
