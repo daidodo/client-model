@@ -64,6 +64,7 @@ struct CVariable
     bool IsRaw() const;
     int RetType() const;
     CSharedPtr<CValue> Evaluate(int lineno) const;
+    CSharedPtr<CValue> Initial(int lineno) const;
 };
 
 struct CExpr
@@ -134,7 +135,7 @@ struct CAssertExp
     bool Validate() const;
     bool CheckDefined() const;
     //return: 0-assert false; 1-assert true; -1-runtime error
-    int Assert() const;
+    bool Assert() const;
 };
 
 struct CDeclare
@@ -258,8 +259,9 @@ struct CCmd
         }
         return true;
     }
+    bool GetRaw(std::string & res,const std::string & v,int lineno);
     bool GetArray(CSharedPtr<CDeclare> d);
-    bool GetAssert(CSharedPtr<CDeclare> d){return true;}
+    bool GetAssert(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v);
     bool GetStreamIn(CSharedPtr<CDeclare> d){return true;}
     bool RecvData(int lineno);
     void DumpRecvData() const;

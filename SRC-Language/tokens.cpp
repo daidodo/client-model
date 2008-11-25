@@ -183,22 +183,27 @@ size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgLis
 size_t OpArgTypeCheck(int op_token,int type1,int type2)
 {
     switch(op_token){
+        case OP_EQ:
+            if(CValue::IsString(type1)){
+                if(!CValue::IsString(type2))
+                    return 2;
+                break;
+            }
         case OP_LG:case OP_SM:
         case OP_LEQ:case OP_SEQ:
-        case OP_EQ:case OP_NEQ:
+        case OP_NEQ:
             if(CValue::IsInteger(type1)){
                 if(!CValue::IsInteger(type2))
                     return 2;
-            }else if(CValue::IsString(type1)){
-                if(!CValue::IsString(type2))
-                    return 2;
             }else
                 return 1;
+            break;
         case OP_NOT:
             if(!CValue::IsInteger(type1))
                 return 1;
             if(type2)
                 return 2;
+            break;
     }
     return 0;
 }
