@@ -57,7 +57,7 @@ std::string CRuntime::localVarname(const std::string & name,const CCmd & cmd)
     return ret;
 }
 
-std::string CRuntime::realVarname(const std::string & name)
+std::string CRuntime::RealVarname(const std::string & name)
 {
     return name.substr(0,name.find('$'));
 }
@@ -260,16 +260,14 @@ void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
         //print data buffer
         std::vector<char> buf;
         cmd->outds_.ExportData(buf);
-        SHOW("  SEND command '"<<cmd->cmd_name_<<"' buffer=");
+        SHOW("  SEND command '"<<cmd->cmd_name_<<"' data =");
         SHOW(DumpFormat(buf));
         //send data
 #if __REAL_CONNECT
         cmd->SendData(buf);
 #endif
-    }else{  //recv
-        SHOW("  RECV buf=");
-        SHOW(DumpFormat(cmd->recv_data_));
-    }
+    }else   //recv
+        cmd->DumpRecvData();
 }
 
 void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
@@ -291,8 +289,15 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
             return;
         }
     }
+    decl->val_ = decl->var_->array_type_->Evaluate();
+    if(!decl->val_){
+        ASSERT_FAIL(decl->lineno_,"cannot initialize array");
+    }
     assert(cmd && cmd->IsRecv());
-    cmd->GetArray(decl);
+    if(!cmd->GetArray(decl)){
+        cmd->DumpRecvData();
+        ASSERT_FAIL(decl->lineno_,"recv '"<<decl->var_->varname_<<"' failed");
+    }
 }
 
 void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
@@ -331,9 +336,10 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
             }
         }else{
             if(!cmd->GetValue(decl->val_,decl->lineno_)){
-                ASSERT_FAIL(decl->lineno_,"recv command failed");
+                cmd->DumpRecvData();
+                ASSERT_FAIL(decl->lineno_,"recv '"<<decl->var_->varname_<<"' failed");
             }
-            SHOW(realVarname(decl->var_->varname_)<<" = "
+            SHOW(RealVarname(decl->var_->varname_)<<" = "
                 <<decl->val_->ShowValue());
         }
     }

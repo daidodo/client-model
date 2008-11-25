@@ -328,6 +328,15 @@ std::string CArrayType::Signature() const{
     return oss.str();
 }
 
+bool CArrayType::Validate() const
+{
+    if(expr_ && !CValue::IsInteger(expr_->RetType())){
+        GAMMAR_ERR(lineno_,"invalid type for array size");
+        return false;
+    }
+    return true;
+}
+
 bool CArrayType::CheckDefined(int lineno) const
 {
     if(expr_)
@@ -337,6 +346,12 @@ bool CArrayType::CheckDefined(int lineno) const
 int CArrayType::RetType() const
 {
     return FunRetType(tp_token_);
+}
+
+CSharedPtr<CValue> CArrayType::Evaluate() const
+{
+    std::vector<CSharedPtr<CValue> > args;
+    return FunEvaluate(tp_token_,args,lineno_);
 }
 
 //CAssertExp
@@ -469,6 +484,8 @@ bool CDeclare::IsGlobalOnly() const
 bool CDeclare::Validate() const
 {
     if(IsArray()){
+        if(!var_->array_type_->Validate())
+            return false;
         if(CannotBeArray(var_->array_type_->tp_token_)){
             GAMMAR_ERR(lineno_,"invaid array type");
             return false;
@@ -769,21 +786,35 @@ bool CCmd::GetValue(CSharedPtr<CValue> v,int lineno)
 {
     assert(v);
     assert(!v->IsRaw());
-    if(!(inds_>>*v)){
-#if __REAL_CONNECT
-        if(inds_.Status() == 1){
-            if(!RecvData(lineno))
-                return false;
-            return inds_>>*v;
-        }
-#endif
-        return false;
-    }
-    return true;
+    return GetVal(*v,lineno);
 }
 
 bool CCmd::GetArray(CSharedPtr<CDeclare> d)
 {
+    const U32 MAX_ARRAY_SIZE = 65535;
+    assert(d && d->IsArray());
+    if(!d->var_->array_type_->HasSize()){
+        U32 sz = 0;
+        if(!GetVal(sz,d->lineno_)){
+            RUNTIME_ERR(d->lineno_,"recv array size error");
+            return false;
+        }else if(sz > MAX_ARRAY_SIZE){
+            RUNTIME_ERR(d->lineno_,"array size is larger than "<<MAX_ARRAY_SIZE);
+            return false;
+        }else
+            d->var_->array_type_->sz_ = int(sz);
+    }
+    assert(d->val_);
+    for(int i = 0;i < d->var_->array_type_->sz_;++i){
+        if(GetVal(*d->val_,d->lineno_)){
+            SHOW(CRuntime::RealVarname(d->var_->varname_)<<"["<<i<<"] = "
+                <<d->val_->ShowValue());
+        }else{
+            RUNTIME_ERR(d->lineno_,"recv '"<<d->var_->varname_<<"["<<i
+                <<"]' error");
+            return false;
+        }
+    }
     return true;
 }
 
@@ -810,4 +841,12 @@ bool CCmd::RecvData(int lineno)
 
     }
     return true;
+}
+
+void CCmd::DumpRecvData() const
+{
+    SHOW("  RECV data =");
+    if(!recv_data_.empty()){
+        SHOW(DumpFormat(recv_data_));
+    }
 }

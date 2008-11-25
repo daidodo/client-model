@@ -28,12 +28,12 @@ struct CRuntime
     CSharedPtr<CDeclare> FindVar(std::string vname,CSharedPtr<CCmd> cmd = 0);
     double Priority(const std::string & vname) const;
     bool IsPost(const std::string & vname) const;
+    static std::string RealVarname(const std::string & name);
 private:
     bool addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,const std::string & depend);
     void addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl);
     void addConnection(CSharedPtr<CValue> conn);
     static std::string localVarname(const std::string & name,const CCmd & cmd);
-    static std::string realVarname(const std::string & name);
     double maxPriority() const;
     void postEvaluate(CSharedPtr<CCmd> cmd);
     //top
