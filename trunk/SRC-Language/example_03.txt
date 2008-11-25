@@ -22,10 +22,10 @@ U16 ver
 U16 cmd_type
 U32 seq
 U32 len
-
+//cmd body
 U8  result
 STR fileHash_;
 STR clientHash_;
-STR peerId_;
+STR[] peerId_;    //array
 END CMD
 # The End

@@ -8,6 +8,7 @@
 #include <sstream>
 #include <algorithm>
 #include <cassert>
+#include "config.h"
 #include "types.h"
 #include "errors.h"
 #include "rt_structs.h"
@@ -112,8 +113,12 @@ struct CArrayType
     explicit CArrayType(int ln);
     std::string ToString() const;
     std::string Signature() const;
+    bool Validate() const;
     bool CheckDefined(int lineno) const;
     int RetType() const;
+    bool HasSize() const{return sz_ > 0;}
+    int Size() const{return sz_;}
+    CSharedPtr<CValue> Evaluate() const;
 };
 
 struct CAssertExp
@@ -239,10 +244,25 @@ struct CCmd
     bool SendData(const std::vector<char> & buf) const;
     //recv cmd
     bool GetValue(CSharedPtr<CValue> v,int lineno);
+    template<typename T>
+    bool GetVal(T & v,int lineno){
+        if(!(inds_>>v)){
+#if __REAL_CONNECT
+            if(inds_.Status() == 1){
+                if(!RecvData(lineno))
+                    return false;
+                return inds_>>v;
+            }
+#endif
+            return false;
+        }
+        return true;
+    }
     bool GetArray(CSharedPtr<CDeclare> d);
     bool GetAssert(CSharedPtr<CDeclare> d){return true;}
     bool GetStreamIn(CSharedPtr<CDeclare> d){return true;}
     bool RecvData(int lineno);
+    void DumpRecvData() const;
 };
 
 #endif
