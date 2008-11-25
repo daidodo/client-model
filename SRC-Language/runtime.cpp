@@ -10,7 +10,6 @@ CRuntime::CRuntime()
     : net_byte_order_(true)
 {}
 
-
 void CRuntime::Interpret(CProgram & program)
 {
     for(std::vector<CSharedPtr<CStmt> >::iterator i = program.global_stmts.begin();
@@ -56,6 +55,11 @@ std::string CRuntime::localVarname(const std::string & name,const CCmd & cmd)
         ret += cmd.cmd_name_;
     }
     return ret;
+}
+
+std::string CRuntime::realVarname(const std::string & name)
+{
+    return name.substr(0,name.find('$'));
 }
 
 double CRuntime::maxPriority() const
@@ -178,14 +182,17 @@ void CRuntime::processAssertExp(CSharedPtr<CAssertExp> ass,CSharedPtr<CCmd> cmd)
     DBG_RT("processAssertExp ass="<<to_str(ass));
     DBG_RT("processAssertExp cmd="<<to_str(cmd));
     assert(cmd && cmd->IsRecv());
-
+    int n = ass->Assert();
+    if(n == 0){
+        ASSERT_FAIL(ass->lineno_,"");
+    }
 }
 
 void CRuntime::processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processDeclare decl="<<to_str(decl));
     DBG_RT("processDeclare cmd="<<to_str(cmd));
-    if(!cmd){   //--------------global
+    if(!cmd){   //global
         if(decl->IsSimplePost())
             processPost(decl,0);
         else if(decl->IsFixed())
@@ -205,7 +212,7 @@ void CRuntime::processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
             else{
                 RUNTIME_ERR(decl->lineno_,"invalid declaration in SEND command");
             }
-        }else{  //--------------recv cmd
+        }else{  //recv cmd
             if(decl->IsArray())
                 processArray(decl,cmd);
             else if(decl->IsSimplePost())
@@ -234,6 +241,9 @@ void CRuntime::processFunc(CSharedPtr<CFuncCall> func,CSharedPtr<CCmd> cmd)
 void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processCmd cmd="<<to_str(cmd));
+    if(cmd->IsRecv()){
+        SHOW("  RECV command '"<<cmd->cmd_name_<<"'");
+    }
     cmd->SetByteOrder(net_byte_order_);
     for(std::vector<CSharedPtr<CStmt> >::iterator i = cmd->stmt_list_.begin();
         i != cmd->stmt_list_.end();++i)
@@ -250,13 +260,15 @@ void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
         //print data buffer
         std::vector<char> buf;
         cmd->outds_.ExportData(buf);
-        DBG_RT("processCmd send buffer=\n"<<Dump(buf));
+        SHOW("  SEND command '"<<cmd->cmd_name_<<"' buffer=");
+        SHOW(DumpFormat(buf));
         //send data
+#if __REAL_CONNECT
         cmd->SendData(buf);
-
-    }else{  //RECV
-
-
+#endif
+    }else{  //recv
+        SHOW("  RECV buf=");
+        SHOW(DumpFormat(cmd->recv_data_));
     }
 }
 
@@ -280,7 +292,7 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         }
     }
     assert(cmd && cmd->IsRecv());
-    cmd->RecvArray(decl);
+    cmd->GetArray(decl);
 }
 
 void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
@@ -317,8 +329,13 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
             if(!cmd->PutValue(decl->val_)){
                 RUNTIME_ERR(decl->lineno_,"cannot pack '"<<vname<<"'");
             }
-        }else  //recv
-            cmd->RecvValue(decl->val_);
+        }else{
+            if(!cmd->GetValue(decl->val_,decl->lineno_)){
+                ASSERT_FAIL(decl->lineno_,"recv command failed");
+            }
+            SHOW(realVarname(decl->var_->varname_)<<" = "
+                <<decl->val_->ShowValue());
+        }
     }
 }
 
@@ -341,7 +358,7 @@ void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processDeclAssert decl="<<to_str(decl));
     DBG_RT("processDeclAssert cmd="<<to_str(cmd));
     assert(cmd && cmd->IsRecv());
-    cmd->RecvAssert(decl);
+    cmd->GetAssert(decl);
     var_table_[decl->var_->varname_] = decl;
 }
 
@@ -350,7 +367,7 @@ void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processStreamIn decl="<<to_str(decl));
     DBG_RT("processStreamIn cmd="<<to_str(cmd));
     assert(cmd && cmd->IsRecv());
-    cmd->RecvStreamIn(decl);
+    cmd->GetStreamIn(decl);
     var_table_[decl->var_->varname_] = decl;
 }
 

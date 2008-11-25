@@ -33,6 +33,7 @@ private:
     void addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl);
     void addConnection(CSharedPtr<CValue> conn);
     static std::string localVarname(const std::string & name,const CCmd & cmd);
+    static std::string realVarname(const std::string & name);
     double maxPriority() const;
     void postEvaluate(CSharedPtr<CCmd> cmd);
     //top

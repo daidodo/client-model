@@ -22,9 +22,16 @@ void runtime_error(int lineno,const std::string & msg)
     ERR_INCR;
 }
 
-void interal_error(const std::string & msg)
+void internal_error(const std::string & msg)
 {
     std::cerr<<"(internal error) - "<<msg<<std::endl;
     ERR_INCR;
     throw 0;
+}
+
+void assert_fail(int lineno,const std::string & msg)
+{
+    std::cerr<<global().input_file<<":"<<lineno<<" - (assertion failed)"
+        <<msg<<std::endl;
+    exit(1);
 }

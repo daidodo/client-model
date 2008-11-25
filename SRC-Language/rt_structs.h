@@ -10,7 +10,7 @@
 struct CTcp : public CTcpConnSocket
 {
     const int lineno_;
-    U32 timeout_;       //send/recv timeout(seconds)
+    U32 timeMs_;       //send/recv timeout
     //functions:
     explicit CTcp(int ln);
 };
@@ -18,7 +18,7 @@ struct CTcp : public CTcpConnSocket
 struct CUdp : public CUdpSocket
 {
     const int lineno_;
-    U32 timeout_;       //send/recv timeout(seconds)
+    U32 timeMs_;       //send/recv timeout
     //functions:
     explicit CUdp(int ln);
 };
@@ -61,14 +61,27 @@ struct CValue
     //functions:
     CValue();
     std::string ToString() const;
-    std::string Signature() const;
-    bool IsConnection() const{return type_ == 12 || type_ == 13;}
-    bool IsInteger() const{return type_ >= 1 && type_ <= 10;}
+    std::string Signature() const{return ToString();}
+    std::string ShowValue() const;
+    static bool IsConnection(int type){return type == 12 || type == 13;}
+    static bool IsTcp(int type){return type == 12;}
+    static bool IsUdp(int type){return type == 13;}
+    static bool IsInteger(int type){return type >= 1 && type <= 10;}
+    static bool IsSigned(int type);
+    static bool IsUnsigned(int type);
     static bool IsString(int type){return type == 11 || type == 14;}
+    static bool IsRaw(int type){return type == 14;}
+    bool IsConnection() const{return IsConnection(type_);}
+    bool IsTcp() const{return IsTcp(type_);}
+    bool IsUdp() const{return IsUdp(type_);}
+    bool IsInteger() const{return IsInteger(type_);}
+    bool IsSigned() const{return IsSigned(type_);}
+    bool IsUnsigned() const{return IsUnsigned(type_);}
     bool IsString() const{return IsString(type_);}
+    bool IsRaw() const{return IsRaw(type_);}
     void FixRaw();
     template<typename T>
-    bool ToInteger(T & res){
+    bool ToInteger(T & res) const{
         switch(type_){
             case 1:__TO_INTEGER(int,res,int_);break;
             case 2:__TO_INTEGER(long,res,long_);break;
@@ -103,7 +116,19 @@ struct CValue
         }
         return true;
     }
-    bool operator <(const CValue & v) const;
+    /*  return :
+        0   assert false
+        1   assert true
+        -1  signed, unsigned mismatch
+        -2  argument type error
+    //*/
+    int operator <(const CValue & v) const;
+    int operator >(const CValue & v) const{return v.operator <(*this);}
+    int operator <=(const CValue & v) const;
+    int operator >=(const CValue & v) const;
+    int operator ==(const CValue & v) const;
+    int operator !=(const CValue & v) const;
+    int operator !() const;
     bool StreamOut(const CValue & v,int lineno);
 private:
     template<typename T>
@@ -113,6 +138,8 @@ private:
  };
 
 COutByteStream & operator <<(COutByteStream & ds,const CValue & v);
+
+CInByteStream & operator >>(CInByteStream & ds,CValue & v);
 
 #undef __FROM_INTEGER
 #undef __TO_INTEGER

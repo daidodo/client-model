@@ -1,14 +1,13 @@
 # This is an example of SRC Language
 
-#server ip and port
+//server ip and port
 STR server_ip := "127.0.0.1"
 U16 server_port := 9531
 
-#connections
-TCP conn1 (server_ip,server_port)
-TCP conn2 : (server_ip,server_port)
+//connections
+TCP conn1(server_ip,server_port)
 
-#byte order
+//byte order
 NET_BYTE_ORDER
 
 COMMAND QueryCommand	#command definition
@@ -27,6 +26,6 @@ STR file_hash := UNHEX("ABCDEF")
 STR client_hash := UNHEX("1234567890")
 STR peer_id := "FGHIJK"
 END(len)
-END CMD	#QueryCommand
+END CMD	//QueryCommand
 
 #the end

@@ -163,9 +163,6 @@ DEF	{CUR_TOK = yytext;DBG_LEX1("DEF",CUR_TOK);return DEF;}
 				return I64;
 			}
 
-	/* error handle */
-0[0-9]+	{CUR_TOK = yytext;SYNTAX_ERR("error number format");}
-
 <<EOF>>	{CUR_TOK = "EOF";DBG_LEX(CUR_TOK);BEGIN EOF_S;return EOF_;}
 .	{CUR_TOK = yytext;DBG_LEX(*yytext);return *yytext;}
 

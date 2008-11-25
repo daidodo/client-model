@@ -118,9 +118,7 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
         if(args[0]->type_ == 12)
             return args[0];
         RUNTIME_ERR(lineno,"invalid conversion to TCP");
-        return 0;
-    }
-    if(args.size() == 2){
+    }else if(args.size() >= 2){
         assert(args[0]->IsString());
         const std::string ip = args[0]->str_;
         DBG_RT("remote ip="<<ip);
@@ -148,10 +146,23 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
         __ValuePtr ret = New<CValue>();
         ret->type_ = 12;
         ret->tcp_ = New<CTcp>(lineno);
+        if(args.size() == 3){
+            U32 timeS = 0;
+            if(!args[2]->ToInteger(ret->tcp_->timeMs_)){
+                RUNTIME_ERR(lineno,"invalid argument 3 for timeout value");
+                return false;
+            }
+        }
+#if __REAL_CONNECT
         if(!ret->tcp_->Connect(addr)){
-            RUNTIME_ERR(lineno,"cannot connect remote address,"<<CSocket::ErrMsg());
+            RUNTIME_ERR(lineno,"cannot connect to remote address,"<<CSocket::ErrMsg());
             return 0;
         }
+        //if(!ret->tcp_->SetBlock(false)){
+        //    RUNTIME_ERR(lineno,"set nonblock error,"<<CSocket::ErrMsg());
+        //    return 0;
+        //}
+#endif
         return ret;
     }
     return 0;

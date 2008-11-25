@@ -24,4 +24,11 @@
 #   define DBG_RT(msg)
 #endif
 
+#if __SHOW_RESULTS
+#   define SHOW(msg)      {std::cout<<msg<<std::endl;}
+#else
+#   define SHOW(msg)
+#endif
+
+
 #endif
