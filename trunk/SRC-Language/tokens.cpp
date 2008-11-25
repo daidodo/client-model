@@ -122,7 +122,7 @@ size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgLis
         case TP_U16:case TP_S16:
         case TP_U32:case TP_S32:
         case TP_U64:case TP_S64:{   //integer
-            if(!types.empty() && !(types[0] > 0 && types[0] <= 10))
+            if(!types.empty() && !CValue::IsInteger(types[0]))
                 return 1;
             break;}
         case STR:case RAW:{         //string
@@ -134,19 +134,19 @@ size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgLis
                 return 1;
             else if(types.size() == 1){
                 if(fun_token == TCP){
-                    if(types[0] != 12)
+                    if(!CValue::IsTcp(types[0]))
                         return 1;
                 }else{
-                    if(types[0] != 13)
+                    if(!CValue::IsUdp(types[0]))
                         return 1;
                 }
             }else if(types.size() <= 3){
                 if(!CValue::IsString(types[0]))
                     return 1;
-                if(!(types[1] > 0 && types[1] <= 10) && //integer
-                    !CValue::IsString(types[1]))        //string
+                if(!CValue::IsInteger(types[1]) &&  //integer
+                    !CValue::IsString(types[1]))    //string
                     return 2;
-                if(!(types[1] > 0 && types[1] <= 10))   //integer
+                if(types.size() == 3 && !CValue::IsInteger(types[2]))   //integer
                     return 3;
             }else
                 return 4;
@@ -154,7 +154,7 @@ size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgLis
         case SEND:case RECV:{       //CValue::tcp_ or CValue::udp_
             if(arglist){
                 for(size_t i = 0;i < types.size();++i)
-                    if(!(*arglist)[i]->IsVar() || (types[0] != 12 && types[0] != 13))
+                    if(!(*arglist)[i]->IsVar() || !CValue::IsConnection(types[i]))
                         return (i + 1);
             }
             break;}
@@ -165,7 +165,7 @@ size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgLis
         case FUN:{                  //VAR or VAR + integer
             if(types.empty() || !(*arglist)[0]->IsVar())
                 return 1;
-            else if(types.size() == 2 && !(types[1] > 0 && types[1] <= 10))
+            else if(types.size() == 2 && !CValue::IsInteger(types[1]))
                 return 2;
             else if(types.size() > 2)
                 return 3;
@@ -173,9 +173,32 @@ size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgLis
         case BEGIN_:case END:{
             assert(arglist);
             for(size_t i = 0;i < types.size();++i)
-                if(!(*arglist)[i]->IsVar() || !(types[i] > 0 && types[i] <= 10))
+                if(!(*arglist)[i]->IsVar() || !CValue::IsInteger(types[i]))
                     return (i + 1);
             break;}
+    }
+    return 0;
+}
+
+size_t OpArgTypeCheck(int op_token,int type1,int type2)
+{
+    switch(op_token){
+        case OP_LG:case OP_SM:
+        case OP_LEQ:case OP_SEQ:
+        case OP_EQ:case OP_NEQ:
+            if(CValue::IsInteger(type1)){
+                if(!CValue::IsInteger(type2))
+                    return 2;
+            }else if(CValue::IsString(type1)){
+                if(!CValue::IsString(type2))
+                    return 2;
+            }else
+                return 1;
+        case OP_NOT:
+            if(!CValue::IsInteger(type1))
+                return 1;
+            if(type2)
+                return 2;
     }
     return 0;
 }
@@ -185,12 +208,12 @@ int IsSendRecvToken(int fun_token)
     return (fun_token == SEND ? 1 : (fun_token == RECV ? 2 : 0));
 }
 
-int IsStreamInToken(int op_token)
+bool IsStreamInToken(int op_token)
 {
     return op_token == OP_IN;
 }
 
-int IsStreamOutToken(int op_token)
+bool IsStreamOutToken(int op_token)
 {
     return op_token == OP_OUT;
 }
@@ -248,15 +271,17 @@ void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCm
     }
 }
 
-bool FunAssert(int op_token,CSharedPtr<CValue> v1,CSharedPtr<CValue> v2)
+int FunAssert(int op_token,CSharedPtr<CValue> v1,CSharedPtr<CValue> v2)
 {
+    assert(v1);
     switch(op_token){
-        case OP_LG:break;
-        case OP_SM:break;
-        case OP_LEQ:break;
-        case OP_SEQ:break;
-        case OP_EQ:break;
-        case OP_NEQ:break;
-        case OP_NOT:break;
+        case OP_LG:assert(v2);return *v1 > *v2;
+        case OP_SM:assert(v2);return *v1 < *v2;
+        case OP_LEQ:assert(v2);return *v1 >= *v2;
+        case OP_SEQ:assert(v2);return *v1 <= *v2;
+        case OP_EQ:assert(v2);return *v1 == *v2;
+        case OP_NEQ:assert(v2);return *v1 != *v2;
+        case OP_NOT:assert(!v2);return !*v1;
     }
+    return -3;
 }

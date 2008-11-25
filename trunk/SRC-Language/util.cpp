@@ -174,6 +174,105 @@ std::string DumpHex(const char * v,size_t sz,char sep,bool hasLen)
     return ret;
 }
 
+std::string DumpStr(const char * v,size_t sz,char replace,bool hasLen)
+{
+    const char DEFAULT = '.';
+    const char TRAN_CHAR = '\\';
+    const char FOLLOW_CHAR[] = "abtnvfr";
+    assert(v);
+    if(!IsReadable(replace))
+        replace = DEFAULT;
+    std::string ret;
+    if(hasLen){
+        std::ostringstream oss;
+        oss<<"("<<sz<<")";
+        ret = oss.str();
+    }
+    ret.reserve(ret.size() + sz + (sz >> 2));
+    for(;sz > 0;--sz,++v){
+        if(*v == TRAN_CHAR){
+            ret.push_back(TRAN_CHAR);
+            ret.push_back(TRAN_CHAR);
+        }else if(*v >= '\a' && *v <= '\r'){
+            ret.push_back(TRAN_CHAR);
+            ret.push_back(FOLLOW_CHAR[*v - '\a']);
+        }else if(!*v){
+            ret.push_back(TRAN_CHAR);
+            ret.push_back('0');
+        }else
+            ret.push_back(IsReadable(*v) ? *v : replace);
+    }
+    return ret;
+}
+
+std::string DumpVal(const char * v,size_t sz,int base,bool hasLen)
+{
+    const char TRAN_CHAR = '\\';
+    const char FOLLOW_CHAR[] = "abtnvfr";
+    const char DIGIT[] = "0123456789ABCDEF";
+    assert(v);
+    std::string ret;
+    if(hasLen){
+        std::ostringstream oss;
+        oss<<"("<<sz<<")";
+        ret = oss.str();
+    }
+    ret.reserve(ret.length() + 2 * sz);
+    for(;sz > 0;--sz,++v){
+        if(*v == TRAN_CHAR){
+            ret.push_back(TRAN_CHAR);
+            ret.push_back(TRAN_CHAR);
+        }else if(IsReadable(*v))
+            ret.push_back(*v);
+        else{
+            ret.push_back(TRAN_CHAR);
+            if(*v >= '\a' && *v <= '\r')
+                ret.push_back(FOLLOW_CHAR[*v - '\a']);
+            else if(!*v)
+                ret.push_back('0');
+            else{
+                switch(base){
+                        case 16:{       //16进制
+                            ret.push_back(DIGIT[(*v >> 4) & 0xF]);
+                            ret.push_back(DIGIT[*v & 0xF]);
+                            break;}
+                        default:       //8进制
+                            ret.push_back(DIGIT[(*v >> 6) & 3]);
+                            ret.push_back(DIGIT[(*v >> 3) & 7]);
+                            ret.push_back(DIGIT[*v & 7]);
+                }
+            }
+        }
+    }
+    return ret;
+}
+
+//预读取前PRE_READ个字符，统计可读字符个数，然后选择合适的转换函数
+std::string Dump(const char * v,size_t sz,size_t show_sz,bool hasLen)
+{
+    const size_t PRE_READ = 32;
+    std::string ret;
+    if(hasLen){
+        std::ostringstream oss;
+        oss<<"("<<sz<<")";
+        ret = oss.str();
+    }
+    size_t readable = 0;
+    size_t check_len = std::min(sz,PRE_READ);
+    for(const char *t = v,*e = v + check_len;t < e;++t)
+        if(*t && IsReadable(*t))
+            ++readable;
+    if(readable <= (check_len >> 1))
+        ret += DumpHex(v,std::min(sz,show_sz),' ',false);
+    else if(readable < check_len)
+        ret += DumpVal(v,std::min(sz,show_sz),8,false);
+    else
+        ret += DumpStr(v,std::min(sz,show_sz),'.',false);
+    if(show_sz < sz)
+        ret += "...";
+    return ret;
+}
+
 std::string UnHex(const char * v,size_t sz)
 {
     assert(v && sz);
@@ -189,7 +288,7 @@ std::string UnHex(const char * v,size_t sz)
     return ret;
 }
 
-std::string Dump(const char * v,size_t sz)
+std::string DumpFormat(const char * v,size_t sz)
 {
     assert(v && sz);
     const size_t LINE_WIDTH = 4;

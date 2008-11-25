@@ -363,12 +363,26 @@ std::string CAssertExp::Signature() const{
 bool CAssertExp::Validate() const
 {
     assert(expr1_);
-    if(IsBinaryPredict(op_token_) && !expr2_){
-        GAMMAR_ERR(lineno_,"prediction format error(binary)");
+    int type1 = expr1_->RetType();
+    int type2 = 0;
+    if(IsBinaryPredict(op_token_)){
+        if(!expr2_){
+            GAMMAR_ERR(lineno_,"prediction format error(binary)");
+            return false;
+        }
+        type2 = expr2_->RetType();
+    }else if(IsUnaryPredict(op_token_)){
+        if(expr2_){
+            GAMMAR_ERR(lineno_,"prediction format error(unary)");
+            return false;
+        }
+    }else{
+        GAMMAR_ERR(lineno_,"unknown prediction operator");
         return false;
     }
-    if(IsUnaryPredict(op_token_) && expr2_){
-        GAMMAR_ERR(lineno_,"prediction format error(unary)");
+    size_t i = OpArgTypeCheck(op_token_,type1,type2);
+    if(i){
+        GAMMAR_ERR(lineno_,"invalid argument "<<i<<" for prediction");
         return false;
     }
     if(!expr1_->Validate())
@@ -388,31 +402,36 @@ bool CAssertExp::CheckDefined() const
     return ret;
 }
 
-bool CAssertExp::Assert() const
+int CAssertExp::Assert() const
 {
     assert(expr1_);
     CSharedPtr<CValue> v1 = expr1_->Evaluate();
     if(!v1){
         RUNTIME_ERR(lineno_,"cannot evaluate left hand expression");
-        return false;
-    }
-    if(!v1->IsInteger()){
-        RUNTIME_ERR(lineno_,"invalid assertion for non-integer type");
-        return false;
+        return -1;
     }
     CSharedPtr<CValue> v2;
     if(expr2_){
         v2 = expr2_->Evaluate();
         if(!v2){
             RUNTIME_ERR(lineno_,"cannot evaluate right hand expression");
-            return false;
-        }
-        if(!v2->IsInteger()){
-            RUNTIME_ERR(lineno_,"invalid assertion for non-integer type");
-            return false;
+            return -1;
         }
     }
-    return FunAssert(op_token_,v1,v2);
+    switch(FunAssert(op_token_,v1,v2)){
+        case 0:return 0;
+        case 1:return 1;
+        case -1:{
+            RUNTIME_ERR(lineno_,"prediction between signed and unsigned integers");
+            break;}
+        case -2:{
+            RUNTIME_ERR(lineno_,"invalid argument type for prediction");
+            break;}
+        case -3:{
+            RUNTIME_ERR(lineno_,"invalid operator type for prediction");
+            break;}
+    }
+    return -1;
 }
 
 //CDeclare
@@ -449,7 +468,7 @@ bool CDeclare::IsGlobalOnly() const
 
 bool CDeclare::Validate() const
 {
-    if(var_->array_type_){
+    if(IsArray()){
         if(CannotBeArray(var_->array_type_->tp_token_)){
             GAMMAR_ERR(lineno_,"invaid array type");
             return false;
@@ -458,10 +477,17 @@ bool CDeclare::Validate() const
             GAMMAR_ERR(lineno_,"invalid DEF for array type");
             return false;
         }
-    }
-    if(IsAssert() && !IsBinaryPredict(op_token_)){
-        GAMMAR_ERR(lineno_,"prediction format error");
-        return false;
+    }else if(IsAssert()){
+        assert(expr_);
+        if(!IsBinaryPredict(op_token_)){
+            GAMMAR_ERR(lineno_,"prediction format error");
+            return false;
+        }
+        size_t i = OpArgTypeCheck(op_token_,var_->RetType(),expr_->RetType());
+        if(i){
+            GAMMAR_ERR(lineno_,"argument "<<i<<" type error for prediction");
+            return false;
+        }
     }
     if(expr_ && !expr_->Validate())
         return false;
@@ -720,7 +746,7 @@ bool CCmd::SendData(const std::vector<char> & buf) const
         assert(v.IsConnection());
         if(v.type_ == 12){  //tcp
             assert(v.tcp_);
-            ssize_t n = v.tcp_->SendData(buf);
+            ssize_t n = v.tcp_->SendData(buf,v.tcp_->timeMs_);
             if(n < 0){
                 RUNTIME_ERR(endlineno_,"send tcp data to "<<v.tcp_->ToString()
                     <<" error,"<<CSocket::ErrMsg());
@@ -739,10 +765,49 @@ bool CCmd::SendData(const std::vector<char> & buf) const
     return true;
 }
 
-void CCmd::RecvValue(CSharedPtr<CValue> v)
+bool CCmd::GetValue(CSharedPtr<CValue> v,int lineno)
 {
     assert(v);
+    assert(!v->IsRaw());
+    if(!(inds_>>*v)){
+#if __REAL_CONNECT
+        if(inds_.Status() == 1){
+            if(!RecvData(lineno))
+                return false;
+            return inds_>>*v;
+        }
+#endif
+        return false;
+    }
+    return true;
+}
 
+bool CCmd::GetArray(CSharedPtr<CDeclare> d)
+{
+    return true;
+}
 
+bool CCmd::RecvData(int lineno)
+{
+    const size_t MAX_BUF = 1024;
+    assert(!conn_list_.empty() && conn_list_[0]);
+    const CValue & v = *conn_list_[0];
+    assert(v.IsConnection());
+    size_t off = inds_.Tell();
+    if(v.type_ == 12){  //tcp
+        assert(v.tcp_);
+        ssize_t n = v.tcp_->RecvData(recv_data_,MAX_BUF);
+        if(n < 0){
+            RUNTIME_ERR(lineno,"recv data error,"<<CSocket::ErrMsg());
+            return false;
+        }else if(n == 0){
+            RUNTIME_ERR(lineno,"remote peer close,"<<CSocket::ErrMsg());
+            return false;
+        }
+        inds_.SetSource(&recv_data_[off],recv_data_.size() - off,runtime().net_byte_order_);
+    }else{              //udp
+        assert(v.udp_);
 
+    }
+    return true;
 }

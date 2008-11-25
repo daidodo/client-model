@@ -102,6 +102,10 @@ void CProgram::AddStmt(CSharedPtr<CDeclare> stmt)
                 GAMMAR_ERR(stmt->lineno_,"invalid declaration in RECV command");
                 good = false;
             }
+            if(stmt->IsPost() && stmt->var_->IsRaw()){
+                GAMMAR_ERR(stmt->lineno_,"recv RAW string is endless");
+                good = false;
+            }
         }else{
             GAMMAR_ERR(stmt->lineno_,"invalid declaration before SEND/RECV flag");
             good = false;

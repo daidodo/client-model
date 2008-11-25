@@ -128,7 +128,8 @@ struct CAssertExp
     std::string Signature() const;
     bool Validate() const;
     bool CheckDefined() const;
-    bool Assert() const;
+    //return: 0-assert false; 1-assert true; -1-runtime error
+    int Assert() const;
 };
 
 struct CDeclare
@@ -237,10 +238,11 @@ struct CCmd
     void End(CSharedPtr<CExpr> v);
     bool SendData(const std::vector<char> & buf) const;
     //recv cmd
-    void RecvValue(CSharedPtr<CValue> v);
-    void RecvArray(CSharedPtr<CDeclare> d){}
-    void RecvAssert(CSharedPtr<CDeclare> d){}
-    void RecvStreamIn(CSharedPtr<CDeclare> d){}
+    bool GetValue(CSharedPtr<CValue> v,int lineno);
+    bool GetArray(CSharedPtr<CDeclare> d);
+    bool GetAssert(CSharedPtr<CDeclare> d){return true;}
+    bool GetStreamIn(CSharedPtr<CDeclare> d){return true;}
+    bool RecvData(int lineno);
 };
 
 #endif
