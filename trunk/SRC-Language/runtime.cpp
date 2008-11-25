@@ -71,7 +71,11 @@ double CRuntime::maxPriority() const
 
 void CRuntime::postEvaluate(CSharedPtr<CCmd> cmd)
 {
+    typedef CSharedPtr<CValue>          __ValPtr;
+    typedef std::list<__ValPtr>         __ValList;  //可能会在同一个offset，插入多个数据
+    typedef std::map<size_t,__ValList,std::greater<size_t> >  __ValSeq;
     assert(cmd && cmd->IsSend());
+    __ValSeq post_insert_list;
     for(__VnameList::iterator i = post_list_.begin();i != post_list_.end();++i){
         CSharedPtr<CDeclare> decl = FindVar(*i);
         if(!decl){
@@ -101,14 +105,28 @@ void CRuntime::postEvaluate(CSharedPtr<CCmd> cmd)
                 RUNTIME_ERR(decl->lineno_,"cannot evaluate right hand expression");
                 continue;
             }
+/*
+            if(decl->val_->StreamOut(*v,decl->lineno_))    //post insert越后越好，因为它改变了其他数据的偏移
+                post_insert_list[decl->offset_].push_front(decl->val_);
+/*/
             if(decl->val_->StreamOut(*v,decl->lineno_) && !cmd->PostInsertValue(decl->val_,decl->offset_)){
                 INTERNAL_ERR("cannot post insert '"<<*i<<"'");
             }
+//*/
         }else{
             INTERNAL_ERR("invalid post evaluation for symbol '"<<*i<<"'");
         }
     }
     post_list_.clear();
+    //post insert
+    //for(__ValSeq::const_iterator i = post_insert_list.begin();i != post_insert_list.end();++i){
+    //    const size_t off = i->first;
+    //    for(__ValList::const_iterator v = i->second.begin();v != i->second.end();++v){
+    //        if(!cmd->PostInsertValue(*v,off)){
+    //            INTERNAL_ERR("cannot post insert value "<<(*v)->ShowValue());
+    //        }
+    //    }
+    //}
 }
 
 bool CRuntime::addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,const std::string & depend)
@@ -182,8 +200,7 @@ void CRuntime::processAssertExp(CSharedPtr<CAssertExp> ass,CSharedPtr<CCmd> cmd)
     DBG_RT("processAssertExp ass="<<to_str(ass));
     DBG_RT("processAssertExp cmd="<<to_str(cmd));
     assert(cmd && cmd->IsRecv());
-    int n = ass->Assert();
-    if(n == 0){
+    if(!ass->Assert()){
         ASSERT_FAIL(ass->lineno_,"");
     }
 }
@@ -289,9 +306,10 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
             return;
         }
     }
-    decl->val_ = decl->var_->array_type_->Evaluate();
+    decl->val_ = decl->var_->Initial(decl->lineno_);
     if(!decl->val_){
-        ASSERT_FAIL(decl->lineno_,"cannot initialize array");
+        ASSERT_FAIL(decl->lineno_,"cannot initialize '"<<decl->var_->varname_
+            <<"'");
     }
     assert(cmd && cmd->IsRecv());
     if(!cmd->GetArray(decl)){
@@ -363,8 +381,22 @@ void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processDeclAssert decl="<<to_str(decl));
     DBG_RT("processDeclAssert cmd="<<to_str(cmd));
+    decl->val_ = decl->var_->Initial(decl->lineno_);
+    if(!decl->val_){
+        ASSERT_FAIL(decl->lineno_,"cannot initialize '"<<decl->var_->varname_
+            <<"'");
+    }
+    assert(decl->expr_);
+    CSharedPtr<CValue> v = decl->expr_->Evaluate();
+    if(!v){
+        ASSERT_FAIL(decl->lineno_,"cannot evaluate right hand expression");
+    }
+    decl->expr_ = 0;
     assert(cmd && cmd->IsRecv());
-    cmd->GetAssert(decl);
+    if(!cmd->GetAssert(decl,v)){
+        cmd->DumpRecvData();
+        ASSERT_FAIL(decl->lineno_,"");
+    }
     var_table_[decl->var_->varname_] = decl;
 }
 
@@ -373,6 +405,14 @@ void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processStreamIn decl="<<to_str(decl));
     DBG_RT("processStreamIn cmd="<<to_str(cmd));
     assert(cmd && cmd->IsRecv());
+
+
+
+
+
+
+
+
     cmd->GetStreamIn(decl);
     var_table_[decl->var_->varname_] = decl;
 }
@@ -383,12 +423,14 @@ void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processStreamOut cmd="<<to_str(cmd));
     assert(cmd && cmd->IsSend());
     std::string vname = decl->var_->varname_;
-    decl->Evaluate();
-    DBG_RT("processStreamOut Evaluate "<<vname<<"="<<to_str(decl->val_));
+    decl->val_ = decl->var_->Initial(decl->lineno_);
+    if(!decl->val_){
+        RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<vname<<"'");
+        return;
+    }
     decl->eva_priority_ = maxPriority() + 1000; //解决自赋值问题
     std::string depend = decl->Depend();
     if(depend.empty()){
-        decl->expr_ = 0;
         addPostVar(vname,decl);
     }else{
         if(vname == depend){

@@ -283,7 +283,8 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
                     <<"' is too small to hold offset("<<dis<<")");
             }
             decl->var_->begin_ = -2;
-            cmd->End((*args)[i]);
+            if(args != cmd->begin_list_)    //命令结束时会对所有BEGIN变量自动调用END，此时(args == cmd->begin_list_)
+                cmd->End((*args)[i]);
         }
     }
 }

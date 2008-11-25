@@ -133,6 +133,14 @@ CSharedPtr<CValue> CVariable::Evaluate(int lineno) const
     return decl->val_;
 }
 
+CSharedPtr<CValue> CVariable::Initial(int lineno) const
+{
+    if(array_type_)
+        return array_type_->Evaluate();
+    std::vector<CSharedPtr<CValue> > args;
+    return FunEvaluate(tp_token_,args,lineno);
+}
+
 //CExpr
 CExpr::CExpr(int ln)
     : lineno_(ln)
@@ -417,25 +425,25 @@ bool CAssertExp::CheckDefined() const
     return ret;
 }
 
-int CAssertExp::Assert() const
+bool CAssertExp::Assert() const
 {
     assert(expr1_);
     CSharedPtr<CValue> v1 = expr1_->Evaluate();
     if(!v1){
         RUNTIME_ERR(lineno_,"cannot evaluate left hand expression");
-        return -1;
+        return false;
     }
     CSharedPtr<CValue> v2;
     if(expr2_){
         v2 = expr2_->Evaluate();
         if(!v2){
             RUNTIME_ERR(lineno_,"cannot evaluate right hand expression");
-            return -1;
+            return false;
         }
     }
     switch(FunAssert(op_token_,v1,v2)){
-        case 0:return 0;
-        case 1:return 1;
+        case 0:break;
+        case 1:return true;
         case -1:{
             RUNTIME_ERR(lineno_,"prediction between signed and unsigned integers");
             break;}
@@ -446,7 +454,7 @@ int CAssertExp::Assert() const
             RUNTIME_ERR(lineno_,"invalid operator type for prediction");
             break;}
     }
-    return -1;
+    return false;
 }
 
 //CDeclare
@@ -549,9 +557,10 @@ void CDeclare::FixRaw()
 
 CSharedPtr<CValue> CDeclare::Evaluate()
 {
-    if(IsStreamOut()){
-        val_ = FunEvaluate(var_->tp_token_,std::vector<CSharedPtr<CValue> >(),lineno_);
-    }else if(expr_)
+    //if(IsStreamOut()){
+    //    val_ = FunEvaluate(var_->tp_token_,std::vector<CSharedPtr<CValue> >(),lineno_);
+    //}else 
+    if(expr_)
         val_ = expr_->Evaluate();
     if(!val_){
         RUNTIME_ERR(lineno_,"cannot evaluate '"<<var_->varname_
@@ -789,6 +798,21 @@ bool CCmd::GetValue(CSharedPtr<CValue> v,int lineno)
     return GetVal(*v,lineno);
 }
 
+bool CCmd::GetRaw(std::string & res,const std::string & v,int lineno)
+{
+    for(size_t i = 0;i < v.length();++i){
+        char ch = 0;
+        if(!GetVal(ch,lineno)){
+            RUNTIME_ERR(lineno,"recv RAW string error");
+            return false;
+        }
+        res.push_back(ch);
+        if(ch != v[i])
+            return false;
+    }
+    return true;
+}
+
 bool CCmd::GetArray(CSharedPtr<CDeclare> d)
 {
     const U32 MAX_ARRAY_SIZE = 65535;
@@ -816,6 +840,39 @@ bool CCmd::GetArray(CSharedPtr<CDeclare> d)
         }
     }
     return true;
+}
+
+bool CCmd::GetAssert(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v)
+{
+    assert(d && d->IsAssert());
+    assert(d->val_);
+    if(d->val_->IsRaw()){
+        assert(v->IsString());
+        bool ret = GetRaw(d->val_->str_,v->str_,d->lineno_);
+        SHOW(d->var_->varname_<<" = "<<d->val_->ShowValue());
+        return ret;
+    }else{
+        if(!GetVal(*d->val_,d->lineno_)){
+            RUNTIME_ERR(d->lineno_,"recv '"<<d->var_->varname_<<"' error");
+            return false;
+        }
+        SHOW(CRuntime::RealVarname(d->var_->varname_)<<" = "<<d->val_->ShowValue());
+        assert(v);
+        switch(FunAssert(d->op_token_,d->val_,v)){
+            case 1:return true;
+            case 0:break;
+            case -1:{
+                RUNTIME_ERR(lineno_,"prediction between signed and unsigned integers");
+                break;}
+            case -2:{
+                RUNTIME_ERR(lineno_,"invalid argument type for prediction");
+                break;}
+            case -3:{
+                RUNTIME_ERR(lineno_,"invalid operator type for prediction");
+                break;}
+        }
+    }
+    return false;
 }
 
 bool CCmd::RecvData(int lineno)
