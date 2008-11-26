@@ -62,3 +62,19 @@ bool CGlobal::Run()
     }
     return true;
 }
+
+bool CGlobal::AddFunc(const std::string func_name,__Func func_ptr)
+{
+    assert(func_ptr);
+    __Func & fp = func_map_[func_name];
+    if(fp)
+        return false;
+    fp = func_ptr;
+    return true;
+}
+
+CGlobal::__Func CGlobal::FindFunc(const std::string func_name) const
+{
+    std::map<std::string,__Func>::const_iterator wh = func_map_.find(func_name);
+    return (wh == func_map_.end() ? 0 : wh->second);
+}

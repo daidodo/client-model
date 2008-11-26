@@ -7,6 +7,12 @@
 #   include "test.h"
 #endif
 
+bool aes_encrypt(std::vector<char> & src,std::vector<char> & dst)
+{
+    dst.swap(src);
+    return true;
+}
+
 int main(int argc,const char ** argv){
     using namespace std;
 #ifdef TEST
@@ -19,6 +25,10 @@ int main(int argc,const char ** argv){
         return 1;
     }
     SRC_init();
+    if(!SRC_register_function("aes_encrypt",aes_encrypt))
+        return 1;
+    if(!SRC_register_function("aes_decrypt",aes_encrypt))
+        return 1;
     if(!SRC_compile(argv[1]))
         return 1;
     if(!SRC_run())

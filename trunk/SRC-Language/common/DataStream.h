@@ -287,6 +287,11 @@ public:
         cur_ = 0;
         return true;
     }
+    //这个函数是专为这个项目加入的
+    void ImportData(std::vector<char> & src){
+        data_.swap(src);
+        cur_ = data_.size();
+    }
     //write PODs
     __Myt & operator <<(char c)                 {return writePod(c);}
     __Myt & operator <<(signed char c)          {return writePod(c);}

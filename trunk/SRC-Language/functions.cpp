@@ -292,6 +292,26 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
 void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
 {
     assert(args && cmd);
-
-
+    assert(!args->args_.empty() && (*args)[0]);
+    CExpr & exp = *(*args)[0];
+    assert(exp.IsVar());
+    std::string fun_name = exp.var_->varname_;
+    CGlobal::__Func fp = global().FindFunc(fun_name);
+    if(!fp){
+        RUNTIME_ERR(lineno,"cannot find function '"<<fun_name<<"'");
+    }else{
+        size_t sz = 0;
+        if(args->args_.size() > 1){
+            CSharedPtr<CValue> v = (*args)[1]->Evaluate();
+            if(!v){
+                RUNTIME_ERR(lineno,"cannot evaluate argument 2");
+                return;
+            }
+            if(!v->ToInteger(sz)){
+                RUNTIME_ERR(lineno,"argument 2 type mismatch");
+                return;
+            }
+        }
+        cmd->InvokeFun(fp,sz,lineno,fun_name);
+    }
 }

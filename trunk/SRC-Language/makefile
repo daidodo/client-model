@@ -36,12 +36,14 @@ $(LIB_TARGET) : $(OBJS)
 $(SO_TARGET) : $(OBJS)
 	$(CXX) -shared -fPIC -o $@ $^
 
-clean :
+cleandist : 
 	$(RM) *.o common/*.o $(RM_SRC)
+
+clean : cleandist
 	$(RM) $(OUT_TARGET) $(LIB_TARGET) $(SO_TARGET)
 
 love : clean all
 
 sinclude $(DEPS)
 
-.PHONEY : all out lib so clean love
+.PHONEY : all out lib so cleandist clean love
