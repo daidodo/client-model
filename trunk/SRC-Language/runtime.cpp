@@ -105,7 +105,7 @@ void CRuntime::postEvaluate(CSharedPtr<CCmd> cmd)
                 RUNTIME_ERR(decl->lineno_,"cannot evaluate right hand expression");
                 continue;
             }
-/*
+/*  如果post insert真的会改变位置靠后，并且求值更迟的变量，应该使用下面和函数最尾的代码
             if(decl->val_->StreamOut(*v,decl->lineno_))    //post insert越后越好，因为它改变了其他数据的偏移
                 post_insert_list[decl->offset_].push_front(decl->val_);
 /*/
@@ -118,7 +118,7 @@ void CRuntime::postEvaluate(CSharedPtr<CCmd> cmd)
         }
     }
     post_list_.clear();
-    //post insert
+    //安全的post insert
     //for(__ValSeq::const_iterator i = post_insert_list.begin();i != post_insert_list.end();++i){
     //    const size_t off = i->first;
     //    for(__ValList::const_iterator v = i->second.begin();v != i->second.end();++v){
@@ -383,13 +383,15 @@ void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processDeclAssert cmd="<<to_str(cmd));
     decl->val_ = decl->var_->Initial(decl->lineno_);
     if(!decl->val_){
-        ASSERT_FAIL(decl->lineno_,"cannot initialize '"<<decl->var_->varname_
+        RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<decl->var_->varname_
             <<"'");
+        return;
     }
     assert(decl->expr_);
     CSharedPtr<CValue> v = decl->expr_->Evaluate();
     if(!v){
-        ASSERT_FAIL(decl->lineno_,"cannot evaluate right hand expression");
+        RUNTIME_ERR(decl->lineno_,"cannot evaluate right hand expression");
+        return;
     }
     decl->expr_ = 0;
     assert(cmd && cmd->IsRecv());
@@ -404,16 +406,25 @@ void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processStreamIn decl="<<to_str(decl));
     DBG_RT("processStreamIn cmd="<<to_str(cmd));
+    decl->val_ = decl->var_->Initial(decl->lineno_);
+    if(!decl->val_){
+        RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<decl->var_->varname_
+            <<"'");
+        return;
+    }
+    assert(decl->expr_);
+    CSharedPtr<CValue> v = decl->expr_->Evaluate();
+    if(!v){
+        RUNTIME_ERR(decl->lineno_,"cannot evaluate right hand expression");
+        return;
+    }
+    decl->expr_ = 0;
     assert(cmd && cmd->IsRecv());
-
-
-
-
-
-
-
-
-    cmd->GetStreamIn(decl);
+    if(!cmd->GetStreamIn(decl,v)){
+        cmd->DumpRecvData();
+        ASSERT_FAIL(decl->lineno_,"");
+    }
+    SHOW(RealVarname(decl->var_->varname_)<<" = "<<decl->val_->ShowValue());
     var_table_[decl->var_->varname_] = decl;
 }
 
@@ -437,11 +448,11 @@ void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
             GAMMAR_ERR(decl->lineno_,"symbol '"<<vname<<"' is self-depended");
         }
         if(!addPostVar(vname,decl,depend)){
-            GAMMAR_ERR(decl->lineno_,"add symbol '"<<vname
+            RUNTIME_ERR(decl->lineno_,"add symbol '"<<vname
                 <<"' to post list error, depend is '"<<depend
                 <<"'");
         }
     }
-    decl->offset_ = cmd->SendDataOffset();  //在延后求值的时候AddValue
+    decl->offset_ = cmd->SendDataOffset();  //在延后求值的时候post insert
     var_table_[vname] = decl;
 }

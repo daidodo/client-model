@@ -427,7 +427,7 @@ namespace Manip{
     }
 
     //skip/reserve certain bytes
-    inline CManipulatorSeek skip(size_t off){
+    inline CManipulatorSeek skip(ssize_t off){
         return CManipulatorSeek(off,CDataStreamBase::Cur);
     }
 
