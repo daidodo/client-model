@@ -135,7 +135,7 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
             DBG_RT("remote port="<<args[1]->str_);
             addr.SetAddr(ip,args[1]->str_);
         }else{
-            RUNTIME_ERR(lineno,"invalid conversion to int");
+            RUNTIME_ERR(lineno,"invalid port");
             return 0;
         }
         if(!addr.IsValid()){
@@ -172,16 +172,48 @@ __ValuePtr EvaluateUDP(const std::vector<__ValuePtr> & args,int lineno)
     if(args.size() == 1){
         if(args[0]->type_ == 13)
             return args[0];
-        RUNTIME_ERR(lineno,"invalid conversion to TCP");
+        RUNTIME_ERR(lineno,"invalid conversion to UDP");
     }else if(args.size() == 2){
-        assert(args[0]->IsString());   //string
+        assert(args[0]->IsString());
+        const std::string ip = args[0]->str_;
+        DBG_RT("remote ip="<<ip);
+        CSockAddr addr;
+        if(args[1]->IsInteger()){
+            int port = -1;
+            if(!args[1]->ToInteger(port)){
+                RUNTIME_ERR(lineno,"remote port error");
+                return 0;
+            }
+            DBG_RT("remote port="<<port);
+            addr.SetAddr(ip,port);
+        }else if(args[1]->IsString()){
+            DBG_RT("remote port="<<args[1]->str_);
+            addr.SetAddr(ip,args[1]->str_);
+        }else{
+            RUNTIME_ERR(lineno,"invalid port");
+            return 0;
+        }
+        if(!addr.IsValid()){
+            RUNTIME_ERR(lineno,"invalid ip or port,"<<CSockAddr::ErrMsg());
+            return 0;
+        }
+        DBG_RT("remote addr="<<addr.ToString());
         __ValuePtr ret = New<CValue>();
         ret->type_ = 13;
-    //make udp connection
-
-
-
-
+        ret->udp_ = New<CUdp>(lineno);
+        if(args.size() == 3){
+            U32 timeS = 0;
+            if(!args[2]->ToInteger(ret->tcp_->timeMs_)){
+                RUNTIME_ERR(lineno,"invalid argument 3 for timeout value");
+                return false;
+            }
+        }
+#if __REAL_CONNECT
+        if(!ret->udp_->Connect(addr)){
+            RUNTIME_ERR(lineno,"cannot connect to remote address,"<<CSocket::ErrMsg());
+            return 0;
+        }
+#endif
         return ret;
     }
     return 0;
