@@ -12,7 +12,7 @@ RAW http2 := "\r\nContent-Type: application/octet-stream\r\nConnection: \
 Close\r\n\r\n"
 BEGIN(pack_len)
 //cmd data
-U16 ver := 100
+U16 ver := 101
 U16 cmd_type:(161)
 U32 seq = 1234
 U32 len(0)
