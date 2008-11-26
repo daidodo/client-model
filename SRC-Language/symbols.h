@@ -262,7 +262,7 @@ struct CCmd
     bool GetRaw(std::string & res,const std::string & v,int lineno);
     bool GetArray(CSharedPtr<CDeclare> d);
     bool GetAssert(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v);
-    bool GetStreamIn(CSharedPtr<CDeclare> d){return true;}
+    bool GetStreamIn(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v);
     bool RecvData(int lineno);
     void DumpRecvData() const;
 };

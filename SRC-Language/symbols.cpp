@@ -849,7 +849,7 @@ bool CCmd::GetAssert(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v)
     if(d->val_->IsRaw()){
         assert(v->IsString());
         bool ret = GetRaw(d->val_->str_,v->str_,d->lineno_);
-        SHOW(d->var_->varname_<<" = "<<d->val_->ShowValue());
+        SHOW(CRuntime::RealVarname(d->var_->varname_)<<" = "<<d->val_->ShowValue());
         return ret;
     }else{
         if(!GetVal(*d->val_,d->lineno_)){
@@ -865,14 +865,49 @@ bool CCmd::GetAssert(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v)
                 RUNTIME_ERR(lineno_,"prediction between signed and unsigned integers");
                 break;}
             case -2:{
-                RUNTIME_ERR(lineno_,"invalid argument type for prediction");
+                GAMMAR_ERR(lineno_,"invalid argument type for prediction");
                 break;}
             case -3:{
-                RUNTIME_ERR(lineno_,"invalid operator type for prediction");
+                GAMMAR_ERR(lineno_,"invalid operator type for prediction");
                 break;}
         }
     }
     return false;
+}
+
+bool CCmd::GetStreamIn(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v)
+{
+    assert(d && d->IsStreamIn());
+    assert(d->val_);
+    if(!d->val_->IsString()){
+        GAMMAR_ERR(lineno_,"expect string type as left hand argument for stream in operator");
+        return false;
+    }
+    assert(v);
+    if(!v->IsInteger()){
+        GAMMAR_ERR(lineno_,"expect integer type as right hand argument for stream in operator");
+        return false;
+    }
+    U64 i = 0;
+    for(int j = 0;j < 20;++j){  //log10(2^64) == 19.3
+        char ch = 0;
+        if(!GetVal(ch,d->lineno_)){
+            RUNTIME_ERR(lineno_,"recv '"<<d->var_->varname_<<"' error");
+            return false;
+        }
+        if(ch >= '0' && ch <= '9'){
+            i = i * 10 + ch - '0';
+            d->val_->str_.push_back(ch);
+        }else{  //put back one char
+            inds_>>Manip::skip(-1);
+            break;
+        }
+    }
+    if(!v->FromInteger(i)){
+        RUNTIME_ERR(lineno_,"value '"<<i<<"' is too large for right hand argument");
+        return false;
+    }
+    return true;
 }
 
 bool CCmd::RecvData(int lineno)
