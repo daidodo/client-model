@@ -4,6 +4,10 @@
 #include <vector>
 #include <string>
 
+//版本信息
+//version info
+#define SRC_version "1.0.67"
+
 //初始化环境
 //init environment
 void SRC_init();
