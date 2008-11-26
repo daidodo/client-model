@@ -1,11 +1,13 @@
-TARGET := a.out
+OUT_TARGET := a.out
+LIB_TARGET := libsrc.a
+SO_TARGET :=  libsrc.so
 
 CC := g++
 YFLAGS := -d
 INCLUDE := -I./
 CXXFLAGS := -g $(INCLUDE)
 CFLAGS := $(CXXFLAGS)
-
+ARFLAGS := cr
 
 LEX_SRC := $(wildcard *.l)
 YACC_SRC := $(wildcard *.y)
@@ -17,17 +19,29 @@ OBJS := $(YACC_SRC:.y=.o) $(LEX_SRC:.l=.o) $(CPP_SRC:.cpp=.o)
 
 DEPS := $(OBJS:.o=.d)
 
-all : $(TARGET)
+all : out lib so
 
-$(TARGET) : $(OBJS) #$(YACC_OBJ) $(LEX_OBJ) $(CPP_OBJ)
+out : $(OUT_TARGET)
+
+lib : $(LIB_TARGET)
+
+so : $(SO_TARGET)
+
+$(OUT_TARGET) : $(OBJS)
 	$(CXX) -o $@ $^
+
+$(LIB_TARGET) : $(OBJS)
+	$(AR) $(ARFLAGS) $@ $^
+
+$(SO_TARGET) : $(OBJS)
+	$(CXX) -shared -fPIC -o $@ $^
 
 clean :
 	$(RM) *.o common/*.o $(RM_SRC)
-	$(RM) $(TARGET)
+	$(RM) $(OUT_TARGET) $(LIB_TARGET) $(SO_TARGET)
 
 love : clean all
 
 sinclude $(DEPS)
 
-.PHONEY : all clean love
+.PHONEY : all out lib so clean love

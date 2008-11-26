@@ -829,6 +829,8 @@ bool CCmd::GetArray(CSharedPtr<CDeclare> d)
             d->var_->array_type_->sz_ = int(sz);
     }
     assert(d->val_);
+    SHOW(CRuntime::RealVarname(d->var_->varname_)<<".size() = "
+        <<d->var_->array_type_->sz_);
     for(int i = 0;i < d->var_->array_type_->sz_;++i){
         if(GetVal(*d->val_,d->lineno_)){
             SHOW(CRuntime::RealVarname(d->var_->varname_)<<"["<<i<<"] = "

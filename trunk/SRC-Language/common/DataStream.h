@@ -380,9 +380,12 @@ private:
     }
     template<typename T>
     __Myt & writeArray(const T * c,size_t sz){
-        assert(c);
         operator <<(U32(sz));
-        return writeRaw(c,sz);
+        if(sz){
+            assert(c);
+            return writeRaw(c,sz);
+        }else
+            return *this;
     }
     void ensure(size_t len){
         size_t curLen = data_.size();

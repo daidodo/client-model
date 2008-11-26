@@ -28,7 +28,7 @@ public:
     void ErrFound();
     void Init();
     bool Compile(const std::string & fname);
-    bool Build();
+    bool Run();
 };
 
 inline CGlobal & global(){return CGlobal::Inst();}

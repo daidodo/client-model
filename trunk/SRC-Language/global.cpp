@@ -42,7 +42,7 @@ bool CGlobal::Compile(const std::string & fname){
     return true;
 }
 
-bool CGlobal::Build()
+bool CGlobal::Run()
 {
     if(!program_){
         std::cerr<<"program not ready!\n";
