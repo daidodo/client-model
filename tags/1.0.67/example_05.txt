@@ -1,0 +1,50 @@
+# This is an example of SRC Language
+
+STR server_ip := "127.0.0.1";
+U16 server_port := 9531;
+
+TCP(server_ip,server_port)
+
+NET_BYTE_ORDER
+
+CMD QueryCommand SEND
+//http wrap
+RAW http1 := "POST http://127.0.0.1:12345/ HTTP/1.1\r\nContent-Length: "
+DEF U32 pack_len
+RAW pack_len_str << pack_len  //stream output
+RAW http2 := "\r\nContent-Type: application/octet-stream\r\nConnection: \
+Close\r\n\r\n"
+BEGIN(pack_len)
+//cmd data
+U16 ver := 100
+U16 cmd_type:(161)
+U32 seq = 1234
+U32 len(0)
+BEGIN(len)
+STR file_hash = "http://www.baidu.com"
+STR client_hash := UNHEX("1A2B3C4D5E6F")
+STR peer_id := "ABCDEF"
+END(len)
+END CMD
+
+CMD RespCommand RECV
+//http wrap
+RAW http1 == "HTTP/1.1 200 OK\r\nContent-Length: "
+RAW pack_len_str >> U32  //stream input
+RAW http2 == "\r\nContent-Type: Application/octet-stream\r\nConnection: \
+Close\r\n\r\n"
+//cmd data
+U16 ver >= 100
+U16 cmd_type == 162
+U32 seq
+U32 len
+len < 1024
+//cmd body
+U8  result
+!result
+STR fileHash_ == "http://www.baidu.com";
+STR clientHash_;
+STR[] peerId_;    //array
+END CMD
+
+# The End

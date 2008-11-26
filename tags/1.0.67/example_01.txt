@@ -1,0 +1,18 @@
+STR server_ip := "127.0.0.1"
+U16 server_port := 9531
+
+TCP(server_ip,server_port,30000)
+NBO
+
+COMMAND QueryCommand
+SEND 
+U16 ver := 100
+U16 cmd_type := 161
+U32 seq := 1234
+U32 len
+BEGIN(len)
+STR file_hash := "http://www.baidu.com"
+STR client_hash := UNHEX("1A2B3C4D5E6F")
+STR peer_id := "ABCDEF"
+END CMD
+
