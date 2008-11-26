@@ -912,7 +912,7 @@ bool CCmd::GetStreamIn(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v)
 
 bool CCmd::RecvData(int lineno)
 {
-    const size_t MAX_BUF = 1024;
+    const size_t MAX_BUF = 32 << 10;    //32k
     assert(!conn_list_.empty() && conn_list_[0]);
     const CValue & v = *conn_list_[0];
     assert(v.IsConnection());
@@ -931,6 +931,18 @@ bool CCmd::RecvData(int lineno)
         inds_>>Manip::skip(off);
     }else{              //udp
         assert(v.udp_);
+        if(!recv_data_.empty())
+            return false;
+        ssize_t n = v.udp_->RecvData(recv_data_,MAX_BUF);
+        if(n < 0){
+            RUNTIME_ERR(lineno,"recv data error,"<<CSocket::ErrMsg());
+            return false;
+        }else if(n == 0){
+            RUNTIME_ERR(lineno,"remote peer close,"<<CSocket::ErrMsg());
+            return false;
+        }
+        inds_.SetSource(&recv_data_[0],recv_data_.size(),runtime().net_byte_order_);
+        inds_>>Manip::skip(off);
 
     }
     return true;
