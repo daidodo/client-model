@@ -1,12 +1,16 @@
 #ifndef DOZERG_GLOBAL_H_20081111
 #define DOZERG_GLOBAL_H_20081111
 
+#include <vector>
+#include <map>
 #include "program.h"
 #include "runtime.h"
 #include "common/SharedPtr.h"
 
 struct CGlobal
 {
+    typedef std::vector<char>   __Buf;
+    typedef bool (*__Func)(__Buf &,__Buf &);
     static const int MAX_ERRORS = 0;
     //parse infos
     int lineno;
@@ -17,6 +21,8 @@ struct CGlobal
     CSharedPtr<CProgram> program_;
     //runtime
     CSharedPtr<CRuntime> runtime_;
+    //functions
+    std::map<std::string,__Func> func_map_;
 private:
     CGlobal(){}
     ~CGlobal(){}
@@ -29,6 +35,8 @@ public:
     void Init();
     bool Compile(const std::string & fname);
     bool Run();
+    bool AddFunc(const std::string func_name,__Func func_ptr);
+    __Func FindFunc(const std::string func_name) const;
 };
 
 inline CGlobal & global(){return CGlobal::Inst();}

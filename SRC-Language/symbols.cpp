@@ -592,9 +592,7 @@ std::string CFuncCall::Signature() const{
 
 bool CFuncCall::CheckDefined() const
 {
-    if(FunNeedNotCheckDefine(ft_token_))
-        return true;
-    if(arg_list_)
+    if(!IsFunToken(ft_token_) && arg_list_)
         return arg_list_->CheckDefined(lineno_);
     return true;
 }
@@ -918,7 +916,7 @@ bool CCmd::RecvData(int lineno)
     assert(!conn_list_.empty() && conn_list_[0]);
     const CValue & v = *conn_list_[0];
     assert(v.IsConnection());
-    size_t off = inds_.Tell();
+    const size_t off = inds_.Tell();
     if(v.type_ == 12){  //tcp
         assert(v.tcp_);
         ssize_t n = v.tcp_->RecvData(recv_data_,MAX_BUF);
@@ -929,7 +927,8 @@ bool CCmd::RecvData(int lineno)
             RUNTIME_ERR(lineno,"remote peer close,"<<CSocket::ErrMsg());
             return false;
         }
-        inds_.SetSource(&recv_data_[off],recv_data_.size() - off,runtime().net_byte_order_);
+        inds_.SetSource(&recv_data_[0],recv_data_.size(),runtime().net_byte_order_);
+        inds_>>Manip::skip(off);
     }else{              //udp
         assert(v.udp_);
 
@@ -942,5 +941,53 @@ void CCmd::DumpRecvData() const
     SHOW("  RECV data =");
     if(!recv_data_.empty()){
         SHOW(DumpFormat(recv_data_));
+    }
+}
+
+bool CCmd::EnsureRecvData(size_t sz,int lineno)
+{
+    if(!sz)
+        return true;
+    const size_t cur = inds_.Tell();
+    while(sz + cur > recv_data_.size())
+        if(!RecvData(lineno))
+            return false;
+    inds_.SetSource(&recv_data_[0],recv_data_.size(),runtime().net_byte_order_);
+    inds_>>Manip::skip(cur);
+    return true;
+}
+
+void CCmd::InvokeFun(bool (*fp)(std::vector<char> &,std::vector<char> &),size_t sz,int lineno,const std::string & fname)
+{
+    assert(fp);
+    SHOW("  before invoke function '"<<fname<<"' data = ");
+    if(IsSend()){
+        std::vector<char> src;
+        outds_.ExportData(src);
+        SHOW(DumpFormat(src));
+        std::vector<char> dst;
+        if(!fp(src,dst)){
+            RUNTIME_ERR(lineno,"invoke function '"<<fname<<"' returns false");
+            dst.swap(src);
+        }
+        outds_.ImportData(dst);
+    }else if(IsRecv()){     //recv
+        SHOW(DumpFormat(recv_data_));
+        if(!EnsureRecvData(sz,lineno))
+            return;
+        const size_t cur = inds_.Tell();
+        std::vector<char> dst;
+        if(fp(recv_data_,dst)){
+            recv_data_.swap(dst);
+        }else{
+            RUNTIME_ERR(lineno,"invoke function '"<<fname<<"' returns false");
+        }
+        if(cur > recv_data_.size()){
+            RUNTIME_ERR(lineno,"not enough data left after function '"<<fname
+                <<"' called");
+            return;
+        }
+        inds_.SetSource(&recv_data_[0],recv_data_.size(),runtime().net_byte_order_);
+        inds_>>Manip::skip(cur);
     }
 }

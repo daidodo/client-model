@@ -265,6 +265,9 @@ struct CCmd
     bool GetStreamIn(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v);
     bool RecvData(int lineno);
     void DumpRecvData() const;
+    bool EnsureRecvData(size_t sz,int lineno);
+    //both
+    void InvokeFun(bool (*fp)(std::vector<char> &,std::vector<char> &),size_t sz,int lineno,const std::string & fname);
 };
 
 #endif

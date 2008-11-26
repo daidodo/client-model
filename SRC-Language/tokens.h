@@ -19,7 +19,7 @@ bool IsRawToken(int type_token);
 
 bool CannotBeArray(int type_token);
 
-bool FunNeedNotCheckDefine(int fun_token);
+bool IsFunToken(int fun_token);
 
 bool FunArgNumCheck(int fun_token,size_t argn);
 

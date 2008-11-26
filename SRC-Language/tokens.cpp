@@ -44,7 +44,7 @@ bool CannotBeArray(int type_token)
     return (type_token == TCP || type_token == UDP || type_token == RAW);
 }
 
-bool FunNeedNotCheckDefine(int fun_token)
+bool IsFunToken(int fun_token)
 {
     return (fun_token == FUN);
 }
