@@ -1,7 +1,7 @@
 //#define TEST
 
 #include <iostream>
-#include "global.h"
+#include "SRC_language.h"
 
 #ifdef TEST
 #   include "test.h"
@@ -18,10 +18,10 @@ int main(int argc,const char ** argv){
         cerr<<"Usage: "<<argv[0]<<" file\n";
         return 1;
     }
-    global().Init();
-    if(!global().Compile(argv[1]))
+    SRC_init();
+    if(!SRC_compile(argv[1]))
         return 1;
-    if(!global().Build())
+    if(!SRC_run())
         return 1;
 #endif
     return 0;
