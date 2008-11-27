@@ -11,7 +11,7 @@ struct CGlobal
 {
     typedef std::vector<char>   __Buf;
     typedef bool (*__Func)(__Buf &,__Buf &);
-    static const int MAX_ERRORS = 0;
+    static const int MAX_ERRORS = 3;
     //parse infos
     int lineno;
     int err_count_;

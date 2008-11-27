@@ -1,10 +1,7 @@
 # This is an example of SRC Language
+//HTTP Encrypted Send Recv Commands example
 
-STR server_ip := "127.0.0.1";
-U16 server_port := 9531;
-
-TCP(server_ip,server_port)
-
+TCP("127.0.0.1",9531)
 NET_BYTE_ORDER
 
 CMD QueryCommand SEND
@@ -16,14 +13,17 @@ RAW http2 := "\r\nContent-Type: application/octet-stream\r\nConnection: \
 Close\r\n\r\n"
 BEGIN(pack_len)
 //cmd data
-U16 ver := 100
+U16 ver := 101
 U16 cmd_type:(161)
 U32 seq = 1234
 U32 len(0)
 BEGIN(len)
-STR file_hash = "http://www.baidu.com"
+STR file_hash := "http://www.baidu.com"
 STR client_hash := UNHEX("1A2B3C4D5E6F")
 STR peer_id := "ABCDEF"
+//"aes_encrypt" MUST be a predefined function pointer:
+//bool (*aes_encrypt)(std::vector<char> & input, std::vector<char> & output)
+FUN(aes_encrypt)
 END(len)
 END CMD
 
@@ -38,8 +38,10 @@ U16 ver >= 100
 U16 cmd_type == 162
 U32 seq
 U32 len
-len < 1024
-//cmd body
+len < 32k
+//"aes_decrypt" MUST be a predefined function pointer:
+//bool (*aes_decrypt)(std::vector<char> & input, std::vector<char> & output)
+FUN(aes_decrypt,len)	//insure "len" bytes of data beyond this point to invoke "aes_decrypt"
 U8  result
 !result
 STR fileHash_ == "http://www.baidu.com";

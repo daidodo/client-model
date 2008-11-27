@@ -1,3 +1,6 @@
+# This is an example of SRC Language
+//Send Command example
+
 STR server_ip := "127.0.0.1"
 U16 server_port := 9531
 

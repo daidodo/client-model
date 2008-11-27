@@ -275,7 +275,8 @@ std::string Dump(const char * v,size_t sz,size_t show_sz,bool hasLen)
 
 std::string UnHex(const char * v,size_t sz)
 {
-    assert(v && sz);
+    if(!v || !sz)
+        return "";
     std::string ret;
     ret.reserve(sz >> 1);
     for(size_t i = 1;i < sz;i += 2){
@@ -290,7 +291,8 @@ std::string UnHex(const char * v,size_t sz)
 
 std::string DumpFormat(const char * v,size_t sz)
 {
-    assert(v && sz);
+    if(!v || !sz)
+        return "";
     const size_t LINE_WIDTH = 4;
     const size_t CHARS_PER_LINE = 16;
     std::ostringstream oss;

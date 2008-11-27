@@ -201,7 +201,7 @@ int CValue::operator !() const
 bool CValue::StreamOut(const CValue & v,int lineno)
 {
     if(!IsString()){
-        RUNTIME_ERR(lineno,"invalid left hand type for stream out operator");
+        RUNTIME_ERR(lineno,"invalid left hand type for stream-out operator");
         return false;
     }
     if(v.IsString()){
@@ -221,7 +221,7 @@ bool CValue::StreamOut(const CValue & v,int lineno)
         case 9:oss<<v.u64_;break;
         case 10:oss<<v.s64_;break;
         default:{
-            RUNTIME_ERR(lineno,"invalid right hand type for stream out operator");
+            RUNTIME_ERR(lineno,"invalid right hand type for stream-out operator");
             return false;
         }
     }

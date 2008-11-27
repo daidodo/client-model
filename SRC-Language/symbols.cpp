@@ -880,12 +880,12 @@ bool CCmd::GetStreamIn(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v)
     assert(d && d->IsStreamIn());
     assert(d->val_);
     if(!d->val_->IsString()){
-        GAMMAR_ERR(lineno_,"expect string type as left hand argument for stream in operator");
+        GAMMAR_ERR(lineno_,"expect string type as left hand argument for stream-in operator");
         return false;
     }
     assert(v);
     if(!v->IsInteger()){
-        GAMMAR_ERR(lineno_,"expect integer type as right hand argument for stream in operator");
+        GAMMAR_ERR(lineno_,"expect integer type as right hand argument for stream-in operator");
         return false;
     }
     U64 i = 0;
