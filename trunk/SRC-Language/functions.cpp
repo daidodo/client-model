@@ -303,6 +303,10 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
             RUNTIME_ERR(lineno,"variable '"<<(*args)[i]->var_->varname_
                 <<"' is evaluated by expression, see LINE:"<<(*args)[i]->var_->lineno_);
             continue;
+        }else if(!decl->IsSimplePost()){
+            GAMMAR_ERR(lineno,"invalid variable for BEGIN or END function, see LINE:"
+                <<decl->lineno_);
+            continue;
         }
         if(is_begin){
             (*args)[i]->var_->begin_ = cmd->SendDataOffset();

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cassert>
+#include "global.h"
 #include "errors.h"
 #include "runtime.h"
 #include "util.h"
@@ -82,15 +83,10 @@ void CRuntime::postEvaluate(CSharedPtr<CCmd> cmd)
             INTERNAL_ERR("declaration for '"<<*i<<"' not found");
             continue;
         }
-        if(decl->is_def_)
-            continue;
-        if(decl->offset_ < 0){
-            INTERNAL_ERR("offset("<<decl->offset_<<") of '"<<*i
-                <<"' is invalid, see LINE:"<<decl->lineno_);
-            continue;
-        }
         if(decl->IsSimplePost()){
             CSharedPtr<CValue> v = decl->Evaluate();
+            if(decl->is_def_ || decl->offset_ < 0)  //def or global var
+                continue;
             if(v && !cmd->PostPutValue(v,decl->offset_)){
                 INTERNAL_ERR("cannot post pack '"<<*i<<"'");
             }
@@ -105,28 +101,22 @@ void CRuntime::postEvaluate(CSharedPtr<CCmd> cmd)
                 RUNTIME_ERR(decl->lineno_,"cannot evaluate right hand expression");
                 continue;
             }
-/*  如果post insert真的会改变位置靠后，并且求值更迟的变量，应该使用下面和函数最尾的代码
-            if(decl->val_->StreamOut(*v,decl->lineno_))    //post insert越后越好，因为它改变了其他数据的偏移
+            if(decl->val_->StreamOut(*v,decl->lineno_) && !decl->is_def_)    //post insert越后越好，因为它改变了其他数据的偏移
                 post_insert_list[decl->offset_].push_front(decl->val_);
-/*/
-            if(decl->val_->StreamOut(*v,decl->lineno_) && !cmd->PostInsertValue(decl->val_,decl->offset_)){
-                INTERNAL_ERR("cannot post insert '"<<*i<<"'");
-            }
-//*/
         }else{
             INTERNAL_ERR("invalid post evaluation for symbol '"<<*i<<"'");
         }
     }
     post_list_.clear();
     //安全的post insert
-    //for(__ValSeq::const_iterator i = post_insert_list.begin();i != post_insert_list.end();++i){
-    //    const size_t off = i->first;
-    //    for(__ValList::const_iterator v = i->second.begin();v != i->second.end();++v){
-    //        if(!cmd->PostInsertValue(*v,off)){
-    //            INTERNAL_ERR("cannot post insert value "<<(*v)->ShowValue());
-    //        }
-    //    }
-    //}
+    for(__ValSeq::const_iterator i = post_insert_list.begin();i != post_insert_list.end();++i){
+        const size_t off = i->first;
+        for(__ValList::const_iterator v = i->second.begin();v != i->second.end();++v){
+            if(!cmd->PostInsertValue(*v,off)){
+                INTERNAL_ERR("cannot post insert value "<<(*v)->ShowValue());
+            }
+        }
+    }
 }
 
 bool CRuntime::addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,const std::string & depend)
@@ -268,6 +258,8 @@ void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
         assert(*i);
         processStmt(*i,cmd);
     }
+    if(global().err_count_)
+        return;
     if(cmd->IsSend()){
         if(cmd->begin_list_){
             InvokeBeginEnd(false,cmd->begin_list_,cmd->endlineno_,cmd);
@@ -329,19 +321,21 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         assert(decl->expr_);
         decl->Evaluate();
         DBG_RT("processPost Evaluate "<<vname<<"="<<to_str(decl->val_));
-        decl->eva_priority_ = maxPriority() + 1000; //解决自赋值问题
-        std::string depend = decl->Depend();
-        if(depend.empty()){
-            decl->expr_ = 0;
-            addPostVar(vname,decl);
-        }else{
-            if(vname == depend){
-                GAMMAR_ERR(decl->lineno_,"symbol '"<<vname<<"' is self-depended");
-            }
-            if(!addPostVar(vname,decl,depend)){
-                GAMMAR_ERR(decl->lineno_,"add symbol '"<<vname
-                    <<"' to post list error, depend is '"<<depend
-                    <<"'");
+        if((!decl->val_ || decl->val_->IsInteger()) && (cmd && cmd->IsSend())){ //只有发送命令里的数值类型才真正需要延后求值
+            decl->eva_priority_ = maxPriority() + 1000; //解决自赋值问题
+            std::string depend = decl->Depend();
+            if(depend.empty()){
+                decl->expr_ = 0;
+                addPostVar(vname,decl);
+            }else{
+                if(vname == depend){
+                    GAMMAR_ERR(decl->lineno_,"symbol '"<<vname<<"' is self-depended");
+                }
+                if(!addPostVar(vname,decl,depend)){
+                    GAMMAR_ERR(decl->lineno_,"add symbol '"<<vname
+                        <<"' to post list error, depend is '"<<depend
+                        <<"'");
+                }
             }
         }
         var_table_[vname] = decl;
@@ -375,6 +369,7 @@ void CRuntime::processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     if(!decl->is_def_ && cmd && cmd->IsSend() && !cmd->PutValue(decl->val_)){
         RUNTIME_ERR(decl->lineno_,"cannot pack '"<<vname<<"'");
     }
+    decl->expr_ = 0;
 }
 
 void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
