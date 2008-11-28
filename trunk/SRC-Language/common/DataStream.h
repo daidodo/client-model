@@ -341,7 +341,8 @@ public:
         size_t old = cur_;
         Seek(m.Off(),Begin);
         *this<<(m.Value());
-        Seek(old,Begin);
+        if(old > cur_)
+            Seek(old,Begin);
         return *this;
     }
     //insert value into a particular position and change cur_ relatively
