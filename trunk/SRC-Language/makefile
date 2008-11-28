@@ -1,4 +1,4 @@
-OUT_TARGET := a.out
+OUT_TARGET := srcc
 LIB_TARGET := libsrc.a
 SO_TARGET :=  libsrc.so
 

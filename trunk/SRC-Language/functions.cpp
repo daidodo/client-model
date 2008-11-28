@@ -225,9 +225,9 @@ __ValuePtr EvaluateHEX(const std::vector<__ValuePtr> & args,int lineno)
     ret->type_ = 11;
     if(!args.empty()){
         if(!args[0]->IsString()){
-            RUNTIME_ERR(lineno,"invalid conversion to RAW");
+            RUNTIME_ERR(lineno,"invalid conversion to string");
         }else
-            ret->str_ = DumpHex(args[0]->str_);
+            ret->str_ = DumpHex(args[0]->str_,0,false);
     }
     return ret;
 }
@@ -237,7 +237,7 @@ __ValuePtr EvaluateUNHEX(const std::vector<__ValuePtr> & args,int lineno)
     ret->type_ = 11;
     if(!args.empty()){
         if(!args[0]->IsString()){
-            RUNTIME_ERR(lineno,"invalid conversion to RAW");
+            RUNTIME_ERR(lineno,"invalid conversion to string");
         }else
             ret->str_ = UnHex(args[0]->str_);
     }
