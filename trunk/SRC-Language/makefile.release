@@ -6,7 +6,7 @@ SO_TARGET :=  $(BIN_DIR)/libsrc.so
 CC := g++
 YFLAGS := -d
 INCLUDE := -I./
-CXXFLAGS := -g $(INCLUDE)
+CXXFLAGS := -DNDEBUG -O3 $(INCLUDE)
 CFLAGS := $(CXXFLAGS)
 ARFLAGS := cr
 
