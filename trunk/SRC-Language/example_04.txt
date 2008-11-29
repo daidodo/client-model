@@ -22,7 +22,7 @@ U16 cmd_type:(161)
 U32 seq = 1234
 U32 len(0)
 BEGIN(len)
-STR file_hash = "http://www.baidu.com"
+STR file_hash = "http://www.xunlei.com"
 STR client_hash := UNHEX("1A2B3C4D5E6F")
 STR peer_id := "ABCDEF"
 END(len)
@@ -43,9 +43,9 @@ len < 1024
 //cmd body
 U8  result
 !result
-STR fileHash_ == "http://www.baidu.com";
-STR clientHash_;
-STR[] peerId_;    //array
+STR fileHash;
+STR clientHash;
+STR[] peer_id_array;    //array
 END CMD
 
 # The End
