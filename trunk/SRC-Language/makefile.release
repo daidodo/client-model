@@ -21,6 +21,7 @@ OBJS := $(YACC_SRC:.y=.o) $(LEX_SRC:.l=.o) $(CPP_SRC:.cpp=.o)
 DEPS := $(OBJS:.o=.d)
 
 all : out lib so
+	@cp SRC_language.h $(BIN_DIR)
 
 out : $(OUT_TARGET)
 
@@ -41,7 +42,7 @@ cleandist :
 	$(RM) *.o common/*.o $(RM_SRC)
 
 clean : cleandist
-	$(RM) $(OUT_TARGET) $(LIB_TARGET) $(SO_TARGET)
+	$(RM) $(BIN_DIR)/*
 
 love : clean all
 
