@@ -72,40 +72,6 @@ inline int __number_unit(T v,int u)
     return __NumUnit<T>()(v,u);
 }
 
-template<typename T>
-T str2num_base16(const char * str,size_t len)
-{
-    assert(str && len);
-    T ret = 0;
-    for(size_t i = 0;i < len;++i){
-        if(str[i] >= '0' && str[i] <= '9')
-            ret = (ret << 4) + str[i] - '0';
-        else if(str[i] >= 'a' && str[i] <= 'f')
-            ret = (ret << 4) + str[i] - 'a' + 10;
-        else if(str[i] >= 'A' && str[i] <= 'F')
-            ret = (ret << 4) + str[i] - 'A' + 10;
-        else
-            break;
-    }
-    return ret;
-}
-
-template<typename T>
-T str2num_base8(const char * str,size_t len)
-{
-    assert(str && len);
-    if(*str == 'x' || *str == 'X')
-        return str2num_base16<T>(str + 1,len - 1);
-    T ret = 0;
-    for(size_t i = 0;i < len;++i){
-        if(str[i] >= '0' && str[i] <= '7')
-            ret = (ret << 3) + str[i] - '0';
-        else
-            break;
-    }
-    return ret;
-}
-
 int str2int(const char * str,size_t len)
 {
     assert(str && len);
