@@ -1,0 +1,32 @@
+# This is an example of SRC Language
+//HTTP Send Command example
+
+//server ip and port
+STR server_ip := "127.0.0.1"
+U16 server_port := 9531
+
+//connections
+TCP conn1(server_ip,server_port)
+
+//byte order
+NET_BYTE_ORDER
+
+COMMAND QueryCommand	#command definition
+SEND(conn2)
+RAW http1 := "POST http://127.0.0.1:12345/ HTTP/1.1\r\nContent-Length: "
+DEF U32 pack_len
+RAW pack_len_str << pack_len
+RAW http2 := "\r\nContent-Type: application/octet-stream\r\nConnection:Close\r\n\r\n"
+BEGIN(pack_len)
+U16 ver := 200
+U16 cmd_type := 161
+U32 seq := 5678
+U32 len
+BEGIN(len)
+STR file_hash := UNHEX("ABCDEF")
+STR client_hash := UNHEX("1234567890")
+STR peer_id := "FGHIJK"
+END(len)
+END CMD	//QueryCommand
+
+#the end
