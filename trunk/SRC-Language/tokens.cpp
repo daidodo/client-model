@@ -68,7 +68,7 @@ bool FunArgNumCheck(int fun_token,size_t argn)
             return argn >= 1 && argn <= 3;
         case FUN:
             return argn == 1 || argn == 2;
-        case BEGIN_:case END:
+        case BEGIN_:case END:case PRINT:
             return argn > 0;
     }
     return false;
@@ -80,7 +80,7 @@ int FunRetType(int fun_token)
         case HBO:case NBO:
         case SEND:case RECV:
         case BEGIN_:case END:
-        case FUN:
+        case FUN:case PRINT:
             return 0;   //void
         case TP_U8:
             return 3;   //CValue::u8_
@@ -174,6 +174,13 @@ size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgLis
             assert(arglist);
             for(size_t i = 0;i < types.size();++i)
                 if(!(*arglist)[i]->IsVar() || !CValue::IsInteger(types[i]))
+                    return (i + 1);
+            break;}
+        case PRINT:{
+            if(types.empty())
+                return 1;
+            for(size_t i = 0;i < types.size();++i)
+                if(CValue::IsVoid(types[i]))
                     return (i + 1);
             break;}
     }
@@ -272,6 +279,9 @@ void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCm
             break;
         case FUN:
             InvokeFUN(args,lineno,cmd);
+            break;
+        case PRINT:
+            InvokePRINT(args,lineno,cmd);
             break;
     }
 }

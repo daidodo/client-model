@@ -1,4 +1,13 @@
-TCP("127.0.0.1",9531)
+# This is an example of SRC Language
+//Other experimental tests
+
+U32 val
+
+PRINT("val = ",val)
+
+TCP conn("127.0.0.1",9531)
+
+PRINT("conn = ",conn)
 
 CMD c1 SEND
 END CMD

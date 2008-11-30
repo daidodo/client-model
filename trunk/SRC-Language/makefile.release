@@ -46,6 +46,6 @@ clean : cleandist
 
 love : clean all
 
-sinclude $(DEPS)
-
 .PHONEY : all out lib so cleandist clean love
+
+sinclude $(DEPS)

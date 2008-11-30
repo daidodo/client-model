@@ -45,7 +45,7 @@ std::string CValue::ToString() const
     return oss.str();
 }
 
-std::string CValue::ShowValue() const
+std::string CValue::ShowValue(bool hasLen) const
 {
     std::ostringstream oss;
     switch(type_){
@@ -59,7 +59,9 @@ std::string CValue::ShowValue() const
         case 8:oss<<s32_;break;
         case 9:oss<<u64_;break;
         case 10:oss<<s64_;break;
-        case 11:case 14:oss<<Dump(str_);break;
+        case 11:case 14:oss<<Dump(str_,-1,hasLen);break;
+        case 12:oss<<tcp_->ToString();break;
+        case 13:oss<<udp_->ToString();break;
     }
     return oss.str();
 }
