@@ -2,6 +2,11 @@ BIN_DIR := ../bin
 OUT_TARGET := $(BIN_DIR)/srcc
 LIB_TARGET := $(BIN_DIR)/libsrc.a
 SO_TARGET :=  $(BIN_DIR)/libsrc.so
+INC_TARGET := SRC_language.h
+
+INSTALL_OUT_DIR := /usr/local/bin
+INSTALL_LIB_DIR := /usr/local/lib
+INSTALL_INC_DIR := /usr/local/include
 
 CC := g++
 YFLAGS := -d
@@ -9,6 +14,7 @@ INCLUDE := -I./
 CXXFLAGS := -g $(INCLUDE)
 CFLAGS := $(CXXFLAGS)
 ARFLAGS := cr
+CP := cp -f
 
 LEX_SRC := $(wildcard *.l)
 YACC_SRC := $(wildcard *.y)
@@ -21,7 +27,18 @@ OBJS := $(YACC_SRC:.y=.o) $(LEX_SRC:.l=.o) $(CPP_SRC:.cpp=.o)
 DEPS := $(OBJS:.o=.d)
 
 all : out lib so
-	@cp SRC_language.h $(BIN_DIR)
+	@$(CP) $(INC_TARGET) $(BIN_DIR)
+
+install :
+	$(CP) $(OUT_TARGET) $(INSTALL_OUT_DIR)
+	$(CP) $(LIB_TARGET) $(SO_TARGET) $(INSTALL_LIB_DIR)
+	$(CP) $(INC_TARGET) $(INSTALL_INC_DIR)
+
+uninstall :
+	$(RM) $(INSTALL_OUT_DIR)/$(notdir $(OUT_TARGET))
+	$(RM) $(INSTALL_LIB_DIR)/$(notdir $(LIB_TARGET))
+	$(RM) $(INSTALL_LIB_DIR)/$(notdir $(SO_TARGET))
+	$(RM) $(INSTALL_INC_DIR)/$(INC_TARGET)
 
 out : $(OUT_TARGET)
 
@@ -40,6 +57,7 @@ $(SO_TARGET) : $(OBJS)
 
 cleandist : 
 	$(RM) *.o common/*.o $(RM_SRC)
+	$(RM) *.d common/*.d
 
 clean : cleandist
 	$(RM) $(BIN_DIR)/*
