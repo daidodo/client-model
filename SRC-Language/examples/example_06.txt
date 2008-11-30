@@ -7,7 +7,6 @@ STR server_ip2 = server_ip
 U16 server_port2 = server_port;
 
 TCP(server_ip2,server_port)
-#TCP a
 
 NET_BYTE_ORDER
 
@@ -27,14 +26,15 @@ U32 len = U32()
 BEGIN(len)
 STR file_hash := server_ip2
 STR client_hash := UNHEX("1A2B3C4D5E6F")
-STR peer_id = pack_len_str
+STR peer_id = pack_len_str //WARNING: this is not working
 END(len)
 END CMD
 
 CMD file_hash RECV
 //http wrap
 RAW http1 == "HTTP/1.1 200 OK\r\nContent-Length: "
-RAW pack_len_str >> U32  //stream input
+DEF U32 tlen
+RAW pack_len_str >> tlen  //stream input
 RAW http2 == "\r\nContent-Type: Application/octet-stream\r\nConnection: \
 Close\r\n\r\n"
 //cmd data

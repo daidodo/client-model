@@ -62,7 +62,8 @@ struct CValue
     CValue();
     std::string ToString() const;
     std::string Signature() const{return ToString();}
-    std::string ShowValue() const;
+    std::string ShowValue(bool hasLen = true) const;
+    static bool IsVoid(int type){return type == 0;}
     static bool IsConnection(int type){return type == 12 || type == 13;}
     static bool IsTcp(int type){return type == 12;}
     static bool IsUdp(int type){return type == 13;}

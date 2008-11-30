@@ -38,4 +38,6 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
 
 void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd);
 
+void InvokePRINT(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd);
+
 #endif

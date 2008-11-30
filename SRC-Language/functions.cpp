@@ -286,7 +286,7 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
 {
     assert(cmd && args);
     for(size_t i = 0;i < args->args_.size();++i){
-        assert((*args)[i]->var_);  //MUST be variable
+        assert((*args)[i]->IsVar());  //MUST be variable
         if(is_begin && (*args)[i]->var_->begin_ != -1){
             RUNTIME_ERR(lineno,"cannot BEGIN '"<<(*args)[i]->var_->varname_<<"' again");
             continue;
@@ -350,4 +350,18 @@ void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
         }
         cmd->InvokeFun(fp,sz,lineno,fun_name);
     }
+}
+
+void InvokePRINT(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
+{
+    assert(args);
+    std::ostringstream oss;
+    for(size_t i = 0;i < args->args_.size();++i){
+        CSharedPtr<CExpr> expr = (*args)[i];
+        assert(expr);
+        CSharedPtr<CValue> v = expr->Evaluate();
+        if(v)
+            oss<<v->ShowValue(false);
+    }
+    SHOW(oss.str());
 }
