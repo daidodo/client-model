@@ -109,6 +109,7 @@ RECV	{CUR_TOK = yytext;DBG_LEX("RECV");return RECV;}
 HEX	{CUR_TOK = yytext;DBG_LEX("HEX");return HEX;}
 UNHEX	{CUR_TOK = yytext;DBG_LEX("UNHEX");return UNHEX;}
 PRINT	{CUR_TOK = yytext;DBG_LEX("PRINT");return PRINT;}
+IP	{CUR_TOK = yytext;DBG_LEX("IP");return IP;}
 
 COMMAND |
 CMD	{CUR_TOK = yytext;DBG_LEX1("CMD",CUR_TOK);return CMD;}

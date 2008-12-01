@@ -63,6 +63,7 @@ bool FunArgNumCheck(int fun_token,size_t argn)
             return argn <= 1;
             return true;
         case HEX:case UNHEX:
+        case __IPN:case __IPH:
             return argn == 1;
         case TCP:case UDP:
             return argn >= 1 && argn <= 3;
@@ -74,7 +75,7 @@ bool FunArgNumCheck(int fun_token,size_t argn)
     return false;
 }
 
-int FunRetType(int fun_token)
+int FunRetType(int fun_token,const std::vector<int> * types)
 {
     switch(fun_token){
         case HBO:case NBO:
@@ -107,11 +108,14 @@ int FunRetType(int fun_token)
             return 12;  //CValue::tcp_
         case UDP:
             return 13;  //CValue::udp_
+        case __IPN:case __IPH:
+            assert(types && !types->empty());
+            return (CValue::IsString((*types)[0]) ? 7 : 11);
     }
     return -1;
 }
 
-size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgList> arglist)
+size_t FunArgTypeCheck(int fun_token,const std::vector<int> & types,CSharedPtr<CArgList> arglist)
 {
     switch(fun_token){
         case HBO:case NBO:{         //no args
@@ -161,6 +165,8 @@ size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgLis
         case HEX:case UNHEX:{       //string
             if(types.empty() || !CValue::IsString(types[0]))
                 return 1;
+            if(types.size() > 1)
+                return 2;
             break;}
         case FUN:{                  //VAR or VAR + integer
             if(types.empty() || !(*arglist)[0]->IsVar())
@@ -182,6 +188,12 @@ size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgLis
             for(size_t i = 0;i < types.size();++i)
                 if(CValue::IsVoid(types[i]))
                     return (i + 1);
+            break;}
+        case __IPN:case __IPH:{       //string or integer
+            if(types.empty() || (!CValue::IsString(types[0]) && !CValue::IsInteger(types[0])))
+                return 1;
+            if(types.size() > 1)
+                return 2;
             break;}
     }
     return 0;
@@ -261,6 +273,10 @@ CSharedPtr<CValue> FunEvaluate(int fun_token,const std::vector<CSharedPtr<CValue
             return EvaluateHEX(args,lineno);
         case UNHEX:
             return EvaluateUNHEX(args,lineno);
+        case __IPN:
+            return EvaluateIPN(args,lineno);
+        case __IPH:
+            return EvaluateIPH(args,lineno);
     }
     return 0;
 }

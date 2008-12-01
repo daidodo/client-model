@@ -633,7 +633,10 @@ bool CFuncCall::IsLocalOnly() const
 
 int CFuncCall::RetType() const
 {
-    return FunRetType(ft_token_);
+    std::vector<int> retTypes;
+    if(arg_list_)
+        arg_list_->RetType(retTypes);
+    return FunRetType(ft_token_,&retTypes);
 }
 
 std::string CFuncCall::Depend() const

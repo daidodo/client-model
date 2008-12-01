@@ -221,27 +221,54 @@ __ValuePtr EvaluateUDP(const std::vector<__ValuePtr> & args,int lineno)
 
 __ValuePtr EvaluateHEX(const std::vector<__ValuePtr> & args,int lineno)
 {
+    assert(!args.empty());
     __ValuePtr ret = New<CValue>();
     ret->type_ = 11;
-    if(!args.empty()){
-        if(!args[0]->IsString()){
-            RUNTIME_ERR(lineno,"invalid conversion to string");
-        }else
-            ret->str_ = DumpHex(args[0]->str_,0,false);
-    }
+    if(!args[0]->IsString()){
+        RUNTIME_ERR(lineno,"invalid conversion to string");
+    }else
+        ret->str_ = DumpHex(args[0]->str_,0,false);
     return ret;
 }
 __ValuePtr EvaluateUNHEX(const std::vector<__ValuePtr> & args,int lineno)
 {
+    assert(!args.empty());
     __ValuePtr ret = New<CValue>();
     ret->type_ = 11;
-    if(!args.empty()){
-        if(!args[0]->IsString()){
-            RUNTIME_ERR(lineno,"invalid conversion to string");
-        }else
-            ret->str_ = UnHex(args[0]->str_);
+    if(!args[0]->IsString()){
+        RUNTIME_ERR(lineno,"invalid conversion to string");
+    }else
+        ret->str_ = UnHex(args[0]->str_);
+    return ret;
+}
+
+static __ValuePtr __EvaluateIP(const std::vector<__ValuePtr> & args,int lineno,bool hbo)
+{
+    assert(!args.empty());
+    __ValuePtr ret = New<CValue>();
+    if(CValue::IsInteger(args[0]->type_)){
+        U32 ip = 0;
+        if(!args[0]->ToInteger(ip)){
+            RUNTIME_ERR(lineno,"invalid conversion to U32");
+            return 0;
+        }
+        ret->type_ = 11;    //STR
+        ret->str_ = IPv4String(ip,hbo);
+    }else if(CValue::IsString(args[0]->type_)){
+        ret->type_ = 7;     //U32
+        ret->u32_ = IPv4FromStr(args[0]->str_,hbo);
     }
     return ret;
+}
+
+__ValuePtr EvaluateIPN(const std::vector<__ValuePtr> & args,int lineno)
+{
+    return __EvaluateIP(args,lineno,false);
+}
+
+__ValuePtr EvaluateIPH(const std::vector<__ValuePtr> & args,int lineno)
+{
+    return __EvaluateIP(args,lineno,true);
 }
 
 void InvokeBO(bool net_bo,CSharedPtr<CCmd> cmd)
