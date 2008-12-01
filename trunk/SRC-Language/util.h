@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <byteswap.h>   //bswap_16,bswap_32,bswap_64
+#include "types.h"
 
 template<typename T>
 T str2num_base16(const char * str,size_t len)
@@ -247,5 +248,12 @@ inline std::string DumpFormat(const std::vector<char> & v){
 inline std::string DumpFormat(std::string v){
     return DumpFormat(v.c_str(),v.length());
 }
+
+//把IPv4地址与字符串的转化
+std::string IPv4String(U32 ip,bool hostByteOrder = true);
+
+U32 IPv4FromStr(std::string ip,bool hostByteOrder = true);
+
+
 
 #endif

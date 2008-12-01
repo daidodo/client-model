@@ -1,7 +1,7 @@
 # This is an example of SRC Language
 //Other experimental tests
 
-U32 val
+U32 val = IP NBO("127.0.0.1");
 
 PRINT("val = ",val)
 

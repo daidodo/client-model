@@ -33,5 +33,5 @@ void assert_fail(int lineno,const std::string & msg)
 {
     std::cerr<<global().input_file<<":"<<lineno<<" - (assertion failed)"
         <<msg<<std::endl;
-    exit(1);
+    throw 0;
 }

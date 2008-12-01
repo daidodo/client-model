@@ -23,9 +23,9 @@ bool IsFunToken(int fun_token);
 
 bool FunArgNumCheck(int fun_token,size_t argn);
 
-int FunRetType(int fun_token);
+int FunRetType(int fun_token,const std::vector<int> * types = 0);
 
-size_t FunArgTypeCheck(int fun_token,std::vector<int> & types,CSharedPtr<CArgList> arglist);
+size_t FunArgTypeCheck(int fun_token,const std::vector<int> & types,CSharedPtr<CArgList> arglist);
 
 size_t OpArgTypeCheck(int op_token,int type1,int type2);
 

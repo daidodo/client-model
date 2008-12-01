@@ -29,6 +29,9 @@ __ValuePtr EvaluateUDP(const std::vector<__ValuePtr> & args,int lineno);
 __ValuePtr EvaluateHEX(const std::vector<__ValuePtr> & args,int lineno);
 __ValuePtr EvaluateUNHEX(const std::vector<__ValuePtr> & args,int lineno);
 
+__ValuePtr EvaluateIPN(const std::vector<__ValuePtr> & args,int lineno);
+__ValuePtr EvaluateIPH(const std::vector<__ValuePtr> & args,int lineno);
+
 //have side effects
 void InvokeBO(bool net_bo,CSharedPtr<CCmd> cmd);
 

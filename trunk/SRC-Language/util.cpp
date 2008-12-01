@@ -4,6 +4,9 @@
 #include <sstream>  //std::ostringstream
 #include <iomanip>  //std::setw
 #include <locale>   //std::isgraph
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 #include "util.h"
 
 template<typename T,int Bytes = sizeof(T)>
@@ -276,4 +279,22 @@ std::string DumpFormat(const char * v,size_t sz)
         oss<<std::endl;
     }
     return oss.str();
+}
+
+std::string IPv4String(U32 ip,bool hostByteOrder)
+{
+    struct in_addr in;
+    in.s_addr = hostByteOrder ? htonl(ip) : ip;
+    char buf[46];
+    if(!inet_ntop(AF_INET,&in,buf,sizeof buf))
+        return "ERROR_IP";
+    return buf;
+}
+
+U32 IPv4FromStr(std::string ip,bool hostByteOrder)
+{
+    struct in_addr in;
+    if(inet_pton(AF_INET,ip.c_str(),&in) == 0)
+        return 0;
+    return hostByteOrder ? ntohl(in.s_addr) : in.s_addr;	
 }
