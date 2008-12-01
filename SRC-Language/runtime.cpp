@@ -259,7 +259,7 @@ void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
         processStmt(*i,cmd);
     }
     if(global().err_count_)
-        return;
+        throw 0;
     if(cmd->IsSend()){
         if(cmd->begin_list_){
             InvokeBeginEnd(false,cmd->begin_list_,cmd->endlineno_,cmd);

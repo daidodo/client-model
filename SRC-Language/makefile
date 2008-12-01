@@ -5,8 +5,8 @@ SO_TARGET :=  $(BIN_DIR)/libsrc.so
 INC_TARGET := SRC_language.h
 
 INSTALL_OUT_DIR := /usr/local/bin
-INSTALL_LIB_DIR := /usr/local/lib
-INSTALL_INC_DIR := /usr/local/include
+INSTALL_LIB_DIR := /usr/lib
+INSTALL_INC_DIR := /usr/include
 
 CC := g++
 YFLAGS := -d
