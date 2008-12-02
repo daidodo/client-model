@@ -29,6 +29,8 @@ size_t FunArgTypeCheck(int fun_token,const std::vector<int> & types,CSharedPtr<C
 
 size_t OpArgTypeCheck(int op_token,int type1,int type2);
 
+int IsArrayBeginEndToken(int fun_token);
+
 int IsSendRecvToken(int fun_token);
 
 bool IsStreamInToken(int op_token);

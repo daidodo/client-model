@@ -1,10 +1,10 @@
 # This is an example of SRC Language
-//struct test
+//array test
 
 TCP("127.0.0.1",9531)
 NET_BYTE_ORDER
 
-STRUCT HttpPost
+CMD QueryCommand SEND
 //http wrap
 RAW http1 := "POST http://127.0.0.1:12345/ HTTP/1.1\r\nContent-Length: "
 DEF U32 pack_len
@@ -12,17 +12,6 @@ RAW pack_len_str << pack_len  //stream output
 RAW http2 := "\r\nContent-Type: application/octet-stream\r\nConnection: \
 Close\r\n\r\n"
 BEGIN(pack_len)
-END STRUCT
-
-CMD QueryCommand SEND
-#//http wrap
-#RAW http1 := "POST http://127.0.0.1:12345/ HTTP/1.1\r\nContent-Length: "
-#DEF U32 pack_len
-#RAW pack_len_str << pack_len  //stream output
-#RAW http2 := "\r\nContent-Type: application/octet-stream\r\nConnection: \
-#Close\r\n\r\n"
-#BEGIN(pack_len)
-STRUCT HttpPost http
 //cmd data
 U16 ver := 100
 U16 cmd_type:(161)
@@ -51,6 +40,8 @@ U8  result
 !result
 STR fileHash_ == "http://www.baidu.com";
 STR clientHash_;
-STR[] peerId_;    //array
+BEGIN ARRAY
+STR peerId_;    //array
+END ARRAY
 END CMD
 

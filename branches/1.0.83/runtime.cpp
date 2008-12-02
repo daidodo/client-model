@@ -191,6 +191,7 @@ void CRuntime::processAssertExp(CSharedPtr<CAssertExp> ass,CSharedPtr<CCmd> cmd)
     DBG_RT("processAssertExp cmd="<<to_str(cmd));
     assert(cmd && cmd->IsRecv());
     if(!ass->Assert()){
+        cmd->DumpRecvData();
         ASSERT_FAIL(ass->lineno_,"");
     }
 }
@@ -252,11 +253,15 @@ void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
         SHOW("  RECV command '"<<cmd->cmd_name_<<"'");
     }
     cmd->SetByteOrder(net_byte_order_);
-    for(std::vector<CSharedPtr<CStmt> >::iterator i = cmd->stmt_list_.begin();
-        i != cmd->stmt_list_.end();++i)
+    ;
+    for(cmd->cur_stmt_index_ = 0;cmd->cur_stmt_index_ < cmd->stmt_list_.size();
+        ++cmd->cur_stmt_index_)
     {
-        assert(*i);
-        processStmt(*i,cmd);
+        assert(cmd->stmt_list_[cmd->cur_stmt_index_]);
+        processStmt(cmd->stmt_list_[cmd->cur_stmt_index_],cmd);
+    }
+    if(cmd->IsInArray()){
+        RUNTIME_ERR(cmd->array_range_.back().lineno_,"missing END ARRAY");
     }
     if(global().err_count_)
         throw 0;
@@ -291,7 +296,7 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
                 <<decl->var_->varname_<<"'");
             return;
         }
-        decl->var_->array_type_->expr_ = 0;
+        //decl->var_->array_type_->expr_ = 0;
         if(!sv->ToInteger(decl->var_->array_type_->sz_)){
             RUNTIME_ERR(decl->lineno_,"type mismatch for size of array '"
                 <<decl->var_->varname_<<"'");
@@ -321,20 +326,26 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         assert(decl->expr_);
         decl->Evaluate();
         DBG_RT("processPost Evaluate "<<vname<<"="<<to_str(decl->val_));
-        if((!decl->val_ || decl->val_->IsInteger()) && (cmd && cmd->IsSend())){ //只有发送命令里的数值类型才真正需要延后求值
-            decl->eva_priority_ = maxPriority() + 1000; //解决自赋值问题
-            std::string depend = decl->Depend();
-            if(depend.empty()){
-                decl->expr_ = 0;
-                addPostVar(vname,decl);
+        if((!decl->val_ || decl->val_->IsInteger()) &&      //必须是数值类型
+            (cmd && cmd->IsSend()))                         //必须在发送命令里
+        {
+            if(cmd->IsInArray()){
+                RUNTIME_ERR(decl->lineno_,"post evaluation in ARRAY is not supported yet, please using :=");
             }else{
-                if(vname == depend){
-                    GAMMAR_ERR(decl->lineno_,"symbol '"<<vname<<"' is self-depended");
-                }
-                if(!addPostVar(vname,decl,depend)){
-                    GAMMAR_ERR(decl->lineno_,"add symbol '"<<vname
-                        <<"' to post list error, depend is '"<<depend
-                        <<"'");
+                decl->eva_priority_ = maxPriority() + 1000; //解决自赋值问题
+                std::string depend = decl->Depend();
+                if(depend.empty()){
+                    decl->expr_ = 0;
+                    addPostVar(vname,decl);
+                }else{
+                    if(vname == depend){
+                        GAMMAR_ERR(decl->lineno_,"symbol '"<<vname<<"' is self-depended");
+                    }
+                    if(!addPostVar(vname,decl,depend)){
+                        GAMMAR_ERR(decl->lineno_,"add symbol '"<<vname
+                            <<"' to post list error, depend is '"<<depend
+                            <<"'");
+                    }
                 }
             }
         }
@@ -361,7 +372,7 @@ void CRuntime::processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processFixed decl="<<to_str(decl));
     DBG_RT("processFixed cmd="<<to_str(cmd));
-    assert(decl->expr_);
+    //assert(decl->expr_);
     const std::string vname = decl->var_->varname_;
     if(decl->Evaluate() && decl->IsConnection())
         addConnection(decl->val_);
@@ -388,7 +399,7 @@ void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         RUNTIME_ERR(decl->lineno_,"cannot evaluate right hand expression");
         return;
     }
-    decl->expr_ = 0;
+    //decl->expr_ = 0;
     assert(cmd && cmd->IsRecv());
     if(!cmd->GetAssert(decl,v)){
         cmd->DumpRecvData();
@@ -413,7 +424,7 @@ void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         RUNTIME_ERR(decl->lineno_,"cannot evaluate right hand expression");
         return;
     }
-    decl->expr_ = 0;
+    //decl->expr_ = 0;
     assert(cmd && cmd->IsRecv());
     if(!cmd->GetStreamIn(decl,v)){
         cmd->DumpRecvData();
@@ -435,6 +446,10 @@ void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     decl->val_ = decl->var_->Initial(decl->lineno_);
     if(!decl->val_){
         RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<vname<<"'");
+        return;
+    }
+    if(cmd->IsInArray()){
+        RUNTIME_ERR(decl->lineno_,"invalid stream out in ARRAY");
         return;
     }
     decl->eva_priority_ = maxPriority() + 1000; //解决自赋值问题
