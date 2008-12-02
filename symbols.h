@@ -191,6 +191,7 @@ struct CFuncCall
     int RetType() const;
     bool HasSideEffect() const{return (RetType() == 0 || IsConnection());}
     std::string Depend() const;
+    int IsArrayBeginEnd() const;    //0:false ; 1:begin ; 2:end
     int IsSendRecv() const; //0:false ; 1:send ; 2:recv
     CSharedPtr<CValue> Evaluate() const;
     void Invoke(CSharedPtr<CCmd> cmd) const;
@@ -212,6 +213,16 @@ struct CStmt
 
 typedef std::map<std::string,CSharedPtr<CVariable> >   __VarTable;
 
+struct CArrayRange
+{
+    int lineno_;
+    ssize_t start_index_;
+    ssize_t end_index_;
+    ssize_t sz_;
+    //functions:
+    explicit CArrayRange(int ln = -1);
+};
+
 struct CCmd
 {
     const int lineno_;
@@ -219,9 +230,13 @@ struct CCmd
     int send_flag_; //0:unknown ; 1:send ; 2:recv
     std::string cmd_name_;
     __VarTable var_table;
+    size_t cur_stmt_index_;
     std::vector<CSharedPtr<CStmt> > stmt_list_;
     std::vector<CSharedPtr<CValue> > conn_list_;
-    CSharedPtr<CArgList> begin_list_;    //BEGIN的变量名堆栈
+    CSharedPtr<CArgList> begin_list_;   //BEGIN的变量名堆栈
+    size_t array_index_;
+    std::vector<size_t> array_stack_;   //数组循环堆栈
+    std::vector<CArrayRange> array_range_;
     //send cmd
     COutByteStream outds_;
     //recv cmd
@@ -235,8 +250,15 @@ struct CCmd
     bool IsRecv() const{return send_flag_ == 2;}
     void SetByteOrder(bool net_bo);
     void AddConnection(CSharedPtr<CValue> conn,int lineno);
-    size_t SendDataOffset() const{return outds_.Size();}
+    void InvokeFun(bool (*fp)(std::vector<char> &,std::vector<char> &),size_t sz,int lineno,const std::string & fname);
+    void AddArrayBegin(int lineno);
+    void AddArrayEnd(int lineno);
+    void StartArray(int lineno);
+    void StartArray(size_t sz,int lineno);
+    void EndArray(int lineno);
+    bool IsInArray() const{return !array_stack_.empty();}
     //send cmd
+    size_t SendDataOffset() const{return outds_.Size();}
     bool PutValue(CSharedPtr<CValue> v);
     bool PostPutValue(CSharedPtr<CValue> v,size_t offset);
     bool PostInsertValue(CSharedPtr<CValue> v,size_t offset);
@@ -267,11 +289,6 @@ struct CCmd
     bool RecvData(int lineno);
     void DumpRecvData() const;
     bool EnsureRecvData(size_t sz,int lineno);
-    //both
-    void InvokeFun(bool (*fp)(std::vector<char> &,std::vector<char> &),size_t sz,int lineno,const std::string & fname);
-    void StartArray();
-    void StartArray(size_t sz);
-    void EndArray();
 };
 
 #endif

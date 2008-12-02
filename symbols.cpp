@@ -557,9 +557,6 @@ void CDeclare::FixRaw()
 
 CSharedPtr<CValue> CDeclare::Evaluate()
 {
-    //if(IsStreamOut()){
-    //    val_ = FunEvaluate(var_->tp_token_,std::vector<CSharedPtr<CValue> >(),lineno_);
-    //}else 
     if(expr_)
         val_ = expr_->Evaluate();
     if(!val_){
@@ -646,6 +643,11 @@ std::string CFuncCall::Depend() const
     return "";
 }
 
+int CFuncCall::IsArrayBeginEnd() const
+{
+    return IsArrayBeginEndToken(ft_token_);
+}
+
 int CFuncCall::IsSendRecv() const
 {
     return IsSendRecvToken(ft_token_);
@@ -689,11 +691,21 @@ std::string CStmt::Signature() const{
     return oss.str();
 }
 
+//CArrayRange
+CArrayRange::CArrayRange(int ln)
+    : lineno_(ln)
+    , start_index_(-1)
+    , end_index_(-1)
+    , sz_(-1)
+{}
+
 //CCmd
 CCmd::CCmd(int ln)
     : lineno_(ln)
     , endlineno_(0)
     , send_flag_(0)
+    , cur_stmt_index_(0)
+    , array_index_(0)
     , inds_(recv_data_)
 {}
 
@@ -1012,6 +1024,60 @@ void CCmd::InvokeFun(bool (*fp)(std::vector<char> &,std::vector<char> &),size_t 
     }
 }
 
-void CCmd::StartArray(){}
-void CCmd::StartArray(size_t sz){}
-void CCmd::EndArray(){}
+void CCmd::AddArrayBegin(int lineno)
+{
+    array_stack_.push_back(array_range_.size());
+    array_range_.push_back(CArrayRange(lineno));
+    array_range_.back().start_index_ = stmt_list_.size();
+}
+
+void CCmd::AddArrayEnd(int lineno)
+{
+    if(array_stack_.empty()){
+        RUNTIME_ERR(lineno,"cannot END ARRAY without BEGIN ARRAY");
+        return;
+    }
+    array_range_[array_stack_.back()].end_index_ = stmt_list_.size();
+    array_stack_.pop_back();
+}
+
+void CCmd::StartArray(int lineno)
+{
+    U32 sz = 0;
+    if(!GetVal(sz,lineno)){
+        RUNTIME_ERR(lineno,"cannot recv array size");
+    }else{
+        //SHOW("
+        StartArray(sz,lineno);
+    }
+}
+
+void CCmd::StartArray(size_t sz,int lineno)
+{
+    array_range_[array_index_].sz_ = sz;
+    if(!sz){
+        cur_stmt_index_ = array_range_[array_index_].end_index_;
+    }else{
+        --array_range_[array_index_].sz_;
+        array_stack_.push_back(array_index_);
+    }
+    ++array_index_;
+}
+
+void CCmd::EndArray(int lineno)
+{
+    if(array_stack_.empty()){
+        RUNTIME_ERR(lineno,"cannot END ARRAY without BEGIN ARRAY");
+        return;
+    }
+    size_t i = array_stack_.back();
+    assert(array_range_[i].sz_ >= 0);
+    if(!array_range_[i].sz_){   //array ends
+        array_stack_.pop_back();
+    }else{                        //array repeats
+        assert(array_range_[i].start_index_ >= 0);
+        --array_range_[i].sz_;
+        cur_stmt_index_ = array_range_[i].start_index_;
+    }
+}
+

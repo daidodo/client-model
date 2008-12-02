@@ -243,6 +243,11 @@ size_t OpArgTypeCheck(int op_token,int type1,int type2)
     return 0;
 }
 
+int IsArrayBeginEndToken(int fun_token)
+{
+    return (fun_token == ARRAY ? 1 : (fun_token == __END_ARRAY ? 2 : 0));
+}
+
 int IsSendRecvToken(int fun_token)
 {
     return (fun_token == SEND ? 1 : (fun_token == RECV ? 2 : 0));

@@ -397,9 +397,9 @@ void InvokeArray(bool is_start,CSharedPtr<CArgList> args,int lineno,CSharedPtr<C
 {
     assert(cmd);
     if(!is_start)
-        return cmd->EndArray();
+        return cmd->EndArray(lineno);
     if(!args || args->args_.empty()){
-        cmd->StartArray();
+        cmd->StartArray(lineno);
     }else{
         CSharedPtr<CExpr> expr = (*args)[0];
         assert(expr);
@@ -413,7 +413,7 @@ void InvokeArray(bool is_start,CSharedPtr<CArgList> args,int lineno,CSharedPtr<C
             RUNTIME_ERR(lineno,"invalid conversion to array size(size_t)");
             return;
         }
-        cmd->StartArray(sz);
+        cmd->StartArray(sz,lineno);
     }
 }
 

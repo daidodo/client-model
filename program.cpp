@@ -149,16 +149,23 @@ void CProgram::AddStmt(CSharedPtr<CFuncCall> stmt)
             GAMMAR_ERR(stmt->lineno_,"invalid function in local scope");
             good = false;
         }
-        int sr = stmt->IsSendRecv();
-        if(sr){
-            if(!conn_defined_){
-                GAMMAR_ERR(stmt->lineno_,"no connection yet");
-                good = false;
-            }else if(!cur_cmd->send_flag_){
-                cur_cmd->send_flag_ = sr;
-            }else if(sr != cur_cmd->send_flag_){
-                GAMMAR_ERR(stmt->lineno_,"cannot change SEND/RECV flag");
-                good = false;
+        int flag = stmt->IsArrayBeginEnd();
+        if(flag == 1){          //array begin
+            cur_cmd->AddArrayBegin(stmt->lineno_);
+        }else if(flag == 2){    //array end
+            cur_cmd->AddArrayEnd(stmt->lineno_);
+        }else{
+            flag = stmt->IsSendRecv();
+            if(flag){
+                if(!conn_defined_){
+                    GAMMAR_ERR(stmt->lineno_,"no connection yet");
+                    good = false;
+                }else if(!cur_cmd->send_flag_){
+                    cur_cmd->send_flag_ = flag;
+                }else if(flag != cur_cmd->send_flag_){
+                    GAMMAR_ERR(stmt->lineno_,"cannot change SEND/RECV flag");
+                    good = false;
+                }
             }
         }
     }
@@ -226,6 +233,11 @@ void CProgram::CmdEnd()
         GAMMAR_ERR(LINE_NO,"missing SEND/RECV flag for command '"
             <<cur_cmd->cmd_name_<<"', see LINE:"<<cur_cmd->lineno_);
         global_stmts.pop_back();    //保持cmd_name_在cmd_table内
+    }
+    if(cur_cmd->IsInArray()){
+        size_t i = cur_cmd->array_stack_.back();
+        RUNTIME_ERR(cur_cmd->array_range_[i].lineno_,"missing END ARRAY");
+        cur_cmd->array_stack_.clear();
     }
     cur_cmd = 0;
 }
