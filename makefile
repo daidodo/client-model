@@ -24,7 +24,7 @@ RM_SRC := y.tab.h $(YACC_SRC:.y=.c) $(LEX_SRC:.l=.c)
 
 OBJS := $(YACC_SRC:.y=.o) $(LEX_SRC:.l=.o) $(CPP_SRC:.cpp=.o)
 
-DEPS := $(OBJS:.o=.d)
+DEPS := $(CPP_SRC:.cpp=.d)
 
 all : out lib so
 	@$(CP) $(INC_TARGET) $(BIN_DIR)
@@ -46,6 +46,11 @@ lib : $(LIB_TARGET)
 
 so : $(SO_TARGET)
 
+deps : $(DEPS)
+
+%.d : %.cpp
+	@$(CXX) -MM $(CXXFLAGS) -o $*.d $<
+
 $(OUT_TARGET) : $(OBJS)
 	$(CXX) -o $@ $^
 
@@ -64,6 +69,6 @@ clean : cleandist
 
 love : clean all
 
-.PHONEY : all out lib so cleandist clean love
+.PHONEY : all out lib so deps cleandist clean love
 
 sinclude $(DEPS)

@@ -428,6 +428,9 @@ void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processStreamOut decl="<<to_str(decl));
     DBG_RT("processStreamOut cmd="<<to_str(cmd));
     assert(cmd && cmd->IsSend());
+    if(!cmd->BeginEmpty()){
+        RUNTIME_ERR(decl->lineno_,"invalid stream out between BEGIN/END");
+    }
     std::string vname = decl->var_->varname_;
     decl->val_ = decl->var_->Initial(decl->lineno_);
     if(!decl->val_){

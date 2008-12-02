@@ -242,6 +242,7 @@ struct CCmd
     bool PostInsertValue(CSharedPtr<CValue> v,size_t offset);
     void Begin(CSharedPtr<CExpr> v);
     void End(CSharedPtr<CExpr> v);
+    bool BeginEmpty() const;
     bool SendData(const std::vector<char> & buf) const;
     //recv cmd
     bool GetValue(CSharedPtr<CValue> v,int lineno);
@@ -268,6 +269,9 @@ struct CCmd
     bool EnsureRecvData(size_t sz,int lineno);
     //both
     void InvokeFun(bool (*fp)(std::vector<char> &,std::vector<char> &),size_t sz,int lineno,const std::string & fname);
+    void StartArray();
+    void StartArray(size_t sz);
+    void EndArray();
 };
 
 #endif

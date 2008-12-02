@@ -379,7 +379,7 @@ void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
     }
 }
 
-void InvokePRINT(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
+void InvokePrint(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
 {
     assert(args);
     std::ostringstream oss;
@@ -392,3 +392,28 @@ void InvokePRINT(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
     }
     SHOW(oss.str());
 }
+
+void InvokeArray(bool is_start,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
+{
+    assert(cmd);
+    if(!is_start)
+        return cmd->EndArray();
+    if(!args || args->args_.empty()){
+        cmd->StartArray();
+    }else{
+        CSharedPtr<CExpr> expr = (*args)[0];
+        assert(expr);
+        CSharedPtr<CValue> v = expr->Evaluate();
+        if(!v){
+            RUNTIME_ERR(expr->lineno_,"cannot evaluate expression");
+            return;
+        }
+        size_t sz = 0;
+        if(!v->ToInteger(sz)){
+            RUNTIME_ERR(lineno,"invalid conversion to array size(size_t)");
+            return;
+        }
+        cmd->StartArray(sz);
+    }
+}
+
