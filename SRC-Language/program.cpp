@@ -89,7 +89,16 @@ void CProgram::AddStmt(CSharedPtr<CDeclare> stmt)
         }else if(stmt->IsConnection())
             conn_defined_ = true;
     }else{          //local scope
-        if(stmt->IsGlobalOnly()){
+        if(stmt->IsStruct()){
+            const std::string & name = stmt->var_->struct_name_->varname_;
+            stmt->var_->struct_type_ = findCmdStruct(name);
+            if(!stmt->var_->struct_type_ || !stmt->var_->struct_type_->IsStruct()){
+                GAMMAR_ERR(stmt->lineno_,"symbol '"<<name<<"' is not struct, see LINE:"
+                    <<stmt->var_->struct_name_->lineno_);
+                good = false;
+            }else
+                stmt->var_->struct_name_ = 0;
+        }else if(stmt->IsGlobalOnly()){
             GAMMAR_ERR(stmt->lineno_,"invalid declaration in local scope");
             good = false;
         }else if(cur_cmd->IsSend()){
@@ -106,6 +115,8 @@ void CProgram::AddStmt(CSharedPtr<CDeclare> stmt)
                 GAMMAR_ERR(stmt->lineno_,"recv RAW string is endless");
                 good = false;
             }
+        }else if(cur_cmd->IsStruct()){
+            //nothing ?
         }else{
             GAMMAR_ERR(stmt->lineno_,"invalid declaration before SEND/RECV flag");
             good = false;
@@ -148,17 +159,23 @@ void CProgram::AddStmt(CSharedPtr<CFuncCall> stmt)
         if(stmt->IsGlobalOnly()){
             GAMMAR_ERR(stmt->lineno_,"invalid function in local scope");
             good = false;
-        }
-        int sr = stmt->IsSendRecv();
-        if(sr){
-            if(!conn_defined_){
-                GAMMAR_ERR(stmt->lineno_,"no connection yet");
+        }else if(cur_cmd->IsStruct()){
+            if(stmt->IsSendRecv()){
+                GAMMAR_ERR(stmt->lineno_,"invalid SEND/RECV flag for struct");
                 good = false;
-            }else if(!cur_cmd->send_flag_){
-                cur_cmd->send_flag_ = sr;
-            }else if(sr != cur_cmd->send_flag_){
-                GAMMAR_ERR(stmt->lineno_,"cannot change SEND/RECV flag");
-                good = false;
+            }
+        }else{  //cmd
+            int sr = stmt->IsSendRecv();
+            if(sr){
+                if(!conn_defined_){
+                    GAMMAR_ERR(stmt->lineno_,"no connection yet");
+                    good = false;
+                }else if(!cur_cmd->cmd_send_flag_){
+                    cur_cmd->cmd_send_flag_ = sr;
+                }else if(sr != cur_cmd->cmd_send_flag_){
+                    GAMMAR_ERR(stmt->lineno_,"cannot change SEND/RECV flag");
+                    good = false;
+                }
             }
         }
     }
@@ -171,9 +188,10 @@ void CProgram::AddStmt(CSharedPtr<CFuncCall> stmt)
     DBG_YY("succ add CFuncCall="<<signa(stmt));
 }
 
-void CProgram::CmdBegin(CSharedPtr<CVariable> var)
+void CProgram::CmdStructBegin(CSharedPtr<CVariable> var,bool is_cmd)
 {
     DBG_YY("new command CVariable="<<to_str(var));
+    const char * const CMD_STRUCT = (is_cmd ? "command" : "struct");
     std::string name;
     int var_lineno = LINE_NO;
     if(var){
@@ -182,8 +200,8 @@ void CProgram::CmdBegin(CSharedPtr<CVariable> var)
     }
     bool good = true;
     if(!isGlobal()){
-        GAMMAR_ERR(LINE_NO,"cannot define command '"<<name
-            <<"' in local scope of '"<<cur_cmd->cmd_name_<<"', see LINE:"
+        GAMMAR_ERR(LINE_NO,"cannot define "<<CMD_STRUCT<<" '"<<name
+            <<"' in local scope of '"<<cur_cmd->struct_name_<<"', see LINE:"
             <<var_lineno);
         good = false;
     }
@@ -199,40 +217,43 @@ void CProgram::CmdBegin(CSharedPtr<CVariable> var)
     }
     if(!good)
         return;
-    CSharedPtr<CCmd> & cmd = cmd_table[name];
+    CSharedPtr<CCmdStruct> & cmd = cmd_table[name];
     if(cmd){
-        GAMMAR_ERR(LINE_NO,"cannot redefine command '"<<name<<"', see LINE:"
+        GAMMAR_ERR(LINE_NO,"cannot redefine "<<CMD_STRUCT<<" '"<<name<<"', see LINE:"
             <<cmd->lineno_);
         return;
     }
     DBG_YY("cmd="<<to_str(cmd)<<", cur_cmd="<<to_str(cur_cmd));
-    cur_cmd = New<CCmd>(LINE_NO);
+    cur_cmd = New<CCmdStruct>(LINE_NO);
     cmd = cur_cmd;
-    cmd->cmd_name_ = name;
+    cmd->cmd_send_flag_ = (is_cmd ? 0 : 3);
+    cmd->struct_name_ = name;
     CSharedPtr<CStmt> st = New<CStmt>(LINE_NO);
     st->type_ = 4;
-    st->cmd_ = cmd;
-    global_stmts.push_back(st);
-    DBG_YY("succ new command="<<signa(cmd));
+    st->cmd_struct_ = cmd;
+    if(cmd->IsCmd())
+        global_stmts.push_back(st);
+    DBG_YY("succ new "<<CMD_STRUCT<<"="<<signa(cmd));
 }
 
-void CProgram::CmdEnd()
+void CProgram::CmdStructEnd(bool is_cmd)
 {
+    const char * const CMD_STRUCT = (is_cmd ? "command" : "struct");
     if(isGlobal()){
-        GAMMAR_ERR(LINE_NO,"invalid end of command");
+        GAMMAR_ERR(LINE_NO,"invalid end of "<<CMD_STRUCT);
     }
-    DBG_YY("end command="<<signa(cur_cmd));
-    if(cur_cmd->send_flag_ == 0){
+    DBG_YY("end "<<CMD_STRUCT<<"="<<signa(cur_cmd));
+    if(cur_cmd->cmd_send_flag_ == 0){
         GAMMAR_ERR(LINE_NO,"missing SEND/RECV flag for command '"
-            <<cur_cmd->cmd_name_<<"', see LINE:"<<cur_cmd->lineno_);
-        global_stmts.pop_back();    //保持cmd_name_在cmd_table内
+            <<cur_cmd->struct_name_<<"', see LINE:"<<cur_cmd->lineno_);
+        global_stmts.pop_back();    //保持struct_name_在cmd_table内
     }
     cur_cmd = 0;
 }
 
-CSharedPtr<CCmd> CProgram::findCmd(const std::string & name) const
+CSharedPtr<CCmdStruct> CProgram::findCmdStruct(const std::string & name) const
 {
-    typedef std::map<std::string,CSharedPtr<CCmd> >::const_iterator __Iter;
+    typedef std::map<std::string,CSharedPtr<CCmdStruct> >::const_iterator __Iter;
     __Iter wh = cmd_table.find(name);
     return (wh == cmd_table.end() ? 0 : wh->second);
 }

@@ -131,6 +131,7 @@ struct CValue
     int operator !=(const CValue & v) const;
     int operator !() const;
     bool StreamOut(const CValue & v,int lineno);
+    CSharedPtr<CValue> Copy() const;
 private:
     template<typename T>
     bool operator <(T v) const{
