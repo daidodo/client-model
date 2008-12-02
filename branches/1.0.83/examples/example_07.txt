@@ -1,0 +1,17 @@
+# This is an example of SRC Language
+//Other experimental tests
+
+U32 val = IP NBO("127.0.0.1");
+
+PRINT("val = ",val)
+
+TCP conn("127.0.0.1",9531)
+
+PRINT("conn = ",conn)
+
+CMD c1 SEND
+END CMD
+
+CMD c2 RECV
+END CMD
+
