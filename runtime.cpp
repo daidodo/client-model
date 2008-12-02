@@ -21,11 +21,11 @@ void CRuntime::Interpret(CProgram & program)
     }
 }
 
-CSharedPtr<CDeclare> CRuntime::FindVar(std::string vname,CSharedPtr<CCmdStruct> cmd)
+CSharedPtr<CDeclare> CRuntime::FindVar(std::string vname,CSharedPtr<CCmd> cmd)
 {
     std::map<std::string,CSharedPtr<CDeclare> >::const_iterator wh = var_table_.end();
     if(cmd)
-        wh = var_table_.find(localVarname(vname,cmd->struct_name_));
+        wh = var_table_.find(localVarname(vname,*cmd));
     if(wh == var_table_.end())
         wh = var_table_.find(vname);
     return (wh == var_table_.end() ? 0 : wh->second);
@@ -47,11 +47,15 @@ bool CRuntime::IsPost(const std::string & vname) const
     return wh->second->IsPost();
 }
 
-std::string CRuntime::localVarname(const std::string & name,const std::string & suffix)
+std::string CRuntime::localVarname(const std::string & name,const CCmd & cmd)
 {
     std::string ret = name;
-    ret.push_back('$');
-    return (ret += suffix);
+    size_t pos = name.find('$');
+    if(pos == std::string::npos){
+        ret.push_back('$');
+        ret += cmd.cmd_name_;
+    }
+    return ret;
 }
 
 std::string CRuntime::RealVarname(const std::string & name)
@@ -66,7 +70,7 @@ double CRuntime::maxPriority() const
     return Priority(post_list_.back());
 }
 
-void CRuntime::postEvaluate(CSharedPtr<CCmdStruct> cmd)
+void CRuntime::postEvaluate(CSharedPtr<CCmd> cmd)
 {
     typedef CSharedPtr<CValue>          __ValPtr;
     typedef std::list<__ValPtr>         __ValList;  //可能会在同一个offset，插入多个数据
@@ -155,34 +159,33 @@ void CRuntime::addConnection(CSharedPtr<CValue> conn)
         default_conn_ = conn;
 }
 
-void CRuntime::processStmt(CSharedPtr<CStmt> stmt,CSharedPtr<CCmdStruct> cmd)
+void CRuntime::processStmt(CSharedPtr<CStmt> stmt,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processStmt stmt="<<to_str(stmt));
     DBG_RT("processStmt cmd="<<to_str(cmd));
-    std::vector<int> lines;
     if(!cmd){   //----------------global
         if(stmt->declare_)
-            processDeclare(stmt->declare_,0,lines);
+            processDeclare(stmt->declare_,0);
         else if(stmt->func_call_)
-            processFunc(stmt->func_call_,0,lines);
-        else if(stmt->cmd_struct_)
-            processCmd(stmt->cmd_struct_,0,lines);
+            processFunc(stmt->func_call_,0);
+        else if(stmt->cmd_)
+            processCmd(stmt->cmd_);
     }else if(cmd->IsSend()){    //send cmd
         if(stmt->declare_)
-            processDeclare(stmt->declare_,cmd,lines);
+            processDeclare(stmt->declare_,cmd);
         else if(stmt->func_call_)
-            processFunc(stmt->func_call_,cmd,lines);
+            processFunc(stmt->func_call_,cmd);
     }else{  //--------------------recv cmd
         if(stmt->assert_)
-            processAssertExp(stmt->assert_,cmd,lines);
+            processAssertExp(stmt->assert_,cmd);
         else if(stmt->declare_)
-            processDeclare(stmt->declare_,cmd,lines);
+            processDeclare(stmt->declare_,cmd);
         else if(stmt->func_call_)
-            processFunc(stmt->func_call_,cmd,lines);
+            processFunc(stmt->func_call_,cmd);
     }
 }
 
-void CRuntime::processAssertExp(CSharedPtr<CAssertExp> ass,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines)
+void CRuntime::processAssertExp(CSharedPtr<CAssertExp> ass,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processAssertExp ass="<<to_str(ass));
     DBG_RT("processAssertExp cmd="<<to_str(cmd));
@@ -192,50 +195,47 @@ void CRuntime::processAssertExp(CSharedPtr<CAssertExp> ass,CSharedPtr<CCmdStruct
     }
 }
 
-void CRuntime::processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines)
+void CRuntime::processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processDeclare decl="<<to_str(decl));
     DBG_RT("processDeclare cmd="<<to_str(cmd));
     if(!cmd){   //global
         if(decl->IsSimplePost())
-            processPost(decl,0,lines);
+            processPost(decl,0);
         else if(decl->IsFixed())
-            processFixed(decl,0,lines);
+            processFixed(decl,0);
         else{
             RUNTIME_ERR(decl->lineno_,"invalid declaration in global scope");
         }
-    }else{      //local
-        if(decl->IsStruct()){
-        }else{
-            decl->var_->varname_ = localVarname(decl->var_->varname_,cmd->struct_name_);
-            if(cmd->IsSend()){    //send cmd
-                if(decl->IsSimplePost())
-                    processPost(decl,cmd,lines);
-                else if(decl->IsFixed())
-                    processFixed(decl,cmd,lines);
-                else if(decl->IsStreamOut())
-                    processStreamOut(decl,cmd,lines);
-                else{
-                    RUNTIME_ERR(decl->lineno_,"invalid declaration in SEND command");
-                }
-            }else{  //recv cmd
-                if(decl->IsArray())
-                    processArray(decl,cmd,lines);
-                else if(decl->IsSimplePost())
-                    processPost(decl,cmd,lines);
-                else if(decl->IsAssert())
-                    processDeclAssert(decl,cmd,lines);
-                else if(decl->IsStreamIn())
-                    processStreamIn(decl,cmd,lines);
-                else{
-                    RUNTIME_ERR(decl->lineno_,"invalid declaration in RECV command");
-                }
+    }else{
+        decl->var_->varname_ = localVarname(decl->var_->varname_,*cmd);
+        if(cmd->IsSend()){    //send cmd
+            if(decl->IsSimplePost())
+                processPost(decl,cmd);
+            else if(decl->IsFixed())
+                processFixed(decl,cmd);
+            else if(decl->IsStreamOut())
+                processStreamOut(decl,cmd);
+            else{
+                RUNTIME_ERR(decl->lineno_,"invalid declaration in SEND command");
+            }
+        }else{  //recv cmd
+            if(decl->IsArray())
+                processArray(decl,cmd);
+            else if(decl->IsSimplePost())
+                processPost(decl,cmd);
+            else if(decl->IsAssert())
+                processDeclAssert(decl,cmd);
+            else if(decl->IsStreamIn())
+                processStreamIn(decl,cmd);
+            else{
+                RUNTIME_ERR(decl->lineno_,"invalid declaration in RECV command");
             }
         }
     }
 }
 
-void CRuntime::processFunc(CSharedPtr<CFuncCall> func,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines)
+void CRuntime::processFunc(CSharedPtr<CFuncCall> func,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processFunc func="<<to_str(func));
     DBG_RT("processFunc cmd="<<to_str(cmd));
@@ -245,15 +245,13 @@ void CRuntime::processFunc(CSharedPtr<CFuncCall> func,CSharedPtr<CCmdStruct> cmd
         func->Invoke(cmd);
 }
 
-void CRuntime::processCmd(CSharedPtr<CCmdStruct> cmd,CSharedPtr<CCmdStruct> host_cmd,std::vector<int> & lines)
+void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processCmd cmd="<<to_str(cmd));
-    if(cmd->IsCmd()){
-        if(cmd->IsRecv()){
-            SHOW("  RECV command '"<<cmd->struct_name_<<"'");
-        }
-        cmd->SetByteOrder(net_byte_order_);
+    if(cmd->IsRecv()){
+        SHOW("  RECV command '"<<cmd->cmd_name_<<"'");
     }
+    cmd->SetByteOrder(net_byte_order_);
     for(std::vector<CSharedPtr<CStmt> >::iterator i = cmd->stmt_list_.begin();
         i != cmd->stmt_list_.end();++i)
     {
@@ -271,7 +269,7 @@ void CRuntime::processCmd(CSharedPtr<CCmdStruct> cmd,CSharedPtr<CCmdStruct> host
         //print data buffer
         std::vector<char> buf;
         cmd->outds_.ExportData(buf);
-        SHOW("  SEND command '"<<cmd->struct_name_<<"' data =");
+        SHOW("  SEND command '"<<cmd->cmd_name_<<"' data =");
         SHOW(DumpFormat(buf));
         //send data
 #if __REAL_CONNECT
@@ -281,7 +279,7 @@ void CRuntime::processCmd(CSharedPtr<CCmdStruct> cmd,CSharedPtr<CCmdStruct> host
         cmd->DumpRecvData();
 }
 
-void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines)
+void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processArray decl="<<to_str(decl));
     DBG_RT("processArray cmd="<<to_str(cmd));
@@ -312,13 +310,13 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd
     }
 }
 
-void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines)
+void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processPost decl="<<to_str(decl));
     DBG_RT("processPost cmd="<<to_str(cmd));
     std::string vname = decl->var_->varname_;
     if(decl->IsConnection())
-        processFixed(decl,0,lines);
+        processFixed(decl,0);
     else{
         assert(decl->expr_);
         decl->Evaluate();
@@ -359,7 +357,7 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd,
     }
 }
 
-void CRuntime::processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines)
+void CRuntime::processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processFixed decl="<<to_str(decl));
     DBG_RT("processFixed cmd="<<to_str(cmd));
@@ -374,7 +372,7 @@ void CRuntime::processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd
     decl->expr_ = 0;
 }
 
-void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines)
+void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processDeclAssert decl="<<to_str(decl));
     DBG_RT("processDeclAssert cmd="<<to_str(cmd));
@@ -399,7 +397,7 @@ void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct
     var_table_[decl->var_->varname_] = decl;
 }
 
-void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines)
+void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processStreamIn decl="<<to_str(decl));
     DBG_RT("processStreamIn cmd="<<to_str(cmd));
@@ -425,7 +423,7 @@ void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> 
     var_table_[decl->var_->varname_] = decl;
 }
 
-void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines)
+void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processStreamOut decl="<<to_str(decl));
     DBG_RT("processStreamOut cmd="<<to_str(cmd));

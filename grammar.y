@@ -15,7 +15,7 @@ int yylex();
 %token NL EOF_ IEQ
 %token CMD DEF
 %token TP_U8 TP_S8 TP_U16 TP_S16 TP_U32 TP_S32 TP_U64 TP_S64 STR RAW TCP UDP
-%token FUN BEGIN_ END HBO NBO SEND RECV HEX UNHEX PRINT IP __IPN __IPH STRUCT
+%token FUN BEGIN_ END HBO NBO SEND RECV HEX UNHEX PRINT IP __IPN __IPH
 %token OP_LG OP_SM OP_LEQ OP_SEQ OP_EQ OP_NEQ OP_NOT OP_IN OP_OUT
 %token <int_> INT
 %token <long_> LONG
@@ -42,7 +42,6 @@ program : /* empty */	{DBG_YY("program 1");}
 
 program_item : stmt	{DBG_YY("program_item 1");}
 	| cmd_define	{DBG_YY("program_item 2");}
-	| struct_define	{DBG_YY("program_item 3");}
 	;
 
 	/* level 1 */
@@ -56,10 +55,6 @@ stmt :  stmt_sep
 
 cmd_define : cmd_begin stmt_assert_list cmd_end stmt_sep
 			{DBG_YY("cmd_define 1");}
-	;
-
-struct_define : struct_begin stmt_assert_list struct_end stmt_sep
-			{DBG_YY("struct_define 1");}
 	;
 
 	/* level 2 */
@@ -85,29 +80,15 @@ stmt_assert_list : stmt
 			{DBG_YY("stmt_list 3");}
 	;
 
-cmd_begin : CMD		{DBG_YY("cmd_begin 1");program().CmdStructBegin(0);}
-	| CMD VAR_NAME	{DBG_YY("cmd_begin 2");program().CmdStructBegin($2);}
+cmd_begin : CMD		{DBG_YY("cmd_begin 1");program().CmdBegin(0);}
+	| CMD VAR_NAME	{DBG_YY("cmd_begin 2");program().CmdBegin($2);}
+	;
 
 cmd_end : END CMD	{
 				DBG_YY("cmd_end");
 				assert(CUR_CMD);
 				CUR_CMD->endlineno_ = LINE_NO;
-				program().CmdStructEnd();
-			}
-	;
-
-struct_begin : STRUCT VAR_NAME
-			{
-				DBG_YY("struct_begin 1");
-				program().CmdStructBegin($2,false);
-			}
-	;
-
-struct_end : END STRUCT	{
-				DBG_YY("struct_end");
-				assert(CUR_CMD);
-				CUR_CMD->endlineno_ = LINE_NO;
-				program().CmdStructEnd(false);
+				program().CmdEnd();
 			}
 	;
 
@@ -412,25 +393,6 @@ sim_type_name : simple_type VAR_NAME
 				}
 				$$->type_ = 1;
 				$$->tp_token_ = $1;
-				DBG_YY("$$ = "<<to_str($$));
-			}
-	| STRUCT VAR_NAME VAR_NAME
-			{
-				DBG_YY("sim_type_name 2");
-				DBG_YY("$2 = "<<to_str($2));
-				DBG_YY("$3 = "<<to_str($3));
-				assert($2 && $3);
-				$$ = $3;
-				if($$->ref_count_ > 0){
-					//redefinition, but we need the whole declaration
-					CSharedPtr<CVariable> t = $$;
-					$$ = New<CVariable>(LINE_NO);
-					$$->shadow_ = t;
-					$$->varname_ = t->varname_;
-					$$->host_cmd_ = CUR_CMD;
-				}
-				$$->type_ = 3;
-				$$->struct_name_ = $2;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;

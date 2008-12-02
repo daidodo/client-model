@@ -33,14 +33,14 @@ __ValuePtr EvaluateIPN(const std::vector<__ValuePtr> & args,int lineno);
 __ValuePtr EvaluateIPH(const std::vector<__ValuePtr> & args,int lineno);
 
 //have side effects
-void InvokeBO(bool net_bo,CSharedPtr<CCmdStruct> cmd);
+void InvokeBO(bool net_bo,CSharedPtr<CCmd> cmd);
 
-void InvokeSendRecv(bool is_send,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd);
+void InvokeSendRecv(bool is_send,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd);
 
-void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd);
+void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd);
 
-void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd);
+void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd);
 
-void InvokePRINT(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd);
+void InvokePRINT(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd);
 
 #endif

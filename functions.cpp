@@ -271,14 +271,14 @@ __ValuePtr EvaluateIPH(const std::vector<__ValuePtr> & args,int lineno)
     return __EvaluateIP(args,lineno,true);
 }
 
-void InvokeBO(bool net_bo,CSharedPtr<CCmdStruct> cmd)
+void InvokeBO(bool net_bo,CSharedPtr<CCmd> cmd)
 {
     runtime().SetByteOrder(net_bo);
     if(cmd)
         cmd->SetByteOrder(net_bo);
 }
 
-void InvokeSendRecv(bool is_send,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd)
+void InvokeSendRecv(bool is_send,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
 {
     assert(cmd);
     if(is_send){
@@ -309,7 +309,7 @@ void InvokeSendRecv(bool is_send,CSharedPtr<CArgList> args,int lineno,CSharedPtr
     }
 }
 
-void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd)
+void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
 {
     assert(cmd && args);
     for(size_t i = 0;i < args->args_.size();++i){
@@ -352,7 +352,7 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
     }
 }
 
-void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd)
+void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
 {
     assert(args && cmd);
     assert(!args->args_.empty() && (*args)[0]);
@@ -379,7 +379,7 @@ void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd)
     }
 }
 
-void InvokePRINT(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd)
+void InvokePRINT(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
 {
     assert(args);
     std::ostringstream oss;

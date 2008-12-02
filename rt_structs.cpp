@@ -231,13 +231,6 @@ bool CValue::StreamOut(const CValue & v,int lineno)
     return true;
 }
 
-CSharedPtr<CValue> CValue::Copy() const
-{
-    CSharedPtr<CValue> ret = New<CValue>();
-    *ret = *this;
-    return ret;
-}
-
 COutByteStream & operator <<(COutByteStream & ds,const CValue & v)
 {
     switch(v.type_){
