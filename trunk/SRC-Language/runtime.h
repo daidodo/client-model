@@ -25,7 +25,7 @@ struct CRuntime
     CRuntime();
     void Interpret(CProgram & program);
     bool SetByteOrder(bool net_bo){net_byte_order_ = net_bo;}
-    CSharedPtr<CDeclare> FindVar(std::string vname,CSharedPtr<CCmd> cmd = 0);
+    CSharedPtr<CDeclare> FindVar(std::string vname,CSharedPtr<CCmdStruct> cmd = 0);
     double Priority(const std::string & vname) const;
     bool IsPost(const std::string & vname) const;
     static std::string RealVarname(const std::string & name);
@@ -33,23 +33,23 @@ private:
     bool addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,const std::string & depend);
     void addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl);
     void addConnection(CSharedPtr<CValue> conn);
-    static std::string localVarname(const std::string & name,const CCmd & cmd);
+    static std::string localVarname(const std::string & name,const std::string & suffix);
     double maxPriority() const;
-    void postEvaluate(CSharedPtr<CCmd> cmd);
+    void postEvaluate(CSharedPtr<CCmdStruct> cmd);
     //top
-    void processStmt(CSharedPtr<CStmt> stmt,CSharedPtr<CCmd> cmd);
+    void processStmt(CSharedPtr<CStmt> stmt,CSharedPtr<CCmdStruct> cmd);
     //level 1
-    void processAssertExp(CSharedPtr<CAssertExp> ass,CSharedPtr<CCmd> cmd);
-    void processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd);
-    void processFunc(CSharedPtr<CFuncCall> func,CSharedPtr<CCmd> cmd);
-    void processCmd(CSharedPtr<CCmd> cmd);
+    void processAssertExp(CSharedPtr<CAssertExp> ass,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines);
+    void processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines);
+    void processFunc(CSharedPtr<CFuncCall> func,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines);
+    void processCmd(CSharedPtr<CCmdStruct> cmd,CSharedPtr<CCmdStruct> host_cmd,std::vector<int> & lines);
     //level 2
-    void processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd);
-    void processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd);
-    void processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd);
-    void processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd);
-    void processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd);
-    void processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd);
+    void processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines);
+    void processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines);
+    void processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines);
+    void processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines);
+    void processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines);
+    void processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmdStruct> cmd,std::vector<int> & lines);
 };
 
 #endif
