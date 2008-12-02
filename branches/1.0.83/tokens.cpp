@@ -26,6 +26,7 @@ bool IsLocalOnlyToken(int type_token)
 {
     return (type_token == SEND || type_token == RECV
         || type_token == BEGIN_ || type_token == END
+        || type_token == ARRAY || type_token == __END_ARRAY
         || type_token == FUN);
 }
 
@@ -71,6 +72,10 @@ bool FunArgNumCheck(int fun_token,size_t argn)
             return argn == 1 || argn == 2;
         case BEGIN_:case END:case PRINT:
             return argn > 0;
+        case ARRAY:
+            return argn <= 1;
+        case __END_ARRAY:
+            return argn == 0;
     }
     return false;
 }
@@ -82,6 +87,7 @@ int FunRetType(int fun_token,const std::vector<int> * types)
         case SEND:case RECV:
         case BEGIN_:case END:
         case FUN:case PRINT:
+        case ARRAY:case __END_ARRAY:
             return 0;   //void
         case TP_U8:
             return 3;   //CValue::u8_
@@ -195,6 +201,16 @@ size_t FunArgTypeCheck(int fun_token,const std::vector<int> & types,CSharedPtr<C
             if(types.size() > 1)
                 return 2;
             break;}
+        case ARRAY:{
+            if(types.size() == 1 && !CValue::IsInteger(types[0]))
+                return 1;
+            else if(types.size() > 1)
+                return 2;
+            break;}
+        case __END_ARRAY:{
+            if(!types.empty())
+                return 1;
+            break;}
     }
     return 0;
 }
@@ -297,7 +313,10 @@ void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCm
             InvokeFUN(args,lineno,cmd);
             break;
         case PRINT:
-            InvokePRINT(args,lineno,cmd);
+            InvokePrint(args,lineno,cmd);
+            break;
+        case ARRAY:case __END_ARRAY:
+            InvokeArray((fun_token == ARRAY),args,lineno,cmd);
             break;
     }
 }

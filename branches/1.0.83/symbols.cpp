@@ -763,6 +763,11 @@ void CCmd::End(CSharedPtr<CExpr> v)
     begin_list_->Erase(v);
 }
 
+bool CCmd::BeginEmpty() const
+{
+    return (!begin_list_ || begin_list_->args_.empty());
+}
+
 bool CCmd::SendData(const std::vector<char> & buf) const
 {
     for(std::vector<CSharedPtr<CValue> >::const_iterator i = conn_list_.begin();
@@ -1006,3 +1011,7 @@ void CCmd::InvokeFun(bool (*fp)(std::vector<char> &,std::vector<char> &),size_t 
         inds_>>Manip::skip(cur);
     }
 }
+
+void CCmd::StartArray(){}
+void CCmd::StartArray(size_t sz){}
+void CCmd::EndArray(){}

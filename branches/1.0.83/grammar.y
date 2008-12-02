@@ -15,7 +15,7 @@ int yylex();
 %token NL EOF_ IEQ
 %token CMD DEF
 %token TP_U8 TP_S8 TP_U16 TP_S16 TP_U32 TP_S32 TP_U64 TP_S64 STR RAW TCP UDP
-%token FUN BEGIN_ END HBO NBO SEND RECV HEX UNHEX PRINT IP __IPN __IPH
+%token FUN BEGIN_ END HBO NBO SEND RECV HEX UNHEX PRINT IP __IPN __IPH ARRAY __END_ARRAY
 %token OP_LG OP_SM OP_LEQ OP_SEQ OP_EQ OP_NEQ OP_NOT OP_IN OP_OUT
 %token <int_> INT
 %token <long_> LONG
@@ -473,6 +473,8 @@ func_name : FUN		{DBG_YY("func_name = FUN("<<FUN<<")");$$ = FUN;}
 	| PRINT		{DBG_YY("func_name = PRINT("<<PRINT<<")");$$ = PRINT;}
 	| IP NBO	{DBG_YY("func_name = IP NBO("<<__IPN<<")");$$ = __IPN;}
 	| IP HBO	{DBG_YY("func_name = IP HBO("<<__IPH<<")");$$ = __IPH;}
+	| BEGIN_ ARRAY	{DBG_YY("func_name = ARRAY("<<ARRAY<<")");$$ = ARRAY;}
+	| END ARRAY	{DBG_YY("func_name = END ARRAY("<<__END_ARRAY<<")");$$ = __END_ARRAY;}
 	;
 
 simple_type : TP_U8	{DBG_YY("simple_type = U8("<<TP_U8<<")");$$ = TP_U8;}
