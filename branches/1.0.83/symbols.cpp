@@ -1043,6 +1043,10 @@ void CCmd::AddArrayEnd(int lineno)
 
 void CCmd::StartArray(int lineno)
 {
+    if(!IsRecv()){
+        RUNTIME_ERR(lineno,"ARRAY size is unknown");
+        return;
+    }
     U32 sz = 0;
     if(!GetVal(sz,lineno)){
         RUNTIME_ERR(lineno,"cannot recv array size");
