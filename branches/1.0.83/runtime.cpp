@@ -362,7 +362,7 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
                 cmd->DumpRecvData();
                 ASSERT_FAIL(decl->lineno_,"recv '"<<decl->var_->varname_<<"' failed");
             }
-            SHOW(RealVarname(decl->var_->varname_)<<" = "
+            SHOW(RealVarname(decl->var_->varname_)<<cmd->ArrayIndexString()<<" = "
                 <<decl->val_->ShowValue());
         }
     }
@@ -430,7 +430,8 @@ void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         cmd->DumpRecvData();
         ASSERT_FAIL(decl->lineno_,"");
     }
-    SHOW(RealVarname(decl->var_->varname_)<<" = "<<decl->val_->ShowValue());
+    SHOW(RealVarname(decl->var_->varname_)<<cmd->ArrayIndexString()<<" = "
+        <<decl->val_->ShowValue());
     var_table_[decl->var_->varname_] = decl;
 }
 
