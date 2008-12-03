@@ -59,7 +59,7 @@ std::string CValue::ShowValue(bool hasLen) const
         case 8:oss<<s32_;break;
         case 9:oss<<u64_;break;
         case 10:oss<<s64_;break;
-        case 11:case 14:oss<<Dump(str_,-1,hasLen);break;
+        case 11:case 14:oss<<Dump(str_,size_t(-1),hasLen);break;
         case 12:oss<<tcp_->ToString();break;
         case 13:oss<<udp_->ToString();break;
     }
