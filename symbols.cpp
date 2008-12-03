@@ -696,6 +696,7 @@ CArrayRange::CArrayRange(int ln)
     : lineno_(ln)
     , start_index_(-1)
     , end_index_(-1)
+    , cur_(0)
     , sz_(-1)
 {}
 
@@ -847,11 +848,11 @@ bool CCmd::GetArray(CSharedPtr<CDeclare> d)
             d->var_->array_type_->sz_ = int(sz);
     }
     assert(d->val_);
-    SHOW(CRuntime::RealVarname(d->var_->varname_)<<".size() = "
-        <<d->var_->array_type_->sz_);
+    SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()
+        <<".size() = "<<d->var_->array_type_->sz_);
     for(int i = 0;i < d->var_->array_type_->sz_;++i){
         if(GetVal(*d->val_,d->lineno_)){
-            SHOW(CRuntime::RealVarname(d->var_->varname_)<<"["<<i<<"] = "
+            SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()<<"["<<i<<"] = "
                 <<d->val_->ShowValue());
         }else{
             RUNTIME_ERR(d->lineno_,"recv '"<<d->var_->varname_<<"["<<i
@@ -869,14 +870,16 @@ bool CCmd::GetAssert(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v)
     if(d->val_->IsRaw()){
         assert(v->IsString());
         bool ret = GetRaw(d->val_->str_,v->str_,d->lineno_);
-        SHOW(CRuntime::RealVarname(d->var_->varname_)<<" = "<<d->val_->ShowValue());
+        SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()
+            <<" = "<<d->val_->ShowValue());
         return ret;
     }else{
         if(!GetVal(*d->val_,d->lineno_)){
             RUNTIME_ERR(d->lineno_,"recv '"<<d->var_->varname_<<"' error");
             return false;
         }
-        SHOW(CRuntime::RealVarname(d->var_->varname_)<<" = "<<d->val_->ShowValue());
+        SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()
+            <<" = "<<d->val_->ShowValue());
         assert(v);
         switch(FunAssert(d->op_token_,d->val_,v)){
             case 1:return true;
@@ -1051,7 +1054,7 @@ void CCmd::StartArray(int lineno)
     if(!GetVal(sz,lineno)){
         RUNTIME_ERR(lineno,"cannot recv array size");
     }else{
-        //SHOW("
+        SHOW("  ARRAY_SIZE = "<<sz);
         StartArray(sz,lineno);
     }
 }
@@ -1075,13 +1078,22 @@ void CCmd::EndArray(int lineno)
         return;
     }
     size_t i = array_stack_.back();
-    assert(array_range_[i].sz_ >= 0);
-    if(!array_range_[i].sz_){   //array ends
+    assert(array_range_[i].cur_ <= array_range_[i].sz_);
+    if(array_range_[i].cur_ == array_range_[i].sz_){   //array ends
         array_stack_.pop_back();
     }else{                        //array repeats
         assert(array_range_[i].start_index_ >= 0);
-        --array_range_[i].sz_;
+        ++array_range_[i].cur_;
         cur_stmt_index_ = array_range_[i].start_index_;
     }
 }
 
+std::string CCmd::ArrayIndexString() const
+{
+    std::ostringstream oss;
+    for(size_t i = 0;i < array_stack_.size();++i){
+        size_t index = array_stack_[i];
+        oss<<"["<<array_range_[index].cur_<<"]";
+    }
+    return oss.str();
+}

@@ -218,6 +218,7 @@ struct CArrayRange
     int lineno_;
     ssize_t start_index_;
     ssize_t end_index_;
+    ssize_t cur_;
     ssize_t sz_;
     //functions:
     explicit CArrayRange(int ln = -1);
@@ -234,7 +235,7 @@ struct CCmd
     std::vector<CSharedPtr<CStmt> > stmt_list_;
     std::vector<CSharedPtr<CValue> > conn_list_;
     CSharedPtr<CArgList> begin_list_;   //BEGIN的变量名堆栈
-    size_t array_index_;
+    size_t array_index_;                //当前数组索引，只在编译的时候使用
     std::vector<size_t> array_stack_;   //数组循环堆栈
     std::vector<CArrayRange> array_range_;
     //send cmd
@@ -257,6 +258,7 @@ struct CCmd
     void StartArray(size_t sz,int lineno);
     void EndArray(int lineno);
     bool IsInArray() const{return !array_stack_.empty();}
+    std::string ArrayIndexString() const;
     //send cmd
     size_t SendDataOffset() const{return outds_.Size();}
     bool PutValue(CSharedPtr<CValue> v);

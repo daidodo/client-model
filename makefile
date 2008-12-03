@@ -22,7 +22,9 @@ CPP_SRC := $(wildcard *.cpp) $(wildcard common/*.cpp)
 
 RM_SRC := y.tab.h $(YACC_SRC:.y=.c) $(LEX_SRC:.l=.c)
 
-OBJS := $(YACC_SRC:.y=.o) $(LEX_SRC:.l=.o) $(CPP_SRC:.cpp=.o)
+YACC_OBJ := $(YACC_SRC:.y=.o)
+
+OBJS := $(YACC_OBJ) $(LEX_SRC:.l=.o) $(CPP_SRC:.cpp=.o)
 
 DEPS := $(CPP_SRC:.cpp=.d)
 
@@ -46,10 +48,10 @@ lib : $(LIB_TARGET)
 
 so : $(SO_TARGET)
 
-deps : $(DEPS)
+deps :$(DEPS)
 
-%.d : %.cpp
-	@$(CXX) -MM $(CXXFLAGS) -o $*.d $<
+%.d :  %.cpp $(YACC_OBJ)
+	$(CXX) -MM $(CXXFLAGS) -o $*.d $<
 
 $(OUT_TARGET) : $(OBJS)
 	$(CXX) -o $@ $^
@@ -71,4 +73,8 @@ love : clean all
 
 .PHONEY : all out lib so deps cleandist clean love
 
+ifneq (${MAKECMDGOALS},clean)
+ifneq (${MAKECMDGOALS},cleandist)
 sinclude $(DEPS)
+endif
+endif
