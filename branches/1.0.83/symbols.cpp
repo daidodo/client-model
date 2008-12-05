@@ -465,6 +465,7 @@ CDeclare::CDeclare(int ln)
     , op_token_(0)
     , eva_priority_(0)
     , offset_(-1)
+    , post_byte_order_(true)
 {}
 
 std::string CDeclare::ToString() const{
@@ -748,6 +749,15 @@ bool CCmd::PutValue(CSharedPtr<CValue> v)
 {
     assert(v);
     return (outds_<<*v);
+}
+
+bool CCmd::PutArray(CSharedPtr<CDeclare> d)
+{
+    assert(d && d->val_ && d->var_->array_type_->sz_ >= 0);
+    for(size_t i = 0;i < d->var_->array_type_->sz_;++i)
+        if(!(outds_<<*d->val_))
+            return false;
+    return true;
 }
 
 bool CCmd::PostPutValue(CSharedPtr<CValue> v,size_t offset)

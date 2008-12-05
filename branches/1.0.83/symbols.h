@@ -149,7 +149,9 @@ struct CDeclare
     double eva_priority_;
     //value
     CSharedPtr<CValue> val_;
-    ssize_t offset_;    //for post evaluation
+    //post evaluation
+    ssize_t offset_;
+    bool post_byte_order_;  //延后求值的变量记录字节序：true:NBO ; false:HBO
     //functions:
     explicit CDeclare(int ln);
     std::string ToString() const;
@@ -166,7 +168,7 @@ struct CDeclare
     bool IsStreamOut() const;
     bool IsConnection() const{return var_->IsConnection();}
     bool IsLocalOnly() const{return IsArray() || IsAssert() || IsStream();}
-    bool IsRecvOnly() const{return IsArray() || IsAssert() || IsStreamIn();}
+    bool IsRecvOnly() const{return IsAssert() || IsStreamIn();}
     bool IsSendOnly() const{return IsFixed() || IsStreamOut();}
     bool CheckDefined(CSharedPtr<CCmd> cur_cmd);
     std::string Depend() const{return (expr_ ? expr_->Depend() : "");}
@@ -262,6 +264,7 @@ struct CCmd
     //send cmd
     size_t SendDataOffset() const{return outds_.Size();}
     bool PutValue(CSharedPtr<CValue> v);
+    bool PutArray(CSharedPtr<CDeclare> d);
     bool PostPutValue(CSharedPtr<CValue> v,size_t offset);
     bool PostInsertValue(CSharedPtr<CValue> v,size_t offset);
     void Begin(CSharedPtr<CExpr> v);

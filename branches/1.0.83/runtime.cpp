@@ -83,6 +83,10 @@ void CRuntime::postEvaluate(CSharedPtr<CCmd> cmd)
             INTERNAL_ERR("declaration for '"<<*i<<"' not found");
             continue;
         }
+        //set byte order
+        if(decl->post_byte_order_ != net_byte_order_)
+            InvokeBO(decl->post_byte_order_,cmd);
+        //post set value
         if(decl->IsSimplePost()){
             CSharedPtr<CValue> v = decl->Evaluate();
             if(decl->is_def_ || decl->offset_ < 0)  //def or global var
@@ -138,6 +142,7 @@ bool CRuntime::addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,co
         decl->eva_priority_ = dep + 1000;
     }else
         decl->eva_priority_ = (dep + Priority(*next)) / 2;
+    decl->post_byte_order_ = net_byte_order_;
     post_map_[vname] = post_list_.insert(next,vname);
     return true;
 }
@@ -148,6 +153,7 @@ void CRuntime::addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl)
         decl->eva_priority_ = 1000;
     else
         decl->eva_priority_ = Priority(post_list_.front()) / 2;
+    decl->post_byte_order_ = net_byte_order_;
     post_list_.push_front(vname);
     post_map_[vname] = post_list_.begin();
 }
@@ -217,6 +223,8 @@ void CRuntime::processDeclare(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
                 processFixed(decl,cmd);
             else if(decl->IsStreamOut())
                 processStreamOut(decl,cmd);
+            else if(decl->IsArray())
+                processArray(decl,cmd);
             else{
                 RUNTIME_ERR(decl->lineno_,"invalid declaration in SEND command");
             }
@@ -253,7 +261,6 @@ void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
         SHOW("  RECV command '"<<cmd->cmd_name_<<"'");
     }
     cmd->SetByteOrder(net_byte_order_);
-    ;
     for(cmd->cur_stmt_index_ = 0;cmd->cur_stmt_index_ < cmd->stmt_list_.size();
         ++cmd->cur_stmt_index_)
     {
@@ -288,6 +295,7 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processArray decl="<<to_str(decl));
     DBG_RT("processArray cmd="<<to_str(cmd));
+    assert(cmd);
     assert(decl->var_->array_type_);
     if(decl->var_->array_type_->expr_){
         CSharedPtr<CValue> sv = decl->var_->array_type_->expr_->Evaluate();
@@ -296,20 +304,24 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
                 <<decl->var_->varname_<<"'");
             return;
         }
-        //decl->var_->array_type_->expr_ = 0;
         if(!sv->ToInteger(decl->var_->array_type_->sz_)){
             RUNTIME_ERR(decl->lineno_,"type mismatch for size of array '"
                 <<decl->var_->varname_<<"'");
             return;
         }
+    }else if(cmd->IsSend()){
+        RUNTIME_ERR(decl->lineno_,"array size is unknown in SEND command");
+        return;
     }
     decl->val_ = decl->var_->Initial(decl->lineno_);
     if(!decl->val_){
         ASSERT_FAIL(decl->lineno_,"cannot initialize '"<<decl->var_->varname_
             <<"'");
     }
-    assert(cmd && cmd->IsRecv());
-    if(!cmd->GetArray(decl)){
+    if(cmd->IsSend() && !cmd->PutArray(decl)){
+        RUNTIME_ERR(decl->lineno_,"cannot pack array '"<<decl->var_->varname_
+            <<"'");
+    }else if(cmd->IsRecv() && !cmd->GetArray(decl)){
         cmd->DumpRecvData();
         ASSERT_FAIL(decl->lineno_,"recv '"<<decl->var_->varname_<<"' failed");
     }
