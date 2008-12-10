@@ -249,7 +249,11 @@ void CRuntime::processFunc(CSharedPtr<CFuncCall> func,CSharedPtr<CCmd> cmd)
     DBG_RT("processFunc func="<<to_str(func));
     DBG_RT("processFunc cmd="<<to_str(cmd));
     if(func->IsConnection()){
-        addConnection(func->Evaluate());
+        CSharedPtr<CValue> conn = func->Evaluate();
+        if(!conn){
+            RUNTIME_ERR(func->lineno_,"cannot evaluate function");
+        }else
+            addConnection(conn);
     }else
         func->Invoke(cmd);
 }
@@ -384,7 +388,6 @@ void CRuntime::processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processFixed decl="<<to_str(decl));
     DBG_RT("processFixed cmd="<<to_str(cmd));
-    //assert(decl->expr_);
     const std::string vname = decl->var_->varname_;
     if(decl->Evaluate() && decl->IsConnection())
         addConnection(decl->val_);

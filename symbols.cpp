@@ -666,6 +666,8 @@ CSharedPtr<CValue> CFuncCall::Evaluate() const
 
 void CFuncCall::Invoke(CSharedPtr<CCmd> cmd) const
 {
+    if(global().err_count_)
+        throw 0;
     FunInvoke(ft_token_,arg_list_,lineno_,cmd);
 }
 

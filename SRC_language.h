@@ -6,7 +6,7 @@
 
 //版本信息
 //version info
-#define SRC_version "1.1.93"
+#define SRC_version "1.1.94"
 
 //初始化环境
 //init environment
