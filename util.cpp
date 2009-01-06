@@ -3,10 +3,6 @@
 #include <cstdlib>  //atoi,atol
 #include <sstream>  //std::ostringstream
 #include <iomanip>  //std::setw
-#include <locale>   //std::isgraph
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
 #include "util.h"
 
 template<typename T,int Bytes = sizeof(T)>
@@ -72,7 +68,7 @@ template<typename T>struct __NumUnit<T,8>{
 template<typename T>
 inline int __number_unit(T v,int u)
 {
-    return __NumUnit<T>()(v,u);
+    return int(__NumUnit<T>()(v,u));
 }
 
 int str2int(const char * str,size_t len)
@@ -118,8 +114,11 @@ long long str2i64(const char * str,size_t len)
     if(*str == '0'){
         if(len > 1)
             ret = str2num_base8<long>(str + 1,len - 1);
-    }else
-        ret = atoll(str);
+    }else{
+        ret = 0;
+        std::istringstream iss(str);
+        iss>>ret;
+    }
     return __number_unit(ret,str[len - 1]);
 }
 
@@ -201,14 +200,14 @@ std::string DumpVal(const char * v,size_t sz,int base,bool hasLen)
                 ret.push_back('0');
             else{
                 switch(base){
-                        case 16:{       //16进制
-                            ret.push_back(DIGIT[(*v >> 4) & 0xF]);
-                            ret.push_back(DIGIT[*v & 0xF]);
-                            break;}
-                        default:       //8进制
-                            ret.push_back(DIGIT[(*v >> 6) & 3]);
-                            ret.push_back(DIGIT[(*v >> 3) & 7]);
-                            ret.push_back(DIGIT[*v & 7]);
+                    case 16:{       //16进制
+                        ret.push_back(DIGIT[(*v >> 4) & 0xF]);
+                        ret.push_back(DIGIT[*v & 0xF]);
+                        break;}
+                    default:       //8进制
+                        ret.push_back(DIGIT[(*v >> 6) & 3]);
+                        ret.push_back(DIGIT[(*v >> 3) & 7]);
+                        ret.push_back(DIGIT[*v & 7]);
                 }
             }
         }
@@ -275,7 +274,7 @@ std::string DumpFormat(const char * v,size_t sz)
             oss<<"   ";
         oss<<"; ";
         for(size_t i = 0;i < left;++i)
-            oss<<(std::isprint(v[ln + i]) ? v[ln + i] : '.');
+            oss<<((v[ln + i] > 31 && v[ln + i] < 127) ? v[ln + i] : '.');
         oss<<std::endl;
     }
     return oss.str();

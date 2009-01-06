@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS 1
+
 #include <cassert>
 #include <iostream>
 #include "global.h"
@@ -54,7 +56,12 @@ bool CGlobal::Run()
     }
     runtime_ = New<CRuntime>();
     try{
+        if(!InitSocket()){
+            std::cerr<<"could not find a usable WinSock DLL\n";
+            return false;
+        }
         runtime_->Interpret(*program_);
+        UninitSocket();
     }catch(int){}
     if(err_count_){
         std::cerr<<"total "<<err_count_<<" error(s)\n";

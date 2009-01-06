@@ -1,12 +1,12 @@
 #ifndef DOZERG_SOCKTS_H_20080229
 #define DOZERG_SOCKTS_H_20080229
 
-#include <errno.h>          //errno
-#include <sys/socket.h>     //sockaddr
+#include <platform.h>
+
 #include <vector>           //std::vector
 #include <string>           //std::string
 
-#include "../types.h"
+#include <types.h>
 
 /*
     对网络socket的简单包装
@@ -18,14 +18,6 @@
         CUdpSocket
 //*/
 
-inline std::string ErrorMsg(int error_no)
-{
-    const int MAX_BUF = 256;
-    char buf[MAX_BUF];
-    std::ostringstream os;
-    os<<" errno="<<error_no<<" - "<<strerror_r(error_no,buf,MAX_BUF);
-    return os.str();
-}
 
 
 class CSocket;
@@ -88,11 +80,15 @@ public:
         TCP,        //SOCK_STREAM + IPPROTO_TCP
         UDP         //SOCK_DGRAM + IPPROTO_UDP
     };
-    static const int INVALID_FD = -1;
+    static const SOCKET INVALID_FD = -1;
+#ifdef WIN32
+    static std::string ErrMsg(){return ErrorMsg(WSAGetLastError());}
+#else
     static std::string ErrMsg(){return ErrorMsg(errno);}
+#endif
     CSocket();
     virtual ~CSocket();
-    int FD() const{return fd_;}
+    SOCKET FD() const{return fd_;}
     bool IsValid() const{return fd_ != INVALID_FD;}
     bool SetLinger(bool on = true,int timeout = 0);
     bool SetBlock(bool on = true);
@@ -113,7 +109,7 @@ protected:
     bool getSock(int family,ESockType socktype);
     bool bindAddr(const CSockAddr & addr);
     bool connectAddr(const CSockAddr & addr);
-    int fd_;
+    SOCKET fd_;
 };
 
 class CTcpConnSocket : public CSocket

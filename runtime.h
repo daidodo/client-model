@@ -24,7 +24,7 @@ struct CRuntime
 //functions:
     CRuntime();
     void Interpret(CProgram & program);
-    bool SetByteOrder(bool net_bo){net_byte_order_ = net_bo;}
+    void SetByteOrder(bool net_bo){net_byte_order_ = net_bo;}
     CSharedPtr<CDeclare> FindVar(std::string vname,CSharedPtr<CCmd> cmd = 0);
     double Priority(const std::string & vname) const;
     bool IsPost(const std::string & vname) const;

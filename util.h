@@ -1,9 +1,9 @@
 #ifndef DOZERG_UTILITY_H_20081111
 #define DOZERG_UTILITY_H_20081111
 
+#include "platform.h"
 #include <string>
 #include <vector>
-#include <byteswap.h>   //bswap_16,bswap_32,bswap_64
 #include "types.h"
 
 template<typename T>
