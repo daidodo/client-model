@@ -23,21 +23,23 @@ struct CUdp : public CUdpSocket
     explicit CUdp(int ln);
 };
 
-#define __FROM_INTEGER(T,mem,v) {   \
-        mem = v;   \
-        const T MAX = std::numeric_limits<T>::max();  \
-        const T MIN = std::numeric_limits<T>::min();  \
-        if(v < MIN || v > MAX)  \
-            return false;   \
-    }
+template<typename T1,typename T2>
+bool __FromInteger(T1 & mem,T2 v){
+    mem = T1(v);
+    return true;
+    //const T2 MAX = T2(std::numeric_limits<T1>::max());
+    //const T2 MIN = T2(std::numeric_limits<T1>::min());
+    //return (MIN <= v && v <= MAX);
+}
 
-#define __TO_INTEGER(T,res,mem) {   \
-        res = mem;   \
-        const T MAX = std::numeric_limits<T>::max();  \
-        const T MIN = std::numeric_limits<T>::min();  \
-        if(mem < MIN || mem > MAX)  \
-            return false;   \
-    }
+template<typename T1,typename T2>
+bool __ToInteger(T1 & res,T2 mem){
+    res = T1(mem);
+    return true;
+    //const T2 MAX = T2(std::numeric_limits<T1>::max());
+    //const T2 MIN = T2(std::numeric_limits<T1>::min());
+    //return (MIN <= mem && mem <= MAX);
+}
 
 struct CValue
 {
@@ -84,38 +86,34 @@ struct CValue
     template<typename T>
     bool ToInteger(T & res) const{
         switch(type_){
-            case 1:__TO_INTEGER(int,res,int_);break;
-            case 2:__TO_INTEGER(long,res,long_);break;
-            case 3:__TO_INTEGER(U8,res,u8_);break;
-            case 4:__TO_INTEGER(S8,res,s8_);break;
-            case 5:__TO_INTEGER(U16,res,u16_);break;
-            case 6:__TO_INTEGER(S16,res,s16_);break;
-            case 7:__TO_INTEGER(U32,res,u32_);break;
-            case 8:__TO_INTEGER(S32,res,s32_);break;
-            case 9:__TO_INTEGER(U64,res,u64_);break;
-            case 10:__TO_INTEGER(S64,res,s64_);break;
-            default:
-                return false;
+            case 1:return __ToInteger(res,int_);
+            case 2:return __ToInteger(res,long_);
+            case 3:return __ToInteger(res,u8_);
+            case 4:return __ToInteger(res,s8_);
+            case 5:return __ToInteger(res,u16_);
+            case 6:return __ToInteger(res,s16_);
+            case 7:return __ToInteger(res,u32_);
+            case 8:return __ToInteger(res,s32_);
+            case 9:return __ToInteger(res,u64_);
+            case 10:return __ToInteger(res,s64_);
         }
-        return true;
+        return false;
     }
     template<typename T>
     bool FromInteger(T v){
         switch(type_){
-            case 1:__FROM_INTEGER(int,int_,v);break;
-            case 2:__FROM_INTEGER(long,long_,v);break;
-            case 3:__FROM_INTEGER(U8,u8_,v);break;
-            case 4:__FROM_INTEGER(S8,s8_,v);break;
-            case 5:__FROM_INTEGER(U16,u16_,v);break;
-            case 6:__FROM_INTEGER(S16,s16_,v);break;
-            case 7:__FROM_INTEGER(U32,u32_,v);break;
-            case 8:__FROM_INTEGER(S32,s32_,v);break;
-            case 9:__FROM_INTEGER(U64,u64_,v);break;
-            case 10:__FROM_INTEGER(S64,s64_,v);break;
-            default:
-                return false;
+            case 1:return __FromInteger(int_,v);
+            case 2:return __FromInteger(long_,v);
+            case 3:return __FromInteger(u8_,v);
+            case 4:return __FromInteger(s8_,v);
+            case 5:return __FromInteger(u16_,v);
+            case 6:return __FromInteger(s16_,v);
+            case 7:return __FromInteger(u32_,v);
+            case 8:return __FromInteger(s32_,v);
+            case 9:return __FromInteger(u64_,v);
+            case 10:return __FromInteger(s64_,v);
         }
-        return true;
+        return false;
     }
     /*  return :
         0   assert false
@@ -141,8 +139,5 @@ private:
 COutByteStream & operator <<(COutByteStream & ds,const CValue & v);
 
 CInByteStream & operator >>(CInByteStream & ds,CValue & v);
-
-#undef __FROM_INTEGER
-#undef __TO_INTEGER
 
 #endif

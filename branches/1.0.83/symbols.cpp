@@ -349,6 +349,7 @@ bool CArrayType::CheckDefined(int lineno) const
 {
     if(expr_)
         return expr_->CheckDefined(lineno);
+    return true;
 }
 
 int CArrayType::RetType() const
@@ -756,7 +757,7 @@ bool CCmd::PutValue(CSharedPtr<CValue> v)
 bool CCmd::PutArray(CSharedPtr<CDeclare> d)
 {
     assert(d && d->val_ && d->var_->array_type_->sz_ >= 0);
-    for(size_t i = 0;i < d->var_->array_type_->sz_;++i)
+    for(int i = 0;i < d->var_->array_type_->sz_;++i)
         if(!(outds_<<*d->val_))
             return false;
     return true;

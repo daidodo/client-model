@@ -149,7 +149,7 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
         if(args.size() == 3){
             U32 timeS = 0;
             if(!args[2]->ToInteger(ret->tcp_->timeMs_)){
-                RUNTIME_ERR(lineno,"invalid argument 3 for timeout value");
+                RUNTIME_ERR(lineno,"invalid value for argutment 3");
                 return false;
             }
         }
@@ -158,10 +158,6 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
             RUNTIME_ERR(lineno,"cannot connect to remote address,"<<CSocket::ErrMsg());
             return 0;
         }
-        //if(!ret->tcp_->SetBlock(false)){
-        //    RUNTIME_ERR(lineno,"set nonblock error,"<<CSocket::ErrMsg());
-        //    return 0;
-        //}
 #endif
         return ret;
     }
