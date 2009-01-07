@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\Program Files\Parser Generator 2\Cpp\Include&quot;;&quot;..\SRC-Language&quot;"
+				AdditionalIncludeDirectories="&quot;..\SRC-Language&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;YY_NO_UNISTD_H"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -61,7 +61,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="Ws2_32.lib"
+				OutputFile="$(OutDir)\srcc.exe"
 				LinkIncremental="2"
+				ModuleDefinitionFile=""
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				RandomizedBaseAddress="1"
@@ -95,7 +98,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -117,7 +120,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				AdditionalIncludeDirectories="&quot;..\SRC-Language&quot;"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;YY_NO_UNISTD_H"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -135,7 +139,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				OutputFile="$(OutDir)\srcc.exe"
 				LinkIncremental="1"
+				ModuleDefinitionFile=""
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"
@@ -224,20 +230,24 @@
 					RelativePath="..\SRC-Language\examples\example_08.txt"
 					>
 				</File>
+				<File
+					RelativePath="..\SRC-Language\examples\example_09.txt"
+					>
+				</File>
 			</Filter>
 			<Filter
 				Name="src"
 				>
+				<File
+					RelativePath="..\SRC-Language\gen_gram.sh"
+					>
+				</File>
 				<File
 					RelativePath="..\SRC-Language\makefile"
 					>
 				</File>
 				<File
 					RelativePath="..\SRC-Language\makefile.release"
-					>
-				</File>
-				<File
-					RelativePath="..\SRC-Language\win32.sh"
 					>
 				</File>
 				<Filter
@@ -372,19 +382,19 @@
 					Name="grammar"
 					>
 					<File
-						RelativePath="..\SRC-Language\grammar.cpp"
-						>
-					</File>
-					<File
 						RelativePath="..\SRC-Language\grammar.y"
 						>
 					</File>
 					<File
-						RelativePath="..\SRC-Language\scanner.cpp"
+						RelativePath="..\SRC-Language\grammar_src.cpp"
 						>
 					</File>
 					<File
 						RelativePath="..\SRC-Language\scanner.l"
+						>
+					</File>
+					<File
+						RelativePath="..\SRC-Language\scanner_src.cpp"
 						>
 					</File>
 				</Filter>
@@ -429,26 +439,6 @@
 					</File>
 				</Filter>
 			</Filter>
-		</Filter>
-		<Filter
-			Name="test"
-			>
-			<File
-				RelativePath="..\test\aes_encrypt.h"
-				>
-			</File>
-			<File
-				RelativePath="..\test\EncryptorAes.h"
-				>
-			</File>
-			<File
-				RelativePath="..\test\main.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\test\makefile"
-				>
-			</File>
 		</Filter>
 	</Files>
 	<Globals>

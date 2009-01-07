@@ -20,6 +20,12 @@ TODO:
 11.长度字段为2字节，1字节的字符串
 12.为字符串设置特定的一些合法值
 13.多文件include
+(DONE)14.移植到windows下，生成dll和lib文件
+15.使SRC源文件可以引用命令行参数
+(DONE)16.给TCP和UDP连接的send和recv增加超时时间
+(CANCEL)17.使全局变量能使用BEGIN和END函数
+18.CValue::ToInteger和CValue::FromInteger需要检查数值的范围
+(DONE)19.增加SLEEP函数，睡眠指定时间
 
 BUGS:
 1. 由于END求值与post求值分开进行，导致post insert的字节数不会计入END求值中
