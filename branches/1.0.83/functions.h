@@ -41,8 +41,10 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
 
 void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd);
 
-void InvokePrint(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd);
+void InvokePrint(CSharedPtr<CArgList> args,int lineno);
 
 void InvokeArray(bool is_start,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd);
+
+void InvokeSleep(CSharedPtr<CArgList> args,int lineno);
 
 #endif

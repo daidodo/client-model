@@ -76,6 +76,8 @@ bool FunArgNumCheck(int fun_token,size_t argn)
             return argn <= 1;
         case __END_ARRAY:
             return argn == 0;
+        case SLEEP:
+            return argn == 1;
     }
     return false;
 }
@@ -88,6 +90,7 @@ int FunRetType(int fun_token,const std::vector<int> * types)
         case BEGIN_:case END:
         case FUN:case PRINT:
         case ARRAY:case __END_ARRAY:
+        case SLEEP:
             return 0;   //void
         case TP_U8:
             return 3;   //CValue::u8_
@@ -211,6 +214,12 @@ size_t FunArgTypeCheck(int fun_token,const std::vector<int> & types,CSharedPtr<C
             if(!types.empty())
                 return 1;
             break;}
+        case SLEEP:{
+            if(types.empty() || !CValue::IsInteger(types[0]))
+                return 1;
+            else if(types.size() > 1)
+                return 2;
+            break;}
     }
     return 0;
 }
@@ -318,11 +327,13 @@ void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCm
             InvokeFUN(args,lineno,cmd);
             break;
         case PRINT:
-            InvokePrint(args,lineno,cmd);
+            InvokePrint(args,lineno);
             break;
         case ARRAY:case __END_ARRAY:
             InvokeArray((fun_token == ARRAY),args,lineno,cmd);
             break;
+        case SLEEP:
+            InvokeSleep(args,lineno);
     }
 }
 

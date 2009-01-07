@@ -389,7 +389,7 @@ void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
     }
 }
 
-void InvokePrint(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
+void InvokePrint(CSharedPtr<CArgList> args,int lineno)
 {
     assert(args);
     std::ostringstream oss;
@@ -427,3 +427,20 @@ void InvokeArray(bool is_start,CSharedPtr<CArgList> args,int lineno,CSharedPtr<C
     }
 }
 
+void InvokeSleep(CSharedPtr<CArgList> args,int lineno)
+{
+    assert(args && args->args_.size() == 1);
+    CSharedPtr<CExpr> expr = (*args)[0];
+    assert(expr);
+    CSharedPtr<CValue> v = expr->Evaluate();
+    if(!v){
+        RUNTIME_ERR(expr->lineno_,"cannot evaluate argument 1");
+        return;
+    }
+    int sec = 0;
+    if(!v->ToInteger(sec)){
+        RUNTIME_ERR(expr->lineno_,"invalid value for argument 1");
+        return;
+    }
+    sleep(sec);
+}

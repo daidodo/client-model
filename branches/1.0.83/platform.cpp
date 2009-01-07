@@ -37,6 +37,12 @@ bool InitSocket(){
     return true;
 }
 
+void sleep(unsigned int sec)
+{
+    DWORD MSec = sec * 1000;
+    Sleep(MSec);
+}
+
 #else
 
 std::string ErrorMsg(int error_no)

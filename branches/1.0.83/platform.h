@@ -56,6 +56,8 @@ bool InitSocket();
 
 inline void UninitSocket(){WSACleanup();}
 
+void sleep(unsigned int sec);
+
 #else
 
 #   include <sys/socket.h>

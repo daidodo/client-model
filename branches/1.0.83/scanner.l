@@ -111,6 +111,7 @@ UNHEX	{CUR_TOK = yytext;DBG_LEX("UNHEX");return UNHEX;}
 PRINT	{CUR_TOK = yytext;DBG_LEX("PRINT");return PRINT;}
 IP	{CUR_TOK = yytext;DBG_LEX("IP");return IP;}
 ARRAY	{CUR_TOK = yytext;DBG_LEX("ARRAY");return ARRAY;}
+SLEEP	{CUR_TOK = yytext;DBG_LEX("SLEEP");return SLEEP;}
 
 
 COMMAND |
