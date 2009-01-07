@@ -6,13 +6,13 @@
 //CTcp
 CTcp::CTcp(int ln)
     : lineno_(ln)
-    , timeMs_(30000)
+    , timeMs_(0)
 {}
 
 //CUdp
 CUdp::CUdp(int ln)
     : lineno_(ln)
-    , timeMs_(30000)
+    , timeMs_(0)
 {}
 
 //CValue

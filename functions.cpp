@@ -146,17 +146,24 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
         __ValuePtr ret = New<CValue>();
         ret->type_ = 12;
         ret->tcp_ = New<CTcp>(lineno);
-        if(args.size() == 3){
-            U32 timeS = 0;
-            if(!args[2]->ToInteger(ret->tcp_->timeMs_)){
-                RUNTIME_ERR(lineno,"invalid value for argutment 3");
-                return false;
-            }
+        if(args.size() == 3 && !args[2]->ToInteger(ret->tcp_->timeMs_)){
+            RUNTIME_ERR(lineno,"invalid value for timeout(argutment 3)");
+            return false;
         }
 #if __REAL_CONNECT
         if(!ret->tcp_->Connect(addr)){
             RUNTIME_ERR(lineno,"cannot connect to remote address,"<<CSocket::ErrMsg());
             return 0;
+        }
+        if(ret->tcp_->timeMs_){
+            if(!ret->tcp_->SetSendTimeout(ret->tcp_->timeMs_)){
+                RUNTIME_ERR(lineno,"cannot set send timeout,"<<CSocket::ErrMsg());
+                return 0;
+            }
+            if(!ret->tcp_->SetRecvTimeout(ret->tcp_->timeMs_)){
+                RUNTIME_ERR(lineno,"cannot set recv timeout,"<<CSocket::ErrMsg());
+                return 0;
+            }
         }
 #endif
         return ret;
@@ -169,7 +176,7 @@ __ValuePtr EvaluateUDP(const std::vector<__ValuePtr> & args,int lineno)
         if(args[0]->type_ == 13)
             return args[0];
         RUNTIME_ERR(lineno,"invalid conversion to UDP");
-    }else if(args.size() == 2){
+    }else if(args.size() >= 2){
         assert(args[0]->IsString());
         const std::string ip = args[0]->str_;
         DBG_RT("remote ip="<<ip);
@@ -197,17 +204,24 @@ __ValuePtr EvaluateUDP(const std::vector<__ValuePtr> & args,int lineno)
         __ValuePtr ret = New<CValue>();
         ret->type_ = 13;
         ret->udp_ = New<CUdp>(lineno);
-        if(args.size() == 3){
-            U32 timeS = 0;
-            if(!args[2]->ToInteger(ret->tcp_->timeMs_)){
-                RUNTIME_ERR(lineno,"invalid argument 3 for timeout value");
-                return false;
-            }
+        if(args.size() == 3 && !args[2]->ToInteger(ret->udp_->timeMs_)){
+            RUNTIME_ERR(lineno,"invalid value for timeout(argutment 3)");
+            return false;
         }
 #if __REAL_CONNECT
         if(!ret->udp_->Connect(addr)){
             RUNTIME_ERR(lineno,"cannot connect to remote address,"<<CSocket::ErrMsg());
             return 0;
+        }
+        if(ret->udp_->timeMs_){
+            if(!ret->udp_->SetSendTimeout(ret->udp_->timeMs_)){
+                RUNTIME_ERR(lineno,"cannot set send timeout,"<<CSocket::ErrMsg());
+                return 0;
+            }
+            if(!ret->udp_->SetRecvTimeout(ret->udp_->timeMs_)){
+                RUNTIME_ERR(lineno,"cannot set recv timeout,"<<CSocket::ErrMsg());
+                return 0;
+            }
         }
 #endif
         return ret;
