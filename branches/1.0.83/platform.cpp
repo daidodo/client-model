@@ -7,9 +7,21 @@
 
 std::string ErrorMsg(int error_no)
 {
-    std::ostringstream os;
-    os<<" errno="<<error_no;
-    return os.str();
+    std::ostringstream oss;
+    oss<<" errno="<<error_no;
+    TCHAR msg[512] = {0};
+    if(FormatMessage(
+        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        0,
+        error_no,
+        MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT),  //Default language
+        msg,
+        1024,
+        0))
+    {
+        oss<<", "<<msg;
+    }
+    return oss.str();
 }
 
 

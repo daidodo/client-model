@@ -16,15 +16,11 @@ CFLAGS := $(CXXFLAGS)
 ARFLAGS := cr
 CP := cp -f
 
-LEX_SRC := $(wildcard *.l)
-YACC_SRC := $(wildcard *.y)
 CPP_SRC := $(wildcard *.cpp) $(wildcard common/*.cpp)
 
-RM_SRC := y.tab.h $(YACC_SRC:.y=.c) $(LEX_SRC:.l=.c) $(YACC_SRC:.y=.cpp) $(LEX_SRC:.l=.cpp)
+RM_SRC := y.tab.h grammar_src.cpp scanner_src.cpp
 
-YACC_OBJ := $(YACC_SRC:.y=.o)
-
-OBJS := $(YACC_OBJ) $(LEX_SRC:.l=.o) $(CPP_SRC:.cpp=.o)
+OBJS := $(CPP_SRC:.cpp=.o)
 
 DEPS := $(CPP_SRC:.cpp=.d)
 
@@ -41,6 +37,9 @@ uninstall :
 	$(RM) $(INSTALL_LIB_DIR)/$(notdir $(LIB_TARGET))
 	$(RM) $(INSTALL_LIB_DIR)/$(notdir $(SO_TARGET))
 	$(RM) $(INSTALL_INC_DIR)/$(INC_TARGET)
+
+generate :
+	./gen_gram.sh
 
 out : $(OUT_TARGET)
 
@@ -63,18 +62,25 @@ $(SO_TARGET) : $(OBJS)
 	$(CXX) -shared -fPIC -o $@ $^
 
 cleandist : 
-	$(RM) *.o common/*.o $(RM_SRC)
+	$(RM) *.o common/*.o
 	$(RM) *.d common/*.d
 
 clean : cleandist
 	$(RM) $(BIN_DIR)/*
 
+cleanall : clean
+	$(RM) $(RM_SRC)
+
 love : clean all
 
-.PHONEY : all out lib so deps cleandist clean love
+.PHONEY : all generate out lib so deps cleandist clean cleanall love
 
 ifneq (${MAKECMDGOALS},clean)
 ifneq (${MAKECMDGOALS},cleandist)
+ifneq (${MAKECMDGOALS},cleanall)
+ifneq (${MAKECMDGOALS},generate)
 sinclude $(DEPS)
+endif
+endif
 endif
 endif
