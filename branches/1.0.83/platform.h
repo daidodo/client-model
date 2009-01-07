@@ -10,6 +10,7 @@
 #   include <Ws2def.h>
 #   include <Ws2tcpip.h>    //inet_ntop,getaddrinfo,freeaddrinfo,gai_strerror
 #   include <io.h>          //isatty
+#   include <errno.h>       //EAGAIN
 #   pragma comment(lib,"Ws2_32")
 
 //This is very ugly!
@@ -23,7 +24,6 @@
 
 #   define MSG_NOSIGNAL 0
 #   define EWOULDBLOCK  WSAEWOULDBLOCK
-#   define EAGAIN       WSAEWOULDBLOCK
 
 typedef S32 ssize_t;
 

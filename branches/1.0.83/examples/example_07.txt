@@ -1,14 +1,14 @@
 # This is an example of SRC Language
 //array test
 
-TCP("127.0.0.1",9531)
+TCP("192.168.13.120",9531)
 NET_BYTE_ORDER
 
 CMD QueryCommand SEND
 U16 ver := 100
 U16 cmd_type:(161)
 U32 seq = 1234
-U32 len(0)
+U32 len = 0
 BEGIN(len)
 BEGIN ARRAY(3)
 STR file_hash := "http://www.baidu.com"

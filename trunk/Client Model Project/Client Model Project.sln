@@ -3,6 +3,10 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Client Model Project", "Client Model Project.vcproj", "{2AF96554-0F49-4B1D-8C9B-E8788C3AF3F6}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SRC Library", "..\SRC Library\SRC Library.vcproj", "{9D968831-6AE7-4D5D-9CAF-0C1932349976}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test", "..\Test\Test.vcproj", "{08D5545D-2380-447C-B8B1-586095234DC9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -13,6 +17,14 @@ Global
 		{2AF96554-0F49-4B1D-8C9B-E8788C3AF3F6}.Debug|Win32.Build.0 = Debug|Win32
 		{2AF96554-0F49-4B1D-8C9B-E8788C3AF3F6}.Release|Win32.ActiveCfg = Release|Win32
 		{2AF96554-0F49-4B1D-8C9B-E8788C3AF3F6}.Release|Win32.Build.0 = Release|Win32
+		{9D968831-6AE7-4D5D-9CAF-0C1932349976}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9D968831-6AE7-4D5D-9CAF-0C1932349976}.Debug|Win32.Build.0 = Debug|Win32
+		{9D968831-6AE7-4D5D-9CAF-0C1932349976}.Release|Win32.ActiveCfg = Release|Win32
+		{9D968831-6AE7-4D5D-9CAF-0C1932349976}.Release|Win32.Build.0 = Release|Win32
+		{08D5545D-2380-447C-B8B1-586095234DC9}.Debug|Win32.ActiveCfg = Debug|Win32
+		{08D5545D-2380-447C-B8B1-586095234DC9}.Debug|Win32.Build.0 = Debug|Win32
+		{08D5545D-2380-447C-B8B1-586095234DC9}.Release|Win32.ActiveCfg = Release|Win32
+		{08D5545D-2380-447C-B8B1-586095234DC9}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
