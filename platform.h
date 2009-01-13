@@ -7,7 +7,7 @@
 #ifdef WIN32
 
 #   include <Winsock2.h>
-#   include <Ws2def.h>
+//#   include <Ws2def.h>
 #   include <Ws2tcpip.h>    //inet_ntop,getaddrinfo,freeaddrinfo,gai_strerror
 #   include <io.h>          //isatty
 #   include <errno.h>       //EAGAIN
@@ -79,5 +79,9 @@ inline void UninitSocket(){}
 
 std::string ErrorMsg(int error_no);
 
+//把IPv4地址与字符串的转化
+U32 IPv4FromStr(std::string ip,bool hostByteOrder = true);
+
+std::string IPv4String(U32 ip,bool hostByteOrder = true);
 
 #endif

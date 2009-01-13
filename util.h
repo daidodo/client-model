@@ -249,11 +249,4 @@ inline std::string DumpFormat(std::string v){
     return DumpFormat(v.c_str(),v.length());
 }
 
-//把IPv4地址与字符串的转化
-std::string IPv4String(U32 ip,bool hostByteOrder = true);
-
-U32 IPv4FromStr(std::string ip,bool hostByteOrder = true);
-
-
-
 #endif
