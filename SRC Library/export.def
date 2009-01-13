@@ -1,9 +1,0 @@
-; export.def : SRC动态库的导出文件
-
-LIBRARY      "SRC"
-
-EXPORTS
-	SRC_init @1
-	SRC_compile @2
-	SRC_run @3
-	SRC_register_function @4
