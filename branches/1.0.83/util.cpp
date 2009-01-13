@@ -280,20 +280,3 @@ std::string DumpFormat(const char * v,size_t sz)
     return oss.str();
 }
 
-std::string IPv4String(U32 ip,bool hostByteOrder)
-{
-    struct in_addr in;
-    in.s_addr = hostByteOrder ? htonl(ip) : ip;
-    char buf[46];
-    if(!inet_ntop(AF_INET,&in,buf,sizeof buf))
-        return "ERROR_IP";
-    return buf;
-}
-
-U32 IPv4FromStr(std::string ip,bool hostByteOrder)
-{
-    struct in_addr in;
-    if(inet_pton(AF_INET,ip.c_str(),&in) == 0)
-        return 0;
-    return hostByteOrder ? ntohl(in.s_addr) : in.s_addr;	
-}

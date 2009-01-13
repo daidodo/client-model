@@ -15,20 +15,27 @@ std::string CSockAddr::ToString() const
     const char * UNKNOWN = "unknown";
     if(sa_.size() < sizeof(__SA4))
         return UNKNOWN;
-    char str[128];  //Unix domain is largest
+//    char str[128];  //Unix domain is largest
     std::ostringstream oss;
 	switch(SA()->sa_family){
         case AF_INET:{
+#ifdef WIN32
+            oss<<IPv4String(SA4()->sin_addr.s_addr,false)<<":"<<ntohs(SA4()->sin_port);
+            break;}
+#else
+            char str[128];  //Unix domain is largest
             if(!inet_ntop(AF_INET,(void *)&(SA4()->sin_addr),str,sizeof(str)))
                 return UNKNOWN;
             oss<<str<<":"<<ntohs(SA4()->sin_port);
             break;}
-#ifdef AF_INET6
+#   ifdef AF_INET6
         case AF_INET6:{
+            char str[128];  //Unix domain is largest
             if(!inet_ntop(AF_INET6,(void *)&(SA6()->sin6_addr),str,sizeof(str)))
                 return UNKNOWN;
             oss<<"["<<str<<"]:"<<ntohs(SA6()->sin6_port);
             break;}
+#   endif
 #endif
         default:
             return UNKNOWN;
