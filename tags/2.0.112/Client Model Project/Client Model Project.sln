@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SRC Library", "SRC Library.vcproj", "{CD8EDF04-C37C-44AE-A314-A9A8D4DC01E4}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SRC Compiler", "SRC Compiler.vcproj", "{1AFCC973-29F1-496D-A565-677038A54112}"
+	ProjectSection(ProjectDependencies) = postProject
+		{CD8EDF04-C37C-44AE-A314-A9A8D4DC01E4} = {CD8EDF04-C37C-44AE-A314-A9A8D4DC01E4}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CD8EDF04-C37C-44AE-A314-A9A8D4DC01E4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CD8EDF04-C37C-44AE-A314-A9A8D4DC01E4}.Debug|Win32.Build.0 = Debug|Win32
+		{CD8EDF04-C37C-44AE-A314-A9A8D4DC01E4}.Release|Win32.ActiveCfg = Release|Win32
+		{CD8EDF04-C37C-44AE-A314-A9A8D4DC01E4}.Release|Win32.Build.0 = Release|Win32
+		{1AFCC973-29F1-496D-A565-677038A54112}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1AFCC973-29F1-496D-A565-677038A54112}.Debug|Win32.Build.0 = Debug|Win32
+		{1AFCC973-29F1-496D-A565-677038A54112}.Release|Win32.ActiveCfg = Release|Win32
+		{1AFCC973-29F1-496D-A565-677038A54112}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
