@@ -1,4 +1,4 @@
-BIN_DIR := ../bin
+BIN_DIR := bin
 OUT_TARGET := $(BIN_DIR)/srcc
 LIB_TARGET := $(BIN_DIR)/libsrc.a
 SO_TARGET :=  $(BIN_DIR)/libsrc.so
@@ -73,13 +73,17 @@ cleanall : clean
 
 love : clean all
 
-.PHONEY : all gen out lib so deps cleandist clean cleanall love
+.PHONEY : all install uninstall gen out lib so deps cleandist clean cleanall love
 
+ifneq (${MAKECMDGOALS},install)
+ifneq (${MAKECMDGOALS},uninstall)
 ifneq (${MAKECMDGOALS},clean)
 ifneq (${MAKECMDGOALS},cleandist)
 ifneq (${MAKECMDGOALS},cleanall)
 ifneq (${MAKECMDGOALS},gen)
 sinclude $(DEPS)
+endif
+endif
 endif
 endif
 endif
