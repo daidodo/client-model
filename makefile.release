@@ -38,7 +38,7 @@ uninstall :
 	$(RM) $(INSTALL_LIB_DIR)/$(notdir $(SO_TARGET))
 	$(RM) $(INSTALL_INC_DIR)/$(INC_TARGET)
 
-generate :
+gen :
 	./gen_gram.sh
 
 out : $(OUT_TARGET)
@@ -73,12 +73,12 @@ cleanall : clean
 
 love : clean all
 
-.PHONEY : all generate out lib so deps cleandist clean cleanall love
+.PHONEY : all gen out lib so deps cleandist clean cleanall love
 
 ifneq (${MAKECMDGOALS},clean)
 ifneq (${MAKECMDGOALS},cleandist)
 ifneq (${MAKECMDGOALS},cleanall)
-ifneq (${MAKECMDGOALS},generate)
+ifneq (${MAKECMDGOALS},gen)
 sinclude $(DEPS)
 endif
 endif
