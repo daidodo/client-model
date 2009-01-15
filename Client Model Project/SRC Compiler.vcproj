@@ -2,11 +2,11 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="SRC Library Project"
-	ProjectGUID="{F372D698-B46C-43C7-84FF-9991B8630998}"
-	RootNamespace="SRCLibraryProject"
+	Name="SRC Compiler"
+	ProjectGUID="{1AFCC973-29F1-496D-A565-677038A54112}"
+	RootNamespace="SRCCompiler"
 	Keyword="Win32Proj"
-	TargetFrameworkVersion="131072"
+	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
 		<Platform
@@ -20,7 +20,7 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="1"
 			CharacterSet="2"
 			>
 			<Tool
@@ -41,8 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;..\SRC-Language&quot;"
-				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;SRCLIBRARYPROJECT_EXPORTS;EXPORT_DLL"
+				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
@@ -61,13 +60,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="Ws2_32.lib"
+				AdditionalDependencies="SRC.lib"
+				OutputFile="$(OutDir)\SRCC.exe"
 				LinkIncremental="2"
-				ModuleDefinitionFile="..\SRC-Language\export.def"
+				AdditionalLibraryDirectories="&quot;$(ConfigurationName)\&quot;"
 				GenerateDebugInformation="true"
-				SubSystem="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
+				SubSystem="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -96,8 +94,7 @@
 			Name="Release|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="2"
-			UseOfMFC="1"
+			ConfigurationType="1"
 			CharacterSet="2"
 			WholeProgramOptimization="1"
 			>
@@ -120,9 +117,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;..\SRC-Language&quot;"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;SRCLIBRARYPROJECT_EXPORTS;EXPORT_DLL"
-				RuntimeLibrary="0"
+				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
+				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
@@ -139,15 +135,14 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="$(OutDir)\SRC.dll"
+				AdditionalDependencies="SRC.lib"
+				OutputFile="$(OutDir)\SRCC.exe"
 				LinkIncremental="1"
-				ModuleDefinitionFile=""
+				AdditionalLibraryDirectories="&quot;$(ConfigurationName)\&quot;"
 				GenerateDebugInformation="true"
-				SubSystem="2"
+				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -182,79 +177,29 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\dllmain.cpp"
+				RelativePath="..\SRC-Language\main.cpp"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="头文件"
+			Filter="h;hpp;hxx;hm;inl;inc;xsd"
+			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
+			>
 			<File
-				RelativePath=".\win32_dll.h"
+				RelativePath=".\resource1.h"
 				>
 			</File>
-			<Filter
-				Name="SRC"
-				>
-				<File
-					RelativePath="..\SRC-Language\errors.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\SRC-Language\functions.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\SRC-Language\global.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\SRC-Language\grammar_src.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\SRC-Language\platform.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\SRC-Language\program.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\SRC-Language\rt_structs.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\SRC-Language\runtime.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\SRC-Language\scanner_src.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\SRC-Language\common\Sockets.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\SRC-Language\SRC_language.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\SRC-Language\symbols.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\SRC-Language\tokens.cpp"
-					>
-				</File>
-				<File
-					RelativePath="..\SRC-Language\util.cpp"
-					>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="资源文件"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath=".\SRC Compiler.rc"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>
