@@ -7,7 +7,11 @@ int CSockAddr::gai_errno = 0;
 
 std::string CSockAddr::ErrMsg()
 {
+#ifdef WIN32
+    return ErrorMsg(WSAGetLastError());
+#else
     return std::string(", ") + gai_strerror(gai_errno);
+#endif
 }
 
 std::string CSockAddr::ToString() const
