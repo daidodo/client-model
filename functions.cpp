@@ -323,6 +323,8 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
 {
     assert(cmd && args);
     for(size_t i = 0;i < args->args_.size();++i){
+        if(!(*args)[i])
+            continue;
         assert((*args)[i]->IsVar());  //MUST be variable
         if(is_begin && (*args)[i]->var_->begin_ != -1){
             RUNTIME_ERR(lineno,"cannot BEGIN '"<<(*args)[i]->var_->varname_<<"' again");
@@ -357,7 +359,8 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
             }
             decl->var_->begin_ = -2;
             if(args != cmd->begin_list_)    //命令结束时会对所有BEGIN变量自动调用END，此时(args == cmd->begin_list_)
-                cmd->End((*args)[i]);
+                args->args_[i] = 0;
+                //cmd->End((*args)[i]);
         }
     }
 }
