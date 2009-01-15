@@ -359,8 +359,7 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
             }
             decl->var_->begin_ = -2;
             if(args != cmd->begin_list_)    //命令结束时会对所有BEGIN变量自动调用END，此时(args == cmd->begin_list_)
-                args->args_[i] = 0;
-                //cmd->End((*args)[i]);
+                cmd->End((*args)[i]);
         }
     }
 }
