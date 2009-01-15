@@ -4,9 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Client Model Project", "Client Model Project.vcproj", "{2AF96554-0F49-4B1D-8C9B-E8788C3AF3F6}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SRC Library Project", "SRC Library Project.vcproj", "{F372D698-B46C-43C7-84FF-9991B8630998}"
-	ProjectSection(ProjectDependencies) = postProject
-		{2AF96554-0F49-4B1D-8C9B-E8788C3AF3F6} = {2AF96554-0F49-4B1D-8C9B-E8788C3AF3F6}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
