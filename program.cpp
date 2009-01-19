@@ -11,7 +11,7 @@ CProgram::CProgram()
     : conn_defined_(false)
 {}
 
-size_t CProgram::AddQstr(const std::string qstr)
+size_t CProgram::AddQstr(const std::string & qstr)
 {
     size_t ret = qstr_table.size();
     qstr_table.push_back(qstr);
