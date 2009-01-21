@@ -9,7 +9,6 @@ INSTALL_LIB_DIR := /usr/lib
 INSTALL_INC_DIR := /usr/include
 
 CC := g++
-YFLAGS := -d
 INCLUDE := -I./
 CXXFLAGS := -fPIC -g $(INCLUDE)
 CFLAGS := $(CXXFLAGS)
