@@ -14,7 +14,7 @@
 %x CHAR_S QSTR_S RSTR_S
 %s EOF_S
 
-nl	(\r?\n)
+nl		(\r?\n)
 digit		([0-9])
 nz_digit	([1-9])
 oct_digit	([0-7])
