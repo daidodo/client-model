@@ -424,6 +424,10 @@
 				RelativePath=".\SRC Library.rc"
 				>
 			</File>
+			<File
+				RelativePath="..\TODO.txt"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="win32"
@@ -463,10 +467,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
