@@ -186,6 +186,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\SRC-Language\datatypes.h"
+					>
+				</File>
+				<File
 					RelativePath="..\SRC-Language\dbg.h"
 					>
 				</File>
@@ -235,10 +239,6 @@
 				</File>
 				<File
 					RelativePath="..\SRC-Language\tokens.h"
-					>
-				</File>
-				<File
-					RelativePath="..\SRC-Language\types.h"
 					>
 				</File>
 				<File
