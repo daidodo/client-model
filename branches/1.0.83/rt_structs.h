@@ -45,21 +45,22 @@ struct CValue
 {
     int type_;
     union{
-        int int_;       //1
-        long long_;     //2
-        U8  u8_;        //3
-        S8  s8_;        //4
-        U16 u16_;       //5
-        S16 s16_;       //6
-        U32 u32_;       //7
-        S32 s32_;       //8
-        U64 u64_;       //9
-        S64 s64_;       //10
+        int prog_arg_;  //program argument
+        int int_;
+        long long_;
+        U8  u8_;
+        S8  s8_;
+        U16 u16_;
+        S16 s16_;
+        U32 u32_;
+        S32 s32_;
+        U64 u64_;
+        S64 s64_;
     };
-    std::string str_;   //11  STR
-                        //14  RAW
-    CSharedPtr<CTcp> tcp_;  //12
-    CSharedPtr<CUdp> udp_;  //13
+    std::string str_;   //STR
+                        //RAW
+    CSharedPtr<CTcp> tcp_;
+    CSharedPtr<CUdp> udp_;
     //functions:
     CValue();
     std::string ToString() const;

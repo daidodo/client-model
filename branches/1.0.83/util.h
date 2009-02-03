@@ -1,10 +1,9 @@
 #ifndef DOZERG_UTILITY_H_20081111
 #define DOZERG_UTILITY_H_20081111
 
-#include "platform.h"
+#include "platform.h"   //undef max,min
 #include <string>
 #include <vector>
-#include "types.h"
 
 template<typename T>
 T str2num_base16(const char * str,size_t len)

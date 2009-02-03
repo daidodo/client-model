@@ -1,6 +1,7 @@
 #ifndef DOZERG_SYMBOLS_H_20081111
 #define DOZERG_SYMBOLS_H_20081111
 
+#include "platform.h"
 #include <map>
 #include <vector>
 #include <list>
@@ -9,7 +10,6 @@
 #include <algorithm>
 #include <cassert>
 #include "config.h"
-#include "types.h"
 #include "errors.h"
 #include "rt_structs.h"
 #include "common/SharedPtr.h"
@@ -30,15 +30,18 @@ struct CFixValue
 {
     const int lineno_;
     int type_;
-    int int_;
-    long long_;
-    long long i64_;
-    size_t strIdx_;
+    union{
+        int int_;
+        long long_;
+        long long i64_;
+        size_t strIdx_;
+        int prog_arg_;
+    };
     //functions:
     explicit CFixValue(int ln);
     std::string ToString() const;
     std::string Signature() const;
-    int RetType() const;
+    int RetType() const{return type_;}
     CSharedPtr<CValue> Evaluate(int lineno) const;
 };
 

@@ -50,38 +50,6 @@ bool IsFunToken(int fun_token)
     return (fun_token == FUN);
 }
 
-bool FunArgNumCheck(int fun_token,size_t argn)
-{
-    switch(fun_token){
-        case HBO:case NBO:
-            return argn == 0;
-        case TP_U8:case TP_S8:
-        case TP_U16:case TP_S16:
-        case TP_U32:case TP_S32:
-        case TP_U64:case TP_S64:
-        case STR:case RAW:
-        case SEND:case RECV:
-            return argn <= 1;
-            return true;
-        case HEX:case UNHEX:
-        case __IPN:case __IPH:
-            return argn == 1;
-        case TCP:case UDP:
-            return argn >= 1 && argn <= 3;
-        case FUN:
-            return argn == 1 || argn == 2;
-        case BEGIN_:case END:case PRINT:
-            return argn > 0;
-        case ARRAY:
-            return argn <= 1;
-        case __END_ARRAY:
-            return argn == 0;
-        case SLEEP:
-            return argn == 1;
-    }
-    return false;
-}
-
 int FunRetType(int fun_token,const std::vector<int> * types)
 {
     switch(fun_token){
@@ -91,41 +59,42 @@ int FunRetType(int fun_token,const std::vector<int> * types)
         case FUN:case PRINT:
         case ARRAY:case __END_ARRAY:
         case SLEEP:
-            return 0;   //void
+            return DT_VOID;
         case TP_U8:
-            return 3;   //CValue::u8_
+            return DT_U8;
         case TP_S8:
-            return 4;   //CValue::s8_
+            return DT_S8;
         case TP_U16:
-            return 5;   //CValue::u16_
+            return DT_U16;
         case TP_S16:
-            return 6;   //CValue::s16_
+            return DT_S16;
         case TP_U32:
-            return 7;   //CValue::u32_
+            return DT_U32;
         case TP_S32:
-            return 8;   //CValue::s32_
+            return DT_S32;
         case TP_U64:
-            return 9;   //CValue::u64_
+            return DT_U64;
         case TP_S64:
-            return 10;  //CValue::s64_
+            return DT_S64;
         case STR:
         case HEX:case UNHEX:
-            return 11;  //CValue::str_
+            return DT_STR;
         case RAW:
-            return 14;  //CValue::str_
+            return DT_RAW;
         case TCP:
-            return 12;  //CValue::tcp_
+            return DT_TCP;
         case UDP:
-            return 13;  //CValue::udp_
+            return DT_UDP;
         case __IPN:case __IPH:
             assert(types && !types->empty());
-            return (CValue::IsString((*types)[0]) ? 7 : 11);
+            return (CValue::IsString((*types)[0]) ? DT_U32 : DT_STR);
     }
-    return -1;
+    return DT_NONE;
 }
 
-size_t FunArgTypeCheck(int fun_token,const std::vector<int> & types,CSharedPtr<CArgList> arglist)
+size_t FunArgCheck(int fun_token,const std::vector<int> & types,CSharedPtr<CArgList> arglist)
 {
+    assert((arglist && types.size() == arglist->args_.size()) || (!arglist && types.empty()));
     switch(fun_token){
         case HBO:case NBO:{         //no args
             if(!types.empty())
@@ -135,12 +104,16 @@ size_t FunArgTypeCheck(int fun_token,const std::vector<int> & types,CSharedPtr<C
         case TP_U16:case TP_S16:
         case TP_U32:case TP_S32:
         case TP_U64:case TP_S64:{   //integer
-            if(!types.empty() && !CValue::IsInteger(types[0]))
+            if(types.size() == 1 && !CValue::IsInteger(types[0]))
                 return 1;
+            else if(types.size() > 1)
+                return 2;
             break;}
         case STR:case RAW:{         //string
-            if(!types.empty() && !CValue::IsString(types[0]))
+            if(types.size() == 1 && !CValue::IsString(types[0]))
                 return 1;
+            else if(types.size() > 1)
+                return 2;
             break;}
         case TCP:case UDP:{         //(string + (string or interger)) or (UDP xor TCP)
             if(types.empty())
@@ -165,16 +138,14 @@ size_t FunArgTypeCheck(int fun_token,const std::vector<int> & types,CSharedPtr<C
                 return 4;
             break;}
         case SEND:case RECV:{       //CValue::tcp_ or CValue::udp_
-            if(arglist){
-                for(size_t i = 0;i < types.size();++i)
-                    if(!(*arglist)[i]->IsVar() || !CValue::IsConnection(types[i]))
-                        return (i + 1);
-            }
+            for(size_t i = 0;i < types.size();++i)
+                if(!((*arglist)[i]->IsVar() && CValue::IsConnection(types[i])))
+                    return (i + 1);
             break;}
         case HEX:case UNHEX:{       //string
             if(types.empty() || !CValue::IsString(types[0]))
                 return 1;
-            if(types.size() > 1)
+            else if(types.size() > 1)
                 return 2;
             break;}
         case FUN:{                  //VAR or VAR + integer
@@ -186,9 +157,10 @@ size_t FunArgTypeCheck(int fun_token,const std::vector<int> & types,CSharedPtr<C
                 return 3;
             break;}
         case BEGIN_:case END:{
-            assert(arglist);
+            if(types.empty())
+                return 1;
             for(size_t i = 0;i < types.size();++i)
-                if(!(*arglist)[i]->IsVar() || !CValue::IsInteger(types[i]))
+                if(!((*arglist)[i]->IsVar() && CValue::IsInteger(types[i])))
                     return (i + 1);
             break;}
         case PRINT:{

@@ -2,7 +2,6 @@
 #define DOZERG_PLATFORM_H_20090105
 
 #include <string>
-#include "types.h"
 
 #ifdef WIN32
 
@@ -24,6 +23,15 @@
 
 #   define MSG_NOSIGNAL 0
 #   define EWOULDBLOCK  WSAEWOULDBLOCK
+
+typedef __int8              S8;
+typedef unsigned __int8     U8;
+typedef __int16             S16;
+typedef unsigned __int16    U16;
+typedef __int32             S32;
+typedef unsigned __int32    U32;
+typedef __int64             S64;
+typedef unsigned __int64    U64;
 
 typedef S32 ssize_t;
 
@@ -68,6 +76,28 @@ void sleep(unsigned int sec);
 #   include <netdb.h>       //getaddrinfo,freeaddrinfo,gai_strerror
 #   include <errno.h>       //errno
 #   include <cstring>       //strerror_r
+
+#if defined(__GNUC__)
+#   include <stdint.h>
+//basic types
+typedef int8_t              S8;
+typedef uint8_t             U8;
+typedef int16_t             S16;
+typedef uint16_t            U16;
+typedef int32_t             S32;
+typedef uint32_t            U32;
+typedef int64_t             S64;
+typedef uint64_t            U64;
+#else   //platform dependenty
+typedef signed char         S8;
+typedef unsigned char       U8;
+typedef short               S16;
+typedef unsigned short      U16;
+typedef int                 S32;
+typedef unsigned int        U32;
+typedef long long           S64;
+typedef unsigned long long  U64;
+#endif
 
 typedef int SOCKET;
 
