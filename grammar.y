@@ -8,6 +8,7 @@
 #include "errors.h"
 #include "yystype.h"
 #include "yyhack.h"
+#include "datatypes.h"
 
 int yylex();
 %}
@@ -22,6 +23,7 @@ int yylex();
 %token <i64_> I64
 %token <strIdx_> QSTRING
 %token <var_> VAR_NAME
+%token <prog_arg_> PROG_ARG
 
 %type <token_> simple_type func_name comp_op stream_op
 %type <fix_value_> fix_value
@@ -431,7 +433,7 @@ fix_value : INT		{
 				DBG_YY("fix_value 1");
 				DBG_YY("$1 = "<<$1);
 				$$ = New<CFixValue>(LINE_NO);
-				$$->type_ = 1;
+				$$->type_ = DT_INT;
 				$$->int_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -439,7 +441,7 @@ fix_value : INT		{
 				DBG_YY("fix_value 2");
 				DBG_YY("$1 = "<<$1);
 				$$ = New<CFixValue>(LINE_NO);
-				$$->type_ = 2;
+				$$->type_ = DT_LONG;
 				$$->long_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -447,7 +449,7 @@ fix_value : INT		{
 				DBG_YY("fix_value 3");
 				DBG_YY("$1 = "<<$1);
 				$$ = New<CFixValue>(LINE_NO);
-				$$->type_ = 3;
+				$$->type_ = DT_I64;
 				$$->i64_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -455,8 +457,16 @@ fix_value : INT		{
 				DBG_YY("fix_value 4");
 				DBG_YY("$1 = "<<$1);
 				$$ = New<CFixValue>(LINE_NO);
-				$$->type_ = 4;
+				$$->type_ = DT_STR;
 				$$->strIdx_ = $1;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	| PROG_ARG	{
+				DBG_YY("fix_value 5");
+				DBG_YY("$1 = "<<$1);
+				$$ = New<CFixValue>(LINE_NO);
+				$$->type_ = DT_PA;
+				$$->prog_arg_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;

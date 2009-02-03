@@ -3,25 +3,26 @@
 #include "dbg.h"
 #include "util.h"
 #include "tokens.h"
+#include "datatypes.h"
 
 //CFixValue
 CFixValue::CFixValue(int ln)
     : lineno_(ln)
-    , type_(0)
-    , int_(0)
-    , long_(0)
+    , type_(DT_NONE)
     , i64_(0)
-    , strIdx_(0)
 {}
 
 std::string CFixValue::ToString() const{
     std::ostringstream oss;
-    oss<<"(type_="<<type_
-        <<",int_="<<int_
-        <<",long_="<<long_
-        <<",i64_="<<i64_
-        <<",strIdx_="<<strIdx_
-        <<")";
+    oss<<"(type_="<<type_;
+    switch(type_){
+        case DT_INT:oss<<",int_="<<int_;break;
+        case DT_LONG:oss<<",long_="<<long_;break;
+        case DT_I64:oss<<",i64_="<<i64_;break;
+        case DT_STR:oss<<",strIdx_="<<strIdx_;break;
+        case DT_PA:oss<<",prog_arg_="<<prog_arg_;break;
+    }
+    oss<<")";
     return oss.str();
 }
 
@@ -31,36 +32,25 @@ std::string CFixValue::Signature() const{
     return oss.str();
 }
 
-int CFixValue::RetType() const
-{
-    switch(type_){
-        case 1:return 1;
-        case 2:return 2;
-        case 3:return 9;
-        case 4:return 11;
-    }
-    return -1;
-}
-
 CSharedPtr<CValue> CFixValue::Evaluate(int lineno) const
 {
     CSharedPtr<CValue> ret = New<CValue>();
+    ret->type_ = type_;
     switch(type_){
-        case 1:
-            ret->type_ = 1;
+        case DT_INT:
             ret->int_ = int_;
             break;
-        case 2:
-            ret->type_ = 2;
+        case DT_LONG:
             ret->long_ = long_;
             break;
-        case 3:
-            ret->type_ = 9;
+        case DT_I64:
             ret->s64_ = i64_;
             break;
-        case 4:
-            ret->type_ = 11;
+        case DT_STR:
             ret->str_ = program().GetQstr(strIdx_);
+            break;
+        case DT_PA:
+            ret->prog_arg_ = prog_arg_;
             break;
         default:
             GAMMAR_ERR(lineno,"invalid fixed value(internal error)");
@@ -600,16 +590,12 @@ bool CFuncCall::Validate() const
 {
     if(arg_list_ && !arg_list_->Validate())
         return false;
-    if(!FunArgNumCheck(ft_token_,(arg_list_ ? arg_list_->args_.size() : 0))){
-        GAMMAR_ERR(lineno_,"number of args is invalid");
-        return false;
-    }
     std::vector<int> retTypes;
     if(arg_list_)
         arg_list_->RetType(retTypes);
-    size_t i = FunArgTypeCheck(ft_token_,retTypes,arg_list_);
+    size_t i = FunArgCheck(ft_token_,retTypes,arg_list_);
     if(i){
-        GAMMAR_ERR(lineno_,"type or variable mismatch for argument "<<i);
+        GAMMAR_ERR(lineno_,"argument "<<i<<" type mismatch or missing");
         return false;
     }
     return true;

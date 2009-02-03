@@ -2,11 +2,8 @@
 #define DOZERG_SOCKTS_H_20080229
 
 #include <platform.h>
-
 #include <vector>           //std::vector
 #include <string>           //std::string
-
-#include <types.h>
 
 /*
     对网络socket的简单包装

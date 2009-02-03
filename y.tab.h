@@ -45,3 +45,4 @@
 #define I64 301
 #define QSTRING 302
 #define VAR_NAME 303
+#define PROG_ARG 304
