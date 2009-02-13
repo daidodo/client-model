@@ -8,7 +8,9 @@
 #include "dbg.h"
 
 CRuntime::CRuntime()
-    : net_byte_order_(true)
+    : argc_(0)
+    , argv_(0)
+    , net_byte_order_(true)
 {}
 
 void CRuntime::Interpret(CProgram & program)

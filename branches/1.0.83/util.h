@@ -45,6 +45,18 @@ long str2long(const char * str,size_t len);
 
 long long str2i64(const char * str,size_t len);
 
+template<typename T1,typename T2>
+bool IntAssign(T1 & to,T2 from){
+    to = T1(from);
+    return true;
+}
+
+template<typename T1>
+bool IntAssign(T1 & to,const std::string & from){
+    to = atoi(from.c_str());
+    return true;
+}
+
 template<class Ptr>
 std::string to_str(Ptr p){
     return (p ? p->ToString() : "0x0");

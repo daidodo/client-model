@@ -13,6 +13,9 @@ struct CRuntime
     typedef std::list<std::string>              __VnameList;
     typedef __VnameList::iterator               __VnameIter;
     typedef std::map<std::string,__VnameIter>   __VnameMap;
+    //program arguments
+    int argc_;
+    const char * const * argv_;
     //connections
     CSharedPtr<CValue> default_conn_;  //默认连接
     //variables
@@ -23,12 +26,14 @@ struct CRuntime
     bool net_byte_order_;      //当前的字节序设置
 //functions:
     CRuntime();
+    void SetProgArgs(int argc,const char * const * argv){argc_ = argc;argv_ = argv;}
     void Interpret(CProgram & program);
     void SetByteOrder(bool net_bo){net_byte_order_ = net_bo;}
     CSharedPtr<CDeclare> FindVar(std::string vname,CSharedPtr<CCmd> cmd = 0);
     double Priority(const std::string & vname) const;
     bool IsPost(const std::string & vname) const;
     static std::string RealVarname(const std::string & name);
+    const char * ProgArg(int i) const{return (argv_ && i >= 0 && i < argc_ ? argv_[i] : 0);}
 private:
     bool addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,const std::string & depend);
     void addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl);

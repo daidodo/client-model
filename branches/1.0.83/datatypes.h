@@ -22,7 +22,42 @@ const int DT_TCP =  13;     //TCP
 const int DT_UDP =  14;     //UDP
 const int DT_PA =   15;     //program argument
 
+inline bool DT_IsVoid(int type){return type == DT_VOID;}
 
+inline bool DT_IsTcp(int type){return type == DT_TCP;}
 
+inline bool DT_IsUdp(int type){return type == DT_UDP;}
+
+inline bool DT_IsConnection(int type){return DT_IsTcp(type) || DT_IsUdp(type);}
+
+inline bool DT_IsInteger(int type){return type >= DT_INT && type <= DT_U64;}
+
+inline bool DT_IsSigned(int type){
+    return (type == DT_INT ||
+        type == DT_LONG ||
+        type == DT_I64 ||
+        type == DT_S8 ||
+        type == DT_S16 ||
+        type == DT_S32 ||
+        type == DT_S64);
+}
+
+inline bool DT_IsUnsigned(int type){
+    return (type == DT_U8 ||
+        type == DT_U16 ||
+        type == DT_U32 ||
+        type == DT_U64);
+}
+
+inline bool DT_IsString(int type){return type == DT_STR || type == DT_RAW;}
+
+inline bool DT_IsRaw(int type){return type == DT_RAW;}
+
+inline bool DT_IsProgArg(int type){return type == DT_PA;}
+
+//extends:
+inline bool DT_IsIntOrPA(int type){return DT_IsInteger(type) || DT_IsProgArg(type);}
+
+inline bool DT_IsStrOrPA(int type){return DT_IsString(type) || DT_IsProgArg(type);}
 
 #endif

@@ -87,7 +87,7 @@ int FunRetType(int fun_token,const std::vector<int> * types)
             return DT_UDP;
         case __IPN:case __IPH:
             assert(types && !types->empty());
-            return (CValue::IsString((*types)[0]) ? DT_U32 : DT_STR);
+            return (DT_IsString((*types)[0]) ? DT_U32 : DT_STR);
     }
     return DT_NONE;
 }
@@ -104,13 +104,13 @@ size_t FunArgCheck(int fun_token,const std::vector<int> & types,CSharedPtr<CArgL
         case TP_U16:case TP_S16:
         case TP_U32:case TP_S32:
         case TP_U64:case TP_S64:{   //integer
-            if(types.size() == 1 && !CValue::IsInteger(types[0]))
+            if(types.size() == 1 && !DT_IsIntOrPA(types[0]))
                 return 1;
             else if(types.size() > 1)
                 return 2;
             break;}
         case STR:case RAW:{         //string
-            if(types.size() == 1 && !CValue::IsString(types[0]))
+            if(types.size() == 1 && !DT_IsStrOrPA(types[0]))
                 return 1;
             else if(types.size() > 1)
                 return 2;
@@ -120,30 +120,30 @@ size_t FunArgCheck(int fun_token,const std::vector<int> & types,CSharedPtr<CArgL
                 return 1;
             else if(types.size() == 1){
                 if(fun_token == TCP){
-                    if(!CValue::IsTcp(types[0]))
+                    if(!DT_IsTcp(types[0]))
                         return 1;
                 }else{
-                    if(!CValue::IsUdp(types[0]))
+                    if(!DT_IsUdp(types[0]))
                         return 1;
                 }
             }else if(types.size() <= 3){
-                if(!CValue::IsString(types[0]))
+                if(!DT_IsStrOrPA(types[0]))
                     return 1;
-                if(!CValue::IsInteger(types[1]) &&  //integer
-                    !CValue::IsString(types[1]))    //string
+                if(!DT_IsIntOrPA(types[1]) &&  //integer
+                    !DT_IsStrOrPA(types[1]))    //string
                     return 2;
-                if(types.size() == 3 && !CValue::IsInteger(types[2]))   //integer
+                if(types.size() == 3 && !DT_IsIntOrPA(types[2]))   //integer
                     return 3;
             }else
                 return 4;
             break;}
         case SEND:case RECV:{       //CValue::tcp_ or CValue::udp_
             for(size_t i = 0;i < types.size();++i)
-                if(!((*arglist)[i]->IsVar() && CValue::IsConnection(types[i])))
+                if(!((*arglist)[i]->IsVar() && DT_IsConnection(types[i])))
                     return (i + 1);
             break;}
         case HEX:case UNHEX:{       //string
-            if(types.empty() || !CValue::IsString(types[0]))
+            if(types.empty() || !DT_IsStrOrPA(types[0]))
                 return 1;
             else if(types.size() > 1)
                 return 2;
@@ -151,7 +151,7 @@ size_t FunArgCheck(int fun_token,const std::vector<int> & types,CSharedPtr<CArgL
         case FUN:{                  //VAR or VAR + integer
             if(types.empty() || !(*arglist)[0]->IsVar())
                 return 1;
-            else if(types.size() == 2 && !CValue::IsInteger(types[1]))
+            else if(types.size() == 2 && !DT_IsIntOrPA(types[1]))
                 return 2;
             else if(types.size() > 2)
                 return 3;
@@ -160,24 +160,24 @@ size_t FunArgCheck(int fun_token,const std::vector<int> & types,CSharedPtr<CArgL
             if(types.empty())
                 return 1;
             for(size_t i = 0;i < types.size();++i)
-                if(!((*arglist)[i]->IsVar() && CValue::IsInteger(types[i])))
+                if(!((*arglist)[i]->IsVar() && DT_IsInteger(types[i])))
                     return (i + 1);
             break;}
         case PRINT:{
             if(types.empty())
                 return 1;
             for(size_t i = 0;i < types.size();++i)
-                if(CValue::IsVoid(types[i]))
+                if(DT_IsVoid(types[i]))
                     return (i + 1);
             break;}
         case __IPN:case __IPH:{       //string or integer
-            if(types.empty() || (!CValue::IsString(types[0]) && !CValue::IsInteger(types[0])))
+            if(types.empty() || (!DT_IsStrOrPA(types[0]) && !DT_IsIntOrPA(types[0])))
                 return 1;
             if(types.size() > 1)
                 return 2;
             break;}
         case ARRAY:{
-            if(types.size() == 1 && !CValue::IsInteger(types[0]))
+            if(types.size() == 1 && !DT_IsIntOrPA(types[0]))
                 return 1;
             else if(types.size() > 1)
                 return 2;
@@ -187,7 +187,7 @@ size_t FunArgCheck(int fun_token,const std::vector<int> & types,CSharedPtr<CArgL
                 return 1;
             break;}
         case SLEEP:{
-            if(types.empty() || !CValue::IsInteger(types[0]))
+            if(types.empty() || !DT_IsIntOrPA(types[0]))
                 return 1;
             else if(types.size() > 1)
                 return 2;
@@ -200,25 +200,23 @@ size_t OpArgTypeCheck(int op_token,int type1,int type2)
 {
     switch(op_token){
         case OP_EQ:
-            if(CValue::IsString(type1)){
-                if(!CValue::IsString(type2))
+            if(DT_IsString(type1)){
+                if(!DT_IsString(type2))
                     return 2;
                 break;
             }
         case OP_LG:case OP_SM:
         case OP_LEQ:case OP_SEQ:
         case OP_NEQ:
-            if(CValue::IsInteger(type1)){
-                if(!CValue::IsInteger(type2))
+            if(DT_IsInteger(type1)){
+                if(!DT_IsInteger(type2))
                     return 2;
             }else
                 return 1;
             break;
         case OP_NOT:
-            if(!CValue::IsInteger(type1))
+            if(!DT_IsInteger(type1))
                 return 1;
-            if(type2)
-                return 2;
             break;
     }
     return 0;
@@ -321,5 +319,5 @@ int FunAssert(int op_token,CSharedPtr<CValue> v1,CSharedPtr<CValue> v2)
         case OP_NEQ:assert(v2);return *v1 != *v2;
         case OP_NOT:assert(!v2);return !*v1;
     }
-    return -3;
+    return RET_OP_ERROR;
 }

@@ -29,7 +29,7 @@ SRCLIBRARY_API bool SRC_compile(const std::string & filename);
 
 //解释执行
 //interpret and run
-SRCLIBRARY_API bool SRC_run();
+SRCLIBRARY_API bool SRC_run(int argc = 0,const char * const * argv = 0);
 
 //注册自定义函数
 //register user-defined function

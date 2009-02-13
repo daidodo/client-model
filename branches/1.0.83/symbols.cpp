@@ -3,7 +3,6 @@
 #include "dbg.h"
 #include "util.h"
 #include "tokens.h"
-#include "datatypes.h"
 
 //CFixValue
 CFixValue::CFixValue(int ln)
@@ -20,7 +19,7 @@ std::string CFixValue::ToString() const{
         case DT_LONG:oss<<",long_="<<long_;break;
         case DT_I64:oss<<",i64_="<<i64_;break;
         case DT_STR:oss<<",strIdx_="<<strIdx_;break;
-        case DT_PA:oss<<",prog_arg_="<<prog_arg_;break;
+        case DT_PA:oss<<",prog_arg_=@"<<prog_arg_;break;
     }
     oss<<")";
     return oss.str();
@@ -49,9 +48,12 @@ CSharedPtr<CValue> CFixValue::Evaluate(int lineno) const
         case DT_STR:
             ret->str_ = program().GetQstr(strIdx_);
             break;
-        case DT_PA:
-            ret->prog_arg_ = prog_arg_;
-            break;
+        case DT_PA:{
+            const char * const pa = PM_ARG(prog_arg_);
+            if(!pa)
+                return 0;
+            ret->str_ = pa;
+            break;}
         default:
             GAMMAR_ERR(lineno,"invalid fixed value(internal error)");
             return 0;
@@ -328,7 +330,7 @@ std::string CArrayType::Signature() const{
 
 bool CArrayType::Validate() const
 {
-    if(expr_ && !CValue::IsInteger(expr_->RetType())){
+    if(expr_ && !DT_IsInteger(expr_->RetType())){
         GAMMAR_ERR(lineno_,"invalid type for array size");
         return false;
     }
@@ -378,7 +380,7 @@ bool CAssertExp::Validate() const
 {
     assert(expr1_);
     int type1 = expr1_->RetType();
-    int type2 = 0;
+    int type2 = DT_VOID;
     if(IsBinaryPredict(op_token_)){
         if(!expr2_){
             GAMMAR_ERR(lineno_,"prediction format error(binary)");
@@ -433,15 +435,14 @@ bool CAssertExp::Assert() const
         }
     }
     switch(FunAssert(op_token_,v1,v2)){
-        case 0:break;
-        case 1:return true;
-        case -1:{
+        case RET_TRUE:return true;
+        case RET_SIGN_MISMATCH:{
             RUNTIME_ERR(lineno_,"prediction between signed and unsigned integers");
             break;}
-        case -2:{
+        case RET_TYPE_ERROR:{
             RUNTIME_ERR(lineno_,"invalid argument type for prediction");
             break;}
-        case -3:{
+        case RET_OP_ERROR:{
             RUNTIME_ERR(lineno_,"invalid operator type for prediction");
             break;}
     }
