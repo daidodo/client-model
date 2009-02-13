@@ -11,9 +11,9 @@ SRCLIBRARY_API bool SRC_compile(const std::string & filename)
     return global().Compile(filename);
 }
 
-SRCLIBRARY_API bool SRC_run()
+SRCLIBRARY_API bool SRC_run(int argc,const char * const * argv)
 {
-    return global().Run();
+    return global().Run(argc,argv);
 }
 
 SRCLIBRARY_API bool SRC_register_function(const std::string & func_name,

@@ -92,7 +92,7 @@ __ValuePtr EvaluateSTR(const std::vector<__ValuePtr> & args,int lineno)
     __ValuePtr ret = New<CValue>();
     ret->type_ = 11;
     if(!args.empty()){
-        if(!args[0]->IsString()){
+        if(!args[0]->IsStrOrPA()){
             RUNTIME_ERR(lineno,"invalid conversion to STR");
         }else
             ret->str_ = args[0]->str_;
@@ -104,7 +104,7 @@ __ValuePtr EvaluateRAW(const std::vector<__ValuePtr> & args,int lineno)
     __ValuePtr ret = New<CValue>();
     ret->type_ = 14;
     if(!args.empty()){
-        if(!args[0]->IsString()){
+        if(!args[0]->IsStrOrPA()){
             RUNTIME_ERR(lineno,"invalid conversion to RAW");
         }else
             ret->str_ = args[0]->str_;
@@ -119,11 +119,11 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
             return args[0];
         RUNTIME_ERR(lineno,"invalid conversion to TCP");
     }else if(args.size() >= 2){
-        assert(args[0]->IsString());
+        assert(args[0]->IsStrOrPA());
         const std::string ip = args[0]->str_;
         DBG_RT("remote ip="<<ip);
         CSockAddr addr;
-        if(args[1]->IsInteger()){
+        if(args[1]->IsIntOrPA()){
             int port = -1;
             if(!args[1]->ToInteger(port)){
                 RUNTIME_ERR(lineno,"remote port error");
@@ -131,7 +131,7 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
             }
             DBG_RT("remote port="<<port);
             addr.SetAddr(ip,port);
-        }else if(args[1]->IsString()){
+        }else if(args[1]->IsStrOrPA()){
             DBG_RT("remote port="<<args[1]->str_);
             addr.SetAddr(ip,args[1]->str_);
         }else{
@@ -177,11 +177,11 @@ __ValuePtr EvaluateUDP(const std::vector<__ValuePtr> & args,int lineno)
             return args[0];
         RUNTIME_ERR(lineno,"invalid conversion to UDP");
     }else if(args.size() >= 2){
-        assert(args[0]->IsString());
+        assert(args[0]->IsStrOrPA());
         const std::string ip = args[0]->str_;
         DBG_RT("remote ip="<<ip);
         CSockAddr addr;
-        if(args[1]->IsInteger()){
+        if(args[1]->IsIntOrPA()){
             int port = -1;
             if(!args[1]->ToInteger(port)){
                 RUNTIME_ERR(lineno,"remote port error");
@@ -189,7 +189,7 @@ __ValuePtr EvaluateUDP(const std::vector<__ValuePtr> & args,int lineno)
             }
             DBG_RT("remote port="<<port);
             addr.SetAddr(ip,port);
-        }else if(args[1]->IsString()){
+        }else if(args[1]->IsStrOrPA()){
             DBG_RT("remote port="<<args[1]->str_);
             addr.SetAddr(ip,args[1]->str_);
         }else{
@@ -234,7 +234,7 @@ __ValuePtr EvaluateHEX(const std::vector<__ValuePtr> & args,int lineno)
     assert(!args.empty());
     __ValuePtr ret = New<CValue>();
     ret->type_ = 11;
-    if(!args[0]->IsString()){
+    if(!args[0]->IsStrOrPA()){
         RUNTIME_ERR(lineno,"invalid conversion to string");
     }else
         ret->str_ = DumpHex(args[0]->str_,0,false);
@@ -245,7 +245,7 @@ __ValuePtr EvaluateUNHEX(const std::vector<__ValuePtr> & args,int lineno)
     assert(!args.empty());
     __ValuePtr ret = New<CValue>();
     ret->type_ = 11;
-    if(!args[0]->IsString()){
+    if(!args[0]->IsStrOrPA()){
         RUNTIME_ERR(lineno,"invalid conversion to string");
     }else
         ret->str_ = UnHex(args[0]->str_);
@@ -256,7 +256,7 @@ static __ValuePtr __EvaluateIP(const std::vector<__ValuePtr> & args,int lineno,b
 {
     assert(!args.empty());
     __ValuePtr ret = New<CValue>();
-    if(CValue::IsInteger(args[0]->type_)){
+    if(args[0]->IsInteger()){   //这里优先照顾STR
         U32 ip = 0;
         if(!args[0]->ToInteger(ip)){
             RUNTIME_ERR(lineno,"invalid conversion to U32");
@@ -264,7 +264,7 @@ static __ValuePtr __EvaluateIP(const std::vector<__ValuePtr> & args,int lineno,b
         }
         ret->type_ = 11;    //STR
         ret->str_ = IPv4String(ip,hbo);
-    }else if(CValue::IsString(args[0]->type_)){
+    }else if(args[0]->IsStrOrPA()){
         ret->type_ = 7;     //U32
         ret->u32_ = IPv4FromStr(args[0]->str_,hbo);
     }

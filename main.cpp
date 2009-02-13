@@ -21,7 +21,7 @@ int main(int argc,const char ** argv){
     SRC_init();
     if(!SRC_compile(argv[1]))
         return 1;
-    if(!SRC_run())
+    if(!SRC_run(argc,argv))
         return 1;
 #endif
     return 0;

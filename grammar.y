@@ -8,7 +8,6 @@
 #include "errors.h"
 #include "yystype.h"
 #include "yyhack.h"
-#include "datatypes.h"
 
 int yylex();
 %}
