@@ -13,7 +13,7 @@ U16 ver := 100
 U16 cmd_type := 161
 U32 seq := 1234
 U32 len
-BEGIN
+BEGIN(len)
 STR file_hash := "http://www.baidu.com"
 STR client_hash := UNHEX("1A2B3C4D5E6F")
 STR peer_id := "ABCDEF"

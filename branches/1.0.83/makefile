@@ -46,9 +46,9 @@ lib : $(LIB_TARGET)
 
 so : $(SO_TARGET)
 
-deps :$(DEPS)
+deps : $(DEPS)
 
-%.d :  %.cpp $(YACC_OBJ)
+%.d : %.cpp $(YACC_OBJ)
 	$(CXX) -MM $(CXXFLAGS) -o $*.d $<
 
 $(OUT_TARGET) : $(OBJS)
