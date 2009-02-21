@@ -4,25 +4,36 @@
 #include <vector>
 #include <string>
 
+#ifdef WIN32
+#   ifdef SRCLIBRARY_EXPORTS
+#       define SRCLIBRARY_API __declspec(dllexport)
+#   else
+#       define SRCLIBRARY_API __declspec(dllimport)
+#   endif
+#else
+#   define SRCLIBRARY_API
+#endif
+
+
 //版本信息
 //version info
-#define SRC_version "1.0.77"
+#define SRC_version "2.0.112"
 
 //初始化环境
 //init environment
-void SRC_init();
+SRCLIBRARY_API void SRC_init();
 
 //编译源文件
 //compile source file
-bool SRC_compile(const std::string & filename);
+SRCLIBRARY_API bool SRC_compile(const std::string & filename);
 
 //解释执行
 //interpret and run
-bool SRC_run();
+SRCLIBRARY_API bool SRC_run(int argc = 0,const char * const * argv = 0);
 
 //注册自定义函数
 //register user-defined function
-bool SRC_register_function(const std::string & func_name,
+SRCLIBRARY_API bool SRC_register_function(const std::string & func_name,
     bool (*func_ptr)(std::vector<char> & src,std::vector<char> & dst));
 
 #endif

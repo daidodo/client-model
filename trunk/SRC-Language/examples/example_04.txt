@@ -2,6 +2,7 @@
 //HTTP Send Recv Commands example
 
 STR server_ip := "127.0.0.1";
+#STR server_ip := "192.168.13.120";
 U16 server_port := 9531;
 
 TCP(server_ip,server_port)

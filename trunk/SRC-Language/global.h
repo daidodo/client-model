@@ -34,7 +34,7 @@ public:
     void ErrFound();
     void Init();
     bool Compile(const std::string & fname);
-    bool Run();
+    bool Run(int argc,const char * const * argv);
     bool AddFunc(const std::string func_name,__Func func_ptr);
     __Func FindFunc(const std::string func_name) const;
 };
@@ -50,5 +50,6 @@ inline CRuntime & runtime(){return *global().runtime_;}
 #define CUR_VTB     (program().CurVarTable())
 #define LINE_NO     (global().lineno)
 #define ERR_INCR    {global().ErrFound();}
+#define PM_ARG(i)   (runtime().ProgArg(i))
 
 #endif

@@ -1,10 +1,9 @@
 #ifndef DOZERG_UTILITY_H_20081111
 #define DOZERG_UTILITY_H_20081111
 
+#include "platform.h"   //undef max,min
 #include <string>
 #include <vector>
-#include <byteswap.h>   //bswap_16,bswap_32,bswap_64
-#include "types.h"
 
 template<typename T>
 T str2num_base16(const char * str,size_t len)
@@ -45,6 +44,18 @@ int str2int(const char * str,size_t len);
 long str2long(const char * str,size_t len);
 
 long long str2i64(const char * str,size_t len);
+
+template<typename T1,typename T2>
+bool IntAssign(T1 & to,T2 from){
+    to = T1(from);
+    return true;
+}
+
+template<typename T1>
+bool IntAssign(T1 & to,const std::string & from){
+    to = atoi(from.c_str());
+    return true;
+}
 
 template<class Ptr>
 std::string to_str(Ptr p){
@@ -248,12 +259,5 @@ inline std::string DumpFormat(const std::vector<char> & v){
 inline std::string DumpFormat(std::string v){
     return DumpFormat(v.c_str(),v.length());
 }
-
-//把IPv4地址与字符串的转化
-std::string IPv4String(U32 ip,bool hostByteOrder = true);
-
-U32 IPv4FromStr(std::string ip,bool hostByteOrder = true);
-
-
 
 #endif

@@ -11,6 +11,7 @@ struct yystype{
         long long   i64_;
         size_t      strIdx_;
         int         token_;
+        int         prog_arg_;
     };
     CSharedPtr<CFixValue>   fix_value_;
     CSharedPtr<CVariable>   var_;

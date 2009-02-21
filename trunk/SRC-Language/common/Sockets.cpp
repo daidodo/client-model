@@ -1,9 +1,5 @@
 #include <sstream>          //std::ostringstream
-#include <arpa/inet.h>      //inet_ntop,sockaddr_in
-#include <sys/poll.h>       //poll
-#include <netdb.h>          //getaddrinfo,freeaddrinfo,gai_strerror
 #include <fcntl.h>          //fcntl
-#include <unistd.h>
 #include "Sockets.h"
 
 //class CSockAddr
@@ -11,7 +7,11 @@ int CSockAddr::gai_errno = 0;
 
 std::string CSockAddr::ErrMsg()
 {
+#ifdef WIN32
+    return ErrorMsg(WSAGetLastError());
+#else
     return std::string(", ") + gai_strerror(gai_errno);
+#endif
 }
 
 std::string CSockAddr::ToString() const
@@ -19,21 +19,27 @@ std::string CSockAddr::ToString() const
     const char * UNKNOWN = "unknown";
     if(sa_.size() < sizeof(__SA4))
         return UNKNOWN;
-    //socklen_t salen = socklen_t(sa_.size());
-    char str[128];  //Unix domain is largest
+//    char str[128];  //Unix domain is largest
     std::ostringstream oss;
 	switch(SA()->sa_family){
         case AF_INET:{
-            if(!inet_ntop(AF_INET,&(SA4()->sin_addr),str,sizeof(str)))
+#ifdef WIN32
+            oss<<IPv4String(SA4()->sin_addr.s_addr,false)<<":"<<ntohs(SA4()->sin_port);
+            break;}
+#else
+            char str[128];  //Unix domain is largest
+            if(!inet_ntop(AF_INET,(void *)&(SA4()->sin_addr),str,sizeof(str)))
                 return UNKNOWN;
             oss<<str<<":"<<ntohs(SA4()->sin_port);
             break;}
-#ifdef AF_INET6
+#   ifdef AF_INET6
         case AF_INET6:{
-            if(!inet_ntop(AF_INET6,&(SA6()->sin6_addr),str,sizeof(str)))
+            char str[128];  //Unix domain is largest
+            if(!inet_ntop(AF_INET6,(void *)&(SA6()->sin6_addr),str,sizeof(str)))
                 return UNKNOWN;
             oss<<"["<<str<<"]:"<<ntohs(SA6()->sin6_port);
             break;}
+#   endif
 #endif
         default:
             return UNKNOWN;
@@ -44,7 +50,7 @@ std::string CSockAddr::ToString() const
 bool CSockAddr::SetAddr(std::string ip,std::string port)
 {
     __AI hints;
-    bzero(&hints,sizeof hints);
+    memset(&hints,0,sizeof hints);
     hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
 #ifdef AI_NUMERICSERV
     hints.ai_flags |= AI_NUMERICSERV;
@@ -150,12 +156,13 @@ bool CSocket::SetLinger(bool on,int timeout)
     struct linger ling;
     ling.l_onoff = on ? 1 : 0;
     ling.l_linger = timeout;
-    if(setsockopt(fd_,SOL_SOCKET,SO_LINGER,&ling,sizeof ling) < 0)
+    if(setsockopt(fd_,SOL_SOCKET,SO_LINGER,(const char *)&ling,sizeof ling) < 0)
         return false;
     return true;
 }
 bool CSocket::SetBlock(bool on)
 {
+#ifndef WIN32
     if(!IsValid())
         return false;
     int oldflag = fcntl(fd_,F_GETFL);
@@ -166,6 +173,7 @@ bool CSocket::SetBlock(bool on)
         return true;
     if(fcntl(fd_,F_SETFL,newflag) < 0)
         return false;
+#endif
     return true;
 }
 
@@ -174,21 +182,37 @@ bool CSocket::SetReuse(bool on)
     if(!IsValid())
         return false;
     int flag = on ? 1 : 0;
-    return setsockopt(fd_,SOL_SOCKET,SO_REUSEADDR,&flag,sizeof flag) == 0;
+    return setsockopt(fd_,SOL_SOCKET,SO_REUSEADDR,(const char *)&flag,sizeof flag) == 0;
+}
+
+bool CSocket::SetSendTimeout(U32 timeMs)
+{
+    struct timeval tv;
+    tv.tv_sec = timeMs / 1000;
+    tv.tv_usec = timeMs % 1000;
+    return setsockopt(fd_,SOL_SOCKET,SO_RCVTIMEO,(const char *)&tv,sizeof tv) == 0;
+}
+
+bool CSocket::SetRecvTimeout(U32 timeMs)
+{
+    struct timeval tv;
+    tv.tv_sec = timeMs / 1000;
+    tv.tv_usec = timeMs % 1000;
+    return setsockopt(fd_,SOL_SOCKET,SO_SNDTIMEO,(const char *)&tv,sizeof tv) == 0;
 }
 
 bool CSocket::SetSendSize(size_t sz)
 {
     if(!IsValid())
         return false;
-    return setsockopt(fd_,SOL_SOCKET,SO_SNDBUF,&sz,sizeof sz) == 0;
+    return setsockopt(fd_,SOL_SOCKET,SO_SNDBUF,(const char *)&sz,sizeof sz) == 0;
 }
 
 bool CSocket::SetRecvSize(size_t sz)
 {
     if(!IsValid())
         return false;
-    return setsockopt(fd_,SOL_SOCKET,SO_RCVBUF,&sz,sizeof sz) == 0;
+    return setsockopt(fd_,SOL_SOCKET,SO_RCVBUF,(const char *)&sz,sizeof sz) == 0;
 }
 
 size_t CSocket::GetSendSize() const
@@ -197,7 +221,7 @@ size_t CSocket::GetSendSize() const
         return false;
     size_t ret = 0;
     socklen_t len = sizeof ret;
-    if(getsockopt(fd_,SOL_SOCKET,SO_SNDBUF,&ret,&len) < 0)
+    if(getsockopt(fd_,SOL_SOCKET,SO_SNDBUF,(char *)&ret,&len) < 0)
         return 0;
     return ret;
 }
@@ -208,7 +232,7 @@ size_t CSocket::GetRecvSize() const
         return false;
     size_t ret = 0;
     socklen_t len = sizeof ret;
-    if(getsockopt(fd_,SOL_SOCKET,SO_RCVBUF,&ret,&len) < 0)
+    if(getsockopt(fd_,SOL_SOCKET,SO_RCVBUF,(char *)&ret,&len) < 0)
         return 0;
     return ret;
 }
@@ -216,7 +240,11 @@ size_t CSocket::GetRecvSize() const
 void CSocket::Close()
 {
     if(IsValid()){
+#ifdef WIN32
+        closesocket(fd_);
+#else
         close(fd_);
+#endif
         fd_ = INVALID_FD;
     }
 }
@@ -239,6 +267,9 @@ bool CSocket::SendData(const std::vector<char> & buf,U32 timeoutMs)
 {
     if(!CSocket::IsValid())
         return false;
+#ifdef WIN32
+    return send(CSocket::FD(),&buf[0],buf.size(),0) == int(buf.size());
+#else
     if(!timeoutMs)
         return send(CSocket::FD(),&buf[0],buf.size(),MSG_NOSIGNAL) == int(buf.size());
     for(size_t sz = 0,total = buf.size();sz < total;){
@@ -258,6 +289,7 @@ bool CSocket::SendData(const std::vector<char> & buf,U32 timeoutMs)
             return false;
     }
     return true;
+#endif
 }
 
 ssize_t CSocket::SendData(const std::vector<char> & buf)
@@ -421,6 +453,9 @@ bool CUdpSocket::SendData(const CSockAddr & to,const std::vector<char> & buf,U32
 {
     if(!CSocket::IsValid() || !to.IsValid())
         return false;
+#ifdef WIN32
+    return sendto(CSocket::FD(),&buf[0],buf.size(),MSG_NOSIGNAL,to.SA(),to.sockLen()) == int(buf.size());
+#else
     if(!timeoutMs)
         return sendto(CSocket::FD(),&buf[0],buf.size(),MSG_NOSIGNAL,to.SA(),to.sockLen()) == int(buf.size());
     for(size_t sz = 0,total = buf.size();sz < total;){
@@ -440,6 +475,7 @@ bool CUdpSocket::SendData(const CSockAddr & to,const std::vector<char> & buf,U32
             return false;
     }
     return true;
+#endif
 }
 
 bool CUdpSocket::ensureSock(const CSockAddr & addr)

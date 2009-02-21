@@ -1,4 +1,4 @@
-BIN_DIR := ../bin
+BIN_DIR := bin
 OUT_TARGET := $(BIN_DIR)/srcc
 LIB_TARGET := $(BIN_DIR)/libsrc.a
 SO_TARGET :=  $(BIN_DIR)/libsrc.so
@@ -11,18 +11,16 @@ INSTALL_INC_DIR := /usr/include
 CC := g++
 YFLAGS := -d
 INCLUDE := -I./
-CXXFLAGS := -DNDEBUG -O3 $(INCLUDE)
+CXXFLAGS := -fPIC -DNDEBUG -O3 $(INCLUDE)
 CFLAGS := $(CXXFLAGS)
 ARFLAGS := cr
 CP := cp -f
 
-LEX_SRC := $(wildcard *.l)
-YACC_SRC := $(wildcard *.y)
 CPP_SRC := $(wildcard *.cpp) $(wildcard common/*.cpp)
 
-RM_SRC := y.tab.h $(YACC_SRC:.y=.c) $(LEX_SRC:.l=.c)
+RM_SRC := y.tab.h grammar_src.cpp scanner_src.cpp
 
-OBJS := $(YACC_SRC:.y=.o) $(LEX_SRC:.l=.o) $(CPP_SRC:.cpp=.o)
+OBJS := $(CPP_SRC:.cpp=.o)
 
 DEPS := $(CPP_SRC:.cpp=.d)
 
@@ -40,16 +38,19 @@ uninstall :
 	$(RM) $(INSTALL_LIB_DIR)/$(notdir $(SO_TARGET))
 	$(RM) $(INSTALL_INC_DIR)/$(INC_TARGET)
 
+gen :
+	./gen_gram.sh
+
 out : $(OUT_TARGET)
 
 lib : $(LIB_TARGET)
 
 so : $(SO_TARGET)
 
-deps : $(DEPS)
+deps :$(DEPS)
 
-%.d : %.cpp
-	@$(CXX) -MM $(CXXFLAGS) -o $*.d $<
+%.d :  %.cpp $(YACC_OBJ)
+	$(CXX) -MM $(CXXFLAGS) -o $*.d $<
 
 $(OUT_TARGET) : $(OBJS)
 	$(CXX) -o $@ $^
@@ -61,14 +62,29 @@ $(SO_TARGET) : $(OBJS)
 	$(CXX) -shared -fPIC -o $@ $^
 
 cleandist : 
-	$(RM) *.o common/*.o $(RM_SRC)
+	$(RM) *.o common/*.o
 	$(RM) *.d common/*.d
 
 clean : cleandist
 	$(RM) $(BIN_DIR)/*
 
+cleanall : clean
+	$(RM) $(RM_SRC)
+
 love : clean all
 
-.PHONEY : all out lib so deps cleandist clean love
+.PHONEY : all install uninstall gen out lib so deps cleandist clean cleanall love
 
+ifneq (${MAKECMDGOALS},install)
+ifneq (${MAKECMDGOALS},uninstall)
+ifneq (${MAKECMDGOALS},clean)
+ifneq (${MAKECMDGOALS},cleandist)
+ifneq (${MAKECMDGOALS},cleanall)
+ifneq (${MAKECMDGOALS},gen)
 sinclude $(DEPS)
+endif
+endif
+endif
+endif
+endif
+endif

@@ -92,7 +92,7 @@ __ValuePtr EvaluateSTR(const std::vector<__ValuePtr> & args,int lineno)
     __ValuePtr ret = New<CValue>();
     ret->type_ = 11;
     if(!args.empty()){
-        if(!args[0]->IsString()){
+        if(!args[0]->IsStrOrPA()){
             RUNTIME_ERR(lineno,"invalid conversion to STR");
         }else
             ret->str_ = args[0]->str_;
@@ -104,7 +104,7 @@ __ValuePtr EvaluateRAW(const std::vector<__ValuePtr> & args,int lineno)
     __ValuePtr ret = New<CValue>();
     ret->type_ = 14;
     if(!args.empty()){
-        if(!args[0]->IsString()){
+        if(!args[0]->IsStrOrPA()){
             RUNTIME_ERR(lineno,"invalid conversion to RAW");
         }else
             ret->str_ = args[0]->str_;
@@ -119,11 +119,11 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
             return args[0];
         RUNTIME_ERR(lineno,"invalid conversion to TCP");
     }else if(args.size() >= 2){
-        assert(args[0]->IsString());
+        assert(args[0]->IsStrOrPA());
         const std::string ip = args[0]->str_;
         DBG_RT("remote ip="<<ip);
         CSockAddr addr;
-        if(args[1]->IsInteger()){
+        if(args[1]->IsIntOrPA()){
             int port = -1;
             if(!args[1]->ToInteger(port)){
                 RUNTIME_ERR(lineno,"remote port error");
@@ -131,7 +131,7 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
             }
             DBG_RT("remote port="<<port);
             addr.SetAddr(ip,port);
-        }else if(args[1]->IsString()){
+        }else if(args[1]->IsStrOrPA()){
             DBG_RT("remote port="<<args[1]->str_);
             addr.SetAddr(ip,args[1]->str_);
         }else{
@@ -146,22 +146,25 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
         __ValuePtr ret = New<CValue>();
         ret->type_ = 12;
         ret->tcp_ = New<CTcp>(lineno);
-        if(args.size() == 3){
-            U32 timeS = 0;
-            if(!args[2]->ToInteger(ret->tcp_->timeMs_)){
-                RUNTIME_ERR(lineno,"invalid argument 3 for timeout value");
-                return false;
-            }
+        if(args.size() == 3 && !args[2]->ToInteger(ret->tcp_->timeMs_)){
+            RUNTIME_ERR(lineno,"invalid value for timeout(argutment 3)");
+            return false;
         }
 #if __REAL_CONNECT
         if(!ret->tcp_->Connect(addr)){
             RUNTIME_ERR(lineno,"cannot connect to remote address,"<<CSocket::ErrMsg());
             return 0;
         }
-        //if(!ret->tcp_->SetBlock(false)){
-        //    RUNTIME_ERR(lineno,"set nonblock error,"<<CSocket::ErrMsg());
-        //    return 0;
-        //}
+        if(ret->tcp_->timeMs_){
+            if(!ret->tcp_->SetSendTimeout(ret->tcp_->timeMs_)){
+                RUNTIME_ERR(lineno,"cannot set send timeout,"<<CSocket::ErrMsg());
+                return 0;
+            }
+            if(!ret->tcp_->SetRecvTimeout(ret->tcp_->timeMs_)){
+                RUNTIME_ERR(lineno,"cannot set recv timeout,"<<CSocket::ErrMsg());
+                return 0;
+            }
+        }
 #endif
         return ret;
     }
@@ -173,12 +176,12 @@ __ValuePtr EvaluateUDP(const std::vector<__ValuePtr> & args,int lineno)
         if(args[0]->type_ == 13)
             return args[0];
         RUNTIME_ERR(lineno,"invalid conversion to UDP");
-    }else if(args.size() == 2){
-        assert(args[0]->IsString());
+    }else if(args.size() >= 2){
+        assert(args[0]->IsStrOrPA());
         const std::string ip = args[0]->str_;
         DBG_RT("remote ip="<<ip);
         CSockAddr addr;
-        if(args[1]->IsInteger()){
+        if(args[1]->IsIntOrPA()){
             int port = -1;
             if(!args[1]->ToInteger(port)){
                 RUNTIME_ERR(lineno,"remote port error");
@@ -186,7 +189,7 @@ __ValuePtr EvaluateUDP(const std::vector<__ValuePtr> & args,int lineno)
             }
             DBG_RT("remote port="<<port);
             addr.SetAddr(ip,port);
-        }else if(args[1]->IsString()){
+        }else if(args[1]->IsStrOrPA()){
             DBG_RT("remote port="<<args[1]->str_);
             addr.SetAddr(ip,args[1]->str_);
         }else{
@@ -201,17 +204,24 @@ __ValuePtr EvaluateUDP(const std::vector<__ValuePtr> & args,int lineno)
         __ValuePtr ret = New<CValue>();
         ret->type_ = 13;
         ret->udp_ = New<CUdp>(lineno);
-        if(args.size() == 3){
-            U32 timeS = 0;
-            if(!args[2]->ToInteger(ret->tcp_->timeMs_)){
-                RUNTIME_ERR(lineno,"invalid argument 3 for timeout value");
-                return false;
-            }
+        if(args.size() == 3 && !args[2]->ToInteger(ret->udp_->timeMs_)){
+            RUNTIME_ERR(lineno,"invalid value for timeout(argutment 3)");
+            return false;
         }
 #if __REAL_CONNECT
         if(!ret->udp_->Connect(addr)){
             RUNTIME_ERR(lineno,"cannot connect to remote address,"<<CSocket::ErrMsg());
             return 0;
+        }
+        if(ret->udp_->timeMs_){
+            if(!ret->udp_->SetSendTimeout(ret->udp_->timeMs_)){
+                RUNTIME_ERR(lineno,"cannot set send timeout,"<<CSocket::ErrMsg());
+                return 0;
+            }
+            if(!ret->udp_->SetRecvTimeout(ret->udp_->timeMs_)){
+                RUNTIME_ERR(lineno,"cannot set recv timeout,"<<CSocket::ErrMsg());
+                return 0;
+            }
         }
 #endif
         return ret;
@@ -224,7 +234,7 @@ __ValuePtr EvaluateHEX(const std::vector<__ValuePtr> & args,int lineno)
     assert(!args.empty());
     __ValuePtr ret = New<CValue>();
     ret->type_ = 11;
-    if(!args[0]->IsString()){
+    if(!args[0]->IsStrOrPA()){
         RUNTIME_ERR(lineno,"invalid conversion to string");
     }else
         ret->str_ = DumpHex(args[0]->str_,0,false);
@@ -235,7 +245,7 @@ __ValuePtr EvaluateUNHEX(const std::vector<__ValuePtr> & args,int lineno)
     assert(!args.empty());
     __ValuePtr ret = New<CValue>();
     ret->type_ = 11;
-    if(!args[0]->IsString()){
+    if(!args[0]->IsStrOrPA()){
         RUNTIME_ERR(lineno,"invalid conversion to string");
     }else
         ret->str_ = UnHex(args[0]->str_);
@@ -246,7 +256,7 @@ static __ValuePtr __EvaluateIP(const std::vector<__ValuePtr> & args,int lineno,b
 {
     assert(!args.empty());
     __ValuePtr ret = New<CValue>();
-    if(CValue::IsInteger(args[0]->type_)){
+    if(args[0]->IsInteger()){   //这里优先照顾STR
         U32 ip = 0;
         if(!args[0]->ToInteger(ip)){
             RUNTIME_ERR(lineno,"invalid conversion to U32");
@@ -254,7 +264,7 @@ static __ValuePtr __EvaluateIP(const std::vector<__ValuePtr> & args,int lineno,b
         }
         ret->type_ = 11;    //STR
         ret->str_ = IPv4String(ip,hbo);
-    }else if(CValue::IsString(args[0]->type_)){
+    }else if(args[0]->IsStrOrPA()){
         ret->type_ = 7;     //U32
         ret->u32_ = IPv4FromStr(args[0]->str_,hbo);
     }
@@ -271,14 +281,14 @@ __ValuePtr EvaluateIPH(const std::vector<__ValuePtr> & args,int lineno)
     return __EvaluateIP(args,lineno,true);
 }
 
-void InvokeBO(bool net_bo,CSharedPtr<CCmdStruct> cmd)
+void InvokeBO(bool net_bo,CSharedPtr<CCmd> cmd)
 {
     runtime().SetByteOrder(net_bo);
     if(cmd)
         cmd->SetByteOrder(net_bo);
 }
 
-void InvokeSendRecv(bool is_send,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd)
+void InvokeSendRecv(bool is_send,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
 {
     assert(cmd);
     if(is_send){
@@ -309,10 +319,12 @@ void InvokeSendRecv(bool is_send,CSharedPtr<CArgList> args,int lineno,CSharedPtr
     }
 }
 
-void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd)
+void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
 {
     assert(cmd && args);
     for(size_t i = 0;i < args->args_.size();++i){
+        if(!(*args)[i])
+            continue;
         assert((*args)[i]->IsVar());  //MUST be variable
         if(is_begin && (*args)[i]->var_->begin_ != -1){
             RUNTIME_ERR(lineno,"cannot BEGIN '"<<(*args)[i]->var_->varname_<<"' again");
@@ -352,7 +364,7 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
     }
 }
 
-void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd)
+void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
 {
     assert(args && cmd);
     assert(!args->args_.empty() && (*args)[0]);
@@ -379,7 +391,7 @@ void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd)
     }
 }
 
-void InvokePRINT(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd)
+void InvokePrint(CSharedPtr<CArgList> args,int lineno)
 {
     assert(args);
     std::ostringstream oss;
@@ -391,4 +403,46 @@ void InvokePRINT(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd
             oss<<v->ShowValue(false);
     }
     SHOW(oss.str());
+}
+
+void InvokeArray(bool is_start,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
+{
+    assert(cmd);
+    if(!is_start)
+        return cmd->EndArray(lineno);
+    if(!args || args->args_.empty()){
+        cmd->StartArray(lineno);
+    }else{
+        CSharedPtr<CExpr> expr = (*args)[0];
+        assert(expr);
+        CSharedPtr<CValue> v = expr->Evaluate();
+        if(!v){
+            RUNTIME_ERR(expr->lineno_,"cannot evaluate expression");
+            return;
+        }
+        size_t sz = 0;
+        if(!v->ToInteger(sz)){
+            RUNTIME_ERR(lineno,"invalid conversion to array size(size_t)");
+            return;
+        }
+        cmd->StartArray(sz,lineno);
+    }
+}
+
+void InvokeSleep(CSharedPtr<CArgList> args,int lineno)
+{
+    assert(args && args->args_.size() == 1);
+    CSharedPtr<CExpr> expr = (*args)[0];
+    assert(expr);
+    CSharedPtr<CValue> v = expr->Evaluate();
+    if(!v){
+        RUNTIME_ERR(expr->lineno_,"cannot evaluate argument 1");
+        return;
+    }
+    int sec = 0;
+    if(!v->ToInteger(sec)){
+        RUNTIME_ERR(expr->lineno_,"invalid value for argument 1");
+        return;
+    }
+    sleep(sec);
 }

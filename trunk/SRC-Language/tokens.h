@@ -21,13 +21,13 @@ bool CannotBeArray(int type_token);
 
 bool IsFunToken(int fun_token);
 
-bool FunArgNumCheck(int fun_token,size_t argn);
-
 int FunRetType(int fun_token,const std::vector<int> * types = 0);
 
-size_t FunArgTypeCheck(int fun_token,const std::vector<int> & types,CSharedPtr<CArgList> arglist);
+size_t FunArgCheck(int fun_token,const std::vector<int> & types,CSharedPtr<CArgList> arglist);
 
 size_t OpArgTypeCheck(int op_token,int type1,int type2);
+
+int IsArrayBeginEndToken(int fun_token);
 
 int IsSendRecvToken(int fun_token);
 

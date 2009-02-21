@@ -1,6 +1,7 @@
 #ifndef DOZERG_SYMBOLS_H_20081111
 #define DOZERG_SYMBOLS_H_20081111
 
+#include "platform.h"
 #include <map>
 #include <vector>
 #include <list>
@@ -9,7 +10,6 @@
 #include <algorithm>
 #include <cassert>
 #include "config.h"
-#include "types.h"
 #include "errors.h"
 #include "rt_structs.h"
 #include "common/SharedPtr.h"
@@ -24,21 +24,24 @@ struct CAssertExp;
 struct CDeclare;
 struct CFuncCall;
 struct CStmt;
-struct CCmdStruct;
+struct CCmd;
 
 struct CFixValue
 {
     const int lineno_;
     int type_;
-    int int_;
-    long long_;
-    long long i64_;
-    size_t strIdx_;
+    union{
+        int int_;
+        long long_;
+        long long i64_;
+        size_t strIdx_;
+        int prog_arg_;
+    };
     //functions:
     explicit CFixValue(int ln);
     std::string ToString() const;
     std::string Signature() const;
-    int RetType() const;
+    int RetType() const{return type_;}
     CSharedPtr<CValue> Evaluate(int lineno) const;
 };
 
@@ -46,14 +49,12 @@ struct CVariable
 {
     std::string varname_;
     const int lineno_;
-    int type_;  //0:unknown ; 1:simple ; 2:array ; 3:struct
+    int type_;
     int tp_token_;
     int ref_count_;
     ssize_t begin_;     //for BEGIN(var), END(var)
     CSharedPtr<CArrayType> array_type_;
-    CSharedPtr<CVariable> struct_name_;
-    CSharedPtr<CCmdStruct> struct_type_;
-    CSharedPtr<CCmdStruct> host_cmd_;
+    CSharedPtr<CCmd> host_cmd_;
     CSharedPtr<CVariable> shadow_;
     //functions:
     explicit CVariable(int ln);
@@ -62,13 +63,11 @@ struct CVariable
     bool IsGlobal() const{return !host_cmd_;}
     bool Is1stDefine() const{return ref_count_ == 0;}
     bool IsArray() const{return type_ == 2;}
-    bool IsStruct() const{return type_ == 3;}
     bool IsConnection() const;
     bool IsRaw() const;
     int RetType() const;
     CSharedPtr<CValue> Evaluate(int lineno) const;
     CSharedPtr<CValue> Initial(int lineno) const;
-    CSharedPtr<CVariable> Copy() const;
 };
 
 struct CExpr
@@ -88,7 +87,6 @@ struct CExpr
     int RetType() const;
     CSharedPtr<CValue> Evaluate() const;
     std::string Depend() const;
-    CSharedPtr<CExpr> Copy() const;
 };
 
 struct CArgList
@@ -107,7 +105,6 @@ struct CArgList
     void RetType(std::vector<int> & ret) const;
     bool Evaluate(std::vector<CSharedPtr<CValue> > & ret,int lineno) const;
     std::string Depend() const;
-    CSharedPtr<CArgList> Copy() const;
 };
 
 struct CArrayType
@@ -126,7 +123,6 @@ struct CArrayType
     bool HasSize() const{return sz_ > 0;}
     int Size() const{return sz_;}
     CSharedPtr<CValue> Evaluate() const;
-    CSharedPtr<CArrayType> Copy() const;
 };
 
 struct CAssertExp
@@ -143,7 +139,6 @@ struct CAssertExp
     bool CheckDefined() const;
     //return: 0-assert false; 1-assert true; -1-runtime error
     bool Assert() const;
-    CSharedPtr<CAssertExp> Copy() const;
 };
 
 struct CDeclare
@@ -152,19 +147,20 @@ struct CDeclare
     int type_;
     int is_def_;
     int op_token_;
-    double eva_priority_;
     CSharedPtr<CVariable> var_;
     CSharedPtr<CExpr> expr_;
+    double eva_priority_;
     //value
     CSharedPtr<CValue> val_;
-    ssize_t offset_;    //for post evaluation
+    //post evaluation
+    ssize_t offset_;
+    bool post_byte_order_;  //延后求值的变量记录字节序：true:NBO ; false:HBO
     //functions:
     explicit CDeclare(int ln);
     std::string ToString() const;
     std::string Signature() const;
     bool IsGlobalOnly() const;
     bool Validate() const;
-    bool IsStruct() const{return var_->IsStruct();}
     bool IsArray() const{return type_ == 1;}
     bool IsSimplePost() const{return type_ == 2 || type_ == 3 || type_ == 4;}
     bool IsFixed() const{return type_ == 5 || type_ == 6;}
@@ -174,14 +170,13 @@ struct CDeclare
     bool IsStreamIn() const;
     bool IsStreamOut() const;
     bool IsConnection() const{return var_->IsConnection();}
-    bool IsLocalOnly() const{return IsArray() || IsAssert() || IsStream() || IsStruct();}
-    bool IsRecvOnly() const{return IsArray() || IsAssert() || IsStreamIn();}
+    bool IsLocalOnly() const{return IsArray() || IsAssert() || IsStream();}
+    bool IsRecvOnly() const{return IsAssert() || IsStreamIn();}
     bool IsSendOnly() const{return IsFixed() || IsStreamOut();}
-    bool CheckDefined(CSharedPtr<CCmdStruct> cur_cmd);
+    bool CheckDefined(CSharedPtr<CCmd> cur_cmd);
     std::string Depend() const{return (expr_ ? expr_->Depend() : "");}
     void FixRaw();
     CSharedPtr<CValue> Evaluate();
-    CSharedPtr<CDeclare> Copy() const;
 };
 
 struct CFuncCall
@@ -201,10 +196,10 @@ struct CFuncCall
     int RetType() const;
     bool HasSideEffect() const{return (RetType() == 0 || IsConnection());}
     std::string Depend() const;
+    int IsArrayBeginEnd() const;    //0:false ; 1:begin ; 2:end
     int IsSendRecv() const; //0:false ; 1:send ; 2:recv
     CSharedPtr<CValue> Evaluate() const;
-    void Invoke(CSharedPtr<CCmdStruct> cmd) const;
-    CSharedPtr<CFuncCall> Copy() const;
+    void Invoke(CSharedPtr<CCmd> cmd) const;
 };
 
 struct CStmt
@@ -214,51 +209,70 @@ struct CStmt
     CSharedPtr<CAssertExp> assert_;
     CSharedPtr<CDeclare> declare_;
     CSharedPtr<CFuncCall> func_call_;
-    CSharedPtr<CCmdStruct> cmd_struct_;
+    CSharedPtr<CCmd> cmd_;
     //functions:
     explicit CStmt(int ln);
     std::string ToString() const;
     std::string Signature() const;
-    CSharedPtr<CStmt> Copy() const;
 };
 
 typedef std::map<std::string,CSharedPtr<CVariable> >   __VarTable;
 
-struct CCmdStruct
+struct CArrayRange
+{
+    int lineno_;
+    ssize_t start_index_;
+    ssize_t end_index_;
+    ssize_t cur_;
+    ssize_t sz_;
+    //functions:
+    explicit CArrayRange(int ln = -1);
+};
+
+struct CCmd
 {
     const int lineno_;
     int endlineno_;
-    int cmd_send_flag_; //0:cmd ; 1:send cmd ; 2:recv cmd ; 3:struct
-    std::string struct_name_;
+    int send_flag_; //0:unknown ; 1:send ; 2:recv
+    std::string cmd_name_;
     __VarTable var_table;
+    size_t cur_stmt_index_;
     std::vector<CSharedPtr<CStmt> > stmt_list_;
-    //cmd
     std::vector<CSharedPtr<CValue> > conn_list_;
-    CSharedPtr<CArgList> begin_list_;    //BEGIN的变量名堆栈
+    CSharedPtr<CArgList> begin_list_;   //BEGIN的变量名堆栈
+    size_t array_index_;                //当前数组索引，只在编译的时候使用
+    std::vector<size_t> array_stack_;   //数组循环堆栈
+    std::vector<CArrayRange> array_range_;
     //send cmd
     COutByteStream outds_;
     //recv cmd
     std::vector<char> recv_data_;
     CInByteStream inds_;
     //functions:
-    explicit CCmdStruct(int ln);
+    explicit CCmd(int ln);
     std::string ToString() const;
     std::string Signature() const;
-    bool IsSend() const{return cmd_send_flag_ == 1;}
-    bool IsRecv() const{return cmd_send_flag_ == 2;}
-    bool IsStruct() const{return cmd_send_flag_ == 3;}
-    bool IsCmd() const{return !IsStruct();}
-    CSharedPtr<CCmdStruct> StructCopy() const;
-    //cmd
+    bool IsSend() const{return send_flag_ == 1;}
+    bool IsRecv() const{return send_flag_ == 2;}
     void SetByteOrder(bool net_bo);
     void AddConnection(CSharedPtr<CValue> conn,int lineno);
+    void InvokeFun(bool (*fp)(std::vector<char> &,std::vector<char> &),size_t sz,int lineno,const std::string & fname);
+    void AddArrayBegin(int lineno);
+    void AddArrayEnd(int lineno);
+    void StartArray(int lineno);
+    void StartArray(size_t sz,int lineno);
+    void EndArray(int lineno);
+    bool IsInArray() const{return !array_stack_.empty();}
+    std::string ArrayIndexString() const;
     //send cmd
     size_t SendDataOffset() const{return outds_.Size();}
     bool PutValue(CSharedPtr<CValue> v);
+    bool PutArray(CSharedPtr<CDeclare> d);
     bool PostPutValue(CSharedPtr<CValue> v,size_t offset);
     bool PostInsertValue(CSharedPtr<CValue> v,size_t offset);
     void Begin(CSharedPtr<CExpr> v);
     void End(CSharedPtr<CExpr> v);
+    bool BeginEmpty() const;
     bool SendData(const std::vector<char> & buf) const;
     //recv cmd
     bool GetValue(CSharedPtr<CValue> v,int lineno);
@@ -283,8 +297,6 @@ struct CCmdStruct
     bool RecvData(int lineno);
     void DumpRecvData() const;
     bool EnsureRecvData(size_t sz,int lineno);
-    //both
-    void InvokeFun(bool (*fp)(std::vector<char> &,std::vector<char> &),size_t sz,int lineno,const std::string & fname);
 };
 
 #endif
