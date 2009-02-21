@@ -26,7 +26,7 @@ struct CRuntime
     bool net_byte_order_;      //当前的字节序设置
 //functions:
     CRuntime();
-    void SetProgArgs(int argc,const char * const * argv){argc_ = argc;argv_ = argv;}
+    void SetProgArgs(int argc,const char * const * argv){argc_ = argc - 1;argv_ = argv + 1;}
     void Interpret(CProgram & program);
     void SetByteOrder(bool net_bo){net_byte_order_ = net_bo;}
     CSharedPtr<CDeclare> FindVar(std::string vname,CSharedPtr<CCmd> cmd = 0);
