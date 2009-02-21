@@ -9,7 +9,7 @@
 __ValuePtr EvaluateU8(const std::vector<__ValuePtr> & args,int lineno)
 {
     __ValuePtr ret = New<CValue>();
-    ret->type_ = 3;
+    ret->type_ = DT_U8;
     if(!args.empty() && !args[0]->ToInteger(ret->u8_)){
         RUNTIME_ERR(lineno,"invalid conversion to U8");
     }
@@ -19,7 +19,7 @@ __ValuePtr EvaluateU8(const std::vector<__ValuePtr> & args,int lineno)
 __ValuePtr EvaluateS8(const std::vector<__ValuePtr> & args,int lineno)
 {
     __ValuePtr ret = New<CValue>();
-    ret->type_ = 4;
+    ret->type_ = DT_S8;
     if(!args.empty() && !args[0]->ToInteger(ret->s8_)){
         RUNTIME_ERR(lineno,"invalid conversion to S8");
     }
@@ -29,7 +29,7 @@ __ValuePtr EvaluateS8(const std::vector<__ValuePtr> & args,int lineno)
 __ValuePtr EvaluateU16(const std::vector<__ValuePtr> & args,int lineno)
 {
     __ValuePtr ret = New<CValue>();
-    ret->type_ = 5;
+    ret->type_ = DT_U16;
     if(!args.empty() && !args[0]->ToInteger(ret->u16_)){
         RUNTIME_ERR(lineno,"invalid conversion to U16");
     }
@@ -39,7 +39,7 @@ __ValuePtr EvaluateU16(const std::vector<__ValuePtr> & args,int lineno)
 __ValuePtr EvaluateS16(const std::vector<__ValuePtr> & args,int lineno)
 {
     __ValuePtr ret = New<CValue>();
-    ret->type_ = 6;
+    ret->type_ = DT_S16;
     if(!args.empty() && !args[0]->ToInteger(ret->s16_)){
         RUNTIME_ERR(lineno,"invalid conversion to S16");
     }
@@ -49,7 +49,7 @@ __ValuePtr EvaluateS16(const std::vector<__ValuePtr> & args,int lineno)
 __ValuePtr EvaluateU32(const std::vector<__ValuePtr> & args,int lineno)
 {
     __ValuePtr ret = New<CValue>();
-    ret->type_ = 7;
+    ret->type_ = DT_U32;
     if(!args.empty() && !args[0]->ToInteger(ret->u32_)){
         RUNTIME_ERR(lineno,"invalid conversion to U32");
     }
@@ -59,7 +59,7 @@ __ValuePtr EvaluateU32(const std::vector<__ValuePtr> & args,int lineno)
 __ValuePtr EvaluateS32(const std::vector<__ValuePtr> & args,int lineno)
 {
     __ValuePtr ret = New<CValue>();
-    ret->type_ = 8;
+    ret->type_ = DT_S32;
     if(!args.empty() && !args[0]->ToInteger(ret->s32_)){
         RUNTIME_ERR(lineno,"invalid conversion to S32");
     }
@@ -70,7 +70,7 @@ __ValuePtr EvaluateS32(const std::vector<__ValuePtr> & args,int lineno)
 __ValuePtr EvaluateU64(const std::vector<__ValuePtr> & args,int lineno)
 {
     __ValuePtr ret = New<CValue>();
-    ret->type_ = 9;
+    ret->type_ = DT_U64;
     if(!args.empty() && !args[0]->ToInteger(ret->u64_)){
         RUNTIME_ERR(lineno,"invalid conversion to U64");
     }
@@ -80,7 +80,7 @@ __ValuePtr EvaluateU64(const std::vector<__ValuePtr> & args,int lineno)
 __ValuePtr EvaluateS64(const std::vector<__ValuePtr> & args,int lineno)
 {
     __ValuePtr ret = New<CValue>();
-    ret->type_ = 10;
+    ret->type_ = DT_S64;
     if(!args.empty() && !args[0]->ToInteger(ret->s64_)){
         RUNTIME_ERR(lineno,"invalid conversion to S64");
     }
@@ -90,7 +90,7 @@ __ValuePtr EvaluateS64(const std::vector<__ValuePtr> & args,int lineno)
 __ValuePtr EvaluateSTR(const std::vector<__ValuePtr> & args,int lineno)
 {
     __ValuePtr ret = New<CValue>();
-    ret->type_ = 11;
+    ret->type_ = DT_STR;
     if(!args.empty()){
         if(!args[0]->IsStrOrPA()){
             RUNTIME_ERR(lineno,"invalid conversion to STR");
@@ -102,7 +102,7 @@ __ValuePtr EvaluateSTR(const std::vector<__ValuePtr> & args,int lineno)
 __ValuePtr EvaluateRAW(const std::vector<__ValuePtr> & args,int lineno)
 {
     __ValuePtr ret = New<CValue>();
-    ret->type_ = 14;
+    ret->type_ = DT_RAW;
     if(!args.empty()){
         if(!args[0]->IsStrOrPA()){
             RUNTIME_ERR(lineno,"invalid conversion to RAW");
@@ -115,7 +115,7 @@ __ValuePtr EvaluateRAW(const std::vector<__ValuePtr> & args,int lineno)
 __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
 {
     if(args.size() == 1){
-        if(args[0]->type_ == 12)
+        if(args[0]->type_ == DT_TCP)
             return args[0];
         RUNTIME_ERR(lineno,"invalid conversion to TCP");
     }else if(args.size() >= 2){
@@ -144,7 +144,7 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
         }
         DBG_RT("remote addr="<<addr.ToString());
         __ValuePtr ret = New<CValue>();
-        ret->type_ = 12;
+        ret->type_ = DT_TCP;
         ret->tcp_ = New<CTcp>(lineno);
         if(args.size() == 3 && !args[2]->ToInteger(ret->tcp_->timeMs_)){
             RUNTIME_ERR(lineno,"invalid value for timeout(argutment 3)");
@@ -174,7 +174,7 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
 __ValuePtr EvaluateUDP(const std::vector<__ValuePtr> & args,int lineno)
 {
     if(args.size() == 1){
-        if(args[0]->type_ == 13)
+        if(args[0]->type_ == DT_UDP)
             return args[0];
         RUNTIME_ERR(lineno,"invalid conversion to UDP");
     }else if(args.size() >= 2){
@@ -203,7 +203,7 @@ __ValuePtr EvaluateUDP(const std::vector<__ValuePtr> & args,int lineno)
         }
         DBG_RT("remote addr="<<addr.ToString());
         __ValuePtr ret = New<CValue>();
-        ret->type_ = 13;
+        ret->type_ = DT_UDP;
         ret->udp_ = New<CUdp>(lineno);
         if(args.size() == 3 && !args[2]->ToInteger(ret->udp_->timeMs_)){
             RUNTIME_ERR(lineno,"invalid value for timeout(argutment 3)");
@@ -234,7 +234,7 @@ __ValuePtr EvaluateHEX(const std::vector<__ValuePtr> & args,int lineno)
 {
     assert(!args.empty());
     __ValuePtr ret = New<CValue>();
-    ret->type_ = 11;
+    ret->type_ = DT_STR;
     if(!args[0]->IsStrOrPA()){
         RUNTIME_ERR(lineno,"invalid conversion to string");
     }else
@@ -245,7 +245,7 @@ __ValuePtr EvaluateUNHEX(const std::vector<__ValuePtr> & args,int lineno)
 {
     assert(!args.empty());
     __ValuePtr ret = New<CValue>();
-    ret->type_ = 11;
+    ret->type_ = DT_STR;
     if(!args[0]->IsStrOrPA()){
         RUNTIME_ERR(lineno,"invalid conversion to string");
     }else
@@ -263,10 +263,10 @@ static __ValuePtr __EvaluateIP(const std::vector<__ValuePtr> & args,int lineno,b
             RUNTIME_ERR(lineno,"invalid conversion to U32");
             return 0;
         }
-        ret->type_ = 11;    //STR
+        ret->type_ = DT_STR;    //STR
         ret->str_ = IPv4String(ip,hbo);
     }else if(args[0]->IsStrOrPA()){
-        ret->type_ = 7;     //U32
+        ret->type_ = DT_U32;     //U32
         ret->u32_ = IPv4FromStr(args[0]->str_,hbo);
     }
     return ret;
