@@ -789,7 +789,7 @@ bool CCmd::SendData(const std::vector<char> & buf) const
         assert(*i);
         const CValue & v = **i;
         assert(v.IsConnection());
-        if(v.type_ == 12){  //tcp
+        if(v.type_ == DT_TCP){  //tcp
             assert(v.tcp_);
             ssize_t n = v.tcp_->SendData(buf,v.tcp_->timeMs_);
             if(n < 0){
@@ -940,7 +940,7 @@ bool CCmd::RecvData(int lineno)
     const CValue & v = *conn_list_[0];
     assert(v.IsConnection());
     const size_t off = inds_.Tell();
-    if(v.type_ == 12){  //tcp
+    if(v.type_ == DT_TCP){  //tcp
         assert(v.tcp_);
         ssize_t n = v.tcp_->RecvData(recv_data_,MAX_BUF);
         if(n < 0){
