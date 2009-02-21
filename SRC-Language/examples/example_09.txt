@@ -1,0 +1,37 @@
+# This is an example of SRC Language
+//Arguments test
+
+STR server_ip := "192.168.13.120";
+U16 server_port := 9531;
+
+TCP(server_ip,server_port)
+
+NET_BYTE_ORDER
+
+CMD QueryCommand SEND
+U16 ver := 100
+U16 cmd_type:(161)
+U32 seq = 1234
+U32 len(0)
+BEGIN(len)
+STR file_hash = $1
+STR client_hash := UNHEX("1A2B3C4D5E6F")
+STR peer_id := "ABCDEF"
+END(len)
+END CMD
+
+CMD RespCommand RECV
+U16 ver >= 100
+U16 cmd_type == 162
+U32 seq
+U32 len
+len < 1024
+//cmd body
+U8  result
+!result
+STR fileHash;
+STR clientHash;
+STR[] peer_id_array;    //array
+END CMD
+
+# The End
