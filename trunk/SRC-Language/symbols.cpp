@@ -284,7 +284,7 @@ bool CArgList::Evaluate(std::vector<CSharedPtr<CValue> > & ret,int lineno) const
     for(size_t i = 0;i < args_.size();++i){
         ret[i] = args_[i]->Evaluate();
         if(!ret[i]){
-            GAMMAR_ERR(lineno,"cannot evaluate argument "<<(i + 1);
+            GAMMAR_ERR(lineno,"cannot evaluate argument "<<(i + 1));
             return false;
         }
     }
