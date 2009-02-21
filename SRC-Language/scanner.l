@@ -128,7 +128,7 @@ SLEEP	{CUR_TOK = yytext;DBG_LEX("SLEEP");return SLEEP;}
 
 COMMAND |
 CMD	{CUR_TOK = yytext;DBG_LEX1("CMD",CUR_TOK);return CMD;}
-STRUCT	{CUR_TOK = yytext;DBG_LEX1("STRUCT",CUR_TOK);return STRUCT;}
+
 DEFINE |
 DEF	{CUR_TOK = yytext;DBG_LEX1("DEF",CUR_TOK);return DEF;}
 

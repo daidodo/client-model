@@ -10,13 +10,13 @@ struct CProgram
     __VarTable var_table;
     std::vector<CSharedPtr<CStmt> > global_stmts;
     //commands
-    CSharedPtr<CCmdStruct> cur_cmd;
-    std::map<std::string,CSharedPtr<CCmdStruct> > cmd_table;
+    CSharedPtr<CCmd> cur_cmd;
+    std::map<std::string,CSharedPtr<CCmd> > cmd_table;
     //connection
     bool conn_defined_; //是否已有默认连接
 //functions:
     CProgram();
-    CSharedPtr<CCmdStruct> & CurCmd(){return cur_cmd;}
+    CSharedPtr<CCmd> & CurCmd(){return cur_cmd;}
     bool isGlobal() const{return !cur_cmd;}
     size_t AddQstr(const std::string & qstr);
     CSharedPtr<CVariable> GetVar(const std::string & varname);
@@ -26,10 +26,10 @@ struct CProgram
     void AddStmt(CSharedPtr<CAssertExp> stmt);
     void AddStmt(CSharedPtr<CDeclare> stmt);
     void AddStmt(CSharedPtr<CFuncCall> stmt);
-    void CmdStructBegin(CSharedPtr<CVariable> var,bool is_cmd = true);
-    void CmdStructEnd(bool is_cmd = true);
+    void CmdBegin(CSharedPtr<CVariable> var);
+    void CmdEnd();
 private:
-    CSharedPtr<CCmdStruct> findCmdStruct(const std::string & name) const;
+    CSharedPtr<CCmd> findCmd(const std::string & name) const;
     std::vector<CSharedPtr<CStmt> > & curStmtList(){return (cur_cmd ? cur_cmd->stmt_list_ : global_stmts);}
     static CSharedPtr<CVariable> findVar(const __VarTable & vt,const std::string & name);
 };

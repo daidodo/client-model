@@ -281,7 +281,7 @@ CSharedPtr<CValue> FunEvaluate(int fun_token,const std::vector<CSharedPtr<CValue
     return 0;
 }
 
-void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmdStruct> cmd)
+void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
 {
     switch(fun_token){
         case HBO:case NBO:
