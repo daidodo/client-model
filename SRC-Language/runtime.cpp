@@ -391,13 +391,17 @@ void CRuntime::processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processFixed decl="<<to_str(decl));
     DBG_RT("processFixed cmd="<<to_str(cmd));
     const std::string vname = decl->var_->varname_;
-    if(decl->Evaluate() && decl->IsConnection())
-        addConnection(decl->val_);
-    var_table_[vname] = decl;
-    if(!decl->is_def_ && cmd && cmd->IsSend() && !cmd->PutValue(decl->val_)){
-        RUNTIME_ERR(decl->lineno_,"cannot pack '"<<vname<<"'");
+    if(decl->Evaluate()){
+        if(decl->IsConnection())
+            addConnection(decl->val_);
+        else{
+            var_table_[vname] = decl;
+            if(!decl->is_def_ && cmd && cmd->IsSend() && !cmd->PutValue(decl->val_)){
+                RUNTIME_ERR(decl->lineno_,"cannot pack '"<<vname<<"'");
+            }
+            decl->expr_ = 0;
+        }
     }
-    decl->expr_ = 0;
 }
 
 void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
