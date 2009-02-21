@@ -152,7 +152,8 @@ __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno)
         }
 #if __REAL_CONNECT
         if(!ret->tcp_->Connect(addr)){
-            RUNTIME_ERR(lineno,"cannot connect to remote address,"<<CSocket::ErrMsg());
+            RUNTIME_ERR(lineno,"cannot connect to remote address at "
+                <<addr.ToString()<<","<<CSocket::ErrMsg());
             return 0;
         }
         if(ret->tcp_->timeMs_){
