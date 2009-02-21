@@ -1367,7 +1367,7 @@ YY_RULE_SETUP
 {
 				CUR_TOK = yytext;
 				DBG_LEX1("PROG_ARG",CUR_TOK);
-				yylval.prog_arg_ = atoi(yytext);
+				yylval.prog_arg_ = atoi(yytext + 1);	//skip '$'
 				return PROG_ARG;
 			}
 	YY_BREAK
