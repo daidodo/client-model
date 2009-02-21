@@ -48,13 +48,13 @@ public:
         SetSource((const char *)d,l,netByteOrder);
     }
     void SetSource(const std::vector<char> & d,bool netByteOrder = DEF_NET_BYTEORDER){
-        SetSource(&d[0],d.size(),netByteOrder);
+        SetSource((d.empty() ? 0 : &d[0]),d.size(),netByteOrder);
     }
     void SetSource(const std::vector<unsigned char> & d,bool netByteOrder = DEF_NET_BYTEORDER){
-        SetSource((const char *)&d[0],d.size(),netByteOrder);
+        SetSource((const char *)(d.empty() ? 0 : &d[0]),d.size(),netByteOrder);
     }
     void SetSource(const std::vector<signed char> & d,bool netByteOrder = DEF_NET_BYTEORDER){
-        SetSource((const char *)&d[0],d.size(),netByteOrder);
+        SetSource((const char *)(d.empty() ? 0 : &d[0]),d.size(),netByteOrder);
     }
     //设置字节序类型
     void OrderType(EOrderType ot){need_reverse_ = NeedReverse(ot);}

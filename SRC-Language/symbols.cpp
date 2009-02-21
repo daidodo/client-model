@@ -7,21 +7,21 @@
 //CFixValue
 CFixValue::CFixValue(int ln)
     : lineno_(ln)
-    , type_(0)
-    , int_(0)
-    , long_(0)
+    , type_(DT_NONE)
     , i64_(0)
-    , strIdx_(0)
 {}
 
 std::string CFixValue::ToString() const{
     std::ostringstream oss;
-    oss<<"(type_="<<type_
-        <<",int_="<<int_
-        <<",long_="<<long_
-        <<",i64_="<<i64_
-        <<",strIdx_="<<strIdx_
-        <<")";
+    oss<<"(type_="<<type_;
+    switch(type_){
+        case DT_INT:oss<<",int_="<<int_;break;
+        case DT_LONG:oss<<",long_="<<long_;break;
+        case DT_I64:oss<<",i64_="<<i64_;break;
+        case DT_STR:oss<<",strIdx_="<<strIdx_;break;
+        case DT_PA:oss<<",prog_arg_=@"<<prog_arg_;break;
+    }
+    oss<<")";
     return oss.str();
 }
 
@@ -31,37 +31,29 @@ std::string CFixValue::Signature() const{
     return oss.str();
 }
 
-int CFixValue::RetType() const
-{
-    switch(type_){
-        case 1:return 1;
-        case 2:return 2;
-        case 3:return 9;
-        case 4:return 11;
-    }
-    return -1;
-}
-
 CSharedPtr<CValue> CFixValue::Evaluate(int lineno) const
 {
     CSharedPtr<CValue> ret = New<CValue>();
+    ret->type_ = type_;
     switch(type_){
-        case 1:
-            ret->type_ = 1;
+        case DT_INT:
             ret->int_ = int_;
             break;
-        case 2:
-            ret->type_ = 2;
+        case DT_LONG:
             ret->long_ = long_;
             break;
-        case 3:
-            ret->type_ = 9;
+        case DT_I64:
             ret->s64_ = i64_;
             break;
-        case 4:
-            ret->type_ = 11;
+        case DT_STR:
             ret->str_ = program().GetQstr(strIdx_);
             break;
+        case DT_PA:{
+            const char * const pa = PM_ARG(prog_arg_);
+            if(!pa)
+                return 0;
+            ret->str_ = pa;
+            break;}
         default:
             GAMMAR_ERR(lineno,"invalid fixed value(internal error)");
             return 0;
@@ -84,8 +76,6 @@ std::string CVariable::ToString() const{
         <<",type_="<<type_
         <<",tp_token_="<<tp_token_
         <<",array_type_="<<signa(array_type_)
-        <<",struct_name_="<<signa(struct_name_)
-        <<",struct_type_="<<signa(struct_type_)
         <<",ref_count_="<<ref_count_
         <<",host_cmd_="<<signa(host_cmd_)
         <<",shadow_="<<to_str(shadow_)
@@ -112,13 +102,7 @@ bool CVariable::IsRaw() const
 
 int CVariable::RetType() const
 {
-    if(IsStruct())
-        return -1;
-    else if(IsArray()){
-        assert(array_type_);
-        return array_type_->RetType();
-    }else
-        return FunRetType(tp_token_);
+    return (array_type_ ? array_type_->RetType() : FunRetType(tp_token_));
 }
 
 CSharedPtr<CValue> CVariable::Evaluate(int lineno) const
@@ -143,28 +127,10 @@ CSharedPtr<CValue> CVariable::Evaluate(int lineno) const
 
 CSharedPtr<CValue> CVariable::Initial(int lineno) const
 {
-    if(IsStruct())
-        return 0;
     if(array_type_)
         return array_type_->Evaluate();
     std::vector<CSharedPtr<CValue> > args;
     return FunEvaluate(tp_token_,args,lineno);
-}
-
-CSharedPtr<CVariable> CVariable::Copy() const
-{
-    CSharedPtr<CVariable> ret = New<CVariable>(lineno_);
-    ret->type_ = type_;
-    ret->tp_token_ = tp_token_;
-    ret->ref_count_ = ref_count_;
-    ret->begin_ = begin_;
-    if(array_type_)
-        ret->array_type_ = array_type_->Copy();
-    ret->struct_name_ = struct_name_;
-    ret->struct_type_ = struct_type_;
-    ret->host_cmd_ = host_cmd_;
-    //shadow_
-    return ret;
 }
 
 //CExpr
@@ -247,18 +213,6 @@ std::string CExpr::Depend() const
     else if(var_ && runtime().IsPost(var_->varname_))
         return var_->varname_;
     return "";
-}
-
-CSharedPtr<CExpr> CExpr::Copy() const
-{
-    CSharedPtr<CExpr> ret = New<CExpr>(lineno_);
-    ret->type_ = type_;
-    ret->fix_value_ = fix_value_;
-    if(func_call_)
-        ret->func_call_ = func_call_->Copy();
-    if(var_)
-        ret->var_ = var_->Copy();
-    return ret;
 }
 
 //CArgList
@@ -352,14 +306,6 @@ std::string CArgList::Depend() const
     return ret;
 }
 
-CSharedPtr<CArgList> CArgList::Copy() const
-{
-    CSharedPtr<CArgList> ret = New<CArgList>(lineno_);
-    for(size_t i = 0;i < args_.size();++i)
-        ret->args_.push_back(args_[i]->Copy());
-    return ret;
-}
-
 //CArrayType
 CArrayType::CArrayType(int ln)
     : lineno_(ln)
@@ -384,7 +330,7 @@ std::string CArrayType::Signature() const{
 
 bool CArrayType::Validate() const
 {
-    if(expr_ && !CValue::IsInteger(expr_->RetType())){
+    if(expr_ && !DT_IsInteger(expr_->RetType())){
         GAMMAR_ERR(lineno_,"invalid type for array size");
         return false;
     }
@@ -395,6 +341,7 @@ bool CArrayType::CheckDefined(int lineno) const
 {
     if(expr_)
         return expr_->CheckDefined(lineno);
+    return true;
 }
 
 int CArrayType::RetType() const
@@ -406,16 +353,6 @@ CSharedPtr<CValue> CArrayType::Evaluate() const
 {
     std::vector<CSharedPtr<CValue> > args;
     return FunEvaluate(tp_token_,args,lineno_);
-}
-
-CSharedPtr<CArrayType> CArrayType::Copy() const
-{
-    CSharedPtr<CArrayType> ret = New<CArrayType>(lineno_);
-    ret->tp_token_ = tp_token_;
-    ret->sz_ = sz_;
-    if(expr_)
-        ret->expr_ = expr_->Copy();
-    return ret;
 }
 
 //CAssertExp
@@ -443,7 +380,7 @@ bool CAssertExp::Validate() const
 {
     assert(expr1_);
     int type1 = expr1_->RetType();
-    int type2 = 0;
+    int type2 = DT_VOID;
     if(IsBinaryPredict(op_token_)){
         if(!expr2_){
             GAMMAR_ERR(lineno_,"prediction format error(binary)");
@@ -498,30 +435,18 @@ bool CAssertExp::Assert() const
         }
     }
     switch(FunAssert(op_token_,v1,v2)){
-        case 0:break;
-        case 1:return true;
-        case -1:{
+        case RET_TRUE:return true;
+        case RET_SIGN_MISMATCH:{
             RUNTIME_ERR(lineno_,"prediction between signed and unsigned integers");
             break;}
-        case -2:{
+        case RET_TYPE_ERROR:{
             RUNTIME_ERR(lineno_,"invalid argument type for prediction");
             break;}
-        case -3:{
+        case RET_OP_ERROR:{
             RUNTIME_ERR(lineno_,"invalid operator type for prediction");
             break;}
     }
     return false;
-}
-
-CSharedPtr<CAssertExp> CAssertExp::Copy() const
-{
-    CSharedPtr<CAssertExp> ret = New<CAssertExp>(lineno_);
-    ret->op_token_ = op_token_;
-    if(expr1_)
-        ret->expr1_ = expr1_->Copy();
-    if(expr2_)
-        ret->expr2_ = expr2_->Copy();
-    return ret;
 }
 
 //CDeclare
@@ -532,6 +457,7 @@ CDeclare::CDeclare(int ln)
     , op_token_(0)
     , eva_priority_(0)
     , offset_(-1)
+    , post_byte_order_(true)
 {}
 
 std::string CDeclare::ToString() const{
@@ -558,10 +484,6 @@ bool CDeclare::IsGlobalOnly() const
 
 bool CDeclare::Validate() const
 {
-    if(IsStruct() && !IsSimplePost() && !IsArray()){
-        GAMMAR_ERR(lineno_,"invaid struct variable");
-        return false;
-    }
     if(IsArray()){
         if(!var_->array_type_->Validate())
             return false;
@@ -600,7 +522,7 @@ bool CDeclare::IsStreamOut() const
     return (IsStream() && IsStreamOutToken(op_token_));
 }
 
-bool CDeclare::CheckDefined(CSharedPtr<CCmdStruct> cur_cmd)
+bool CDeclare::CheckDefined(CSharedPtr<CCmd> cur_cmd)
 {
     bool ret = true;
     CSharedPtr<CVariable>& shadow = var_->shadow_;
@@ -638,23 +560,6 @@ CSharedPtr<CValue> CDeclare::Evaluate()
     return val_;
 }
 
-CSharedPtr<CDeclare> CDeclare::Copy() const
-{
-    CSharedPtr<CDeclare> ret = New<CDeclare>(lineno_);
-    ret->type_ = type_;
-    ret->is_def_ = is_def_;
-    ret->op_token_ = op_token_;
-    ret->eva_priority_ = eva_priority_;
-    ret->offset_ = offset_;
-    if(var_)
-        ret->var_ = var_->Copy();
-    if(expr_)
-        ret->expr_ = expr_->Copy();
-    if(val_)
-        ret->val_ = val_->Copy();
-    return ret;
-}
-
 //CFuncCall
 CFuncCall::CFuncCall(int ln)
     : lineno_(ln)
@@ -686,16 +591,12 @@ bool CFuncCall::Validate() const
 {
     if(arg_list_ && !arg_list_->Validate())
         return false;
-    if(!FunArgNumCheck(ft_token_,(arg_list_ ? arg_list_->args_.size() : 0))){
-        GAMMAR_ERR(lineno_,"number of args is invalid");
-        return false;
-    }
     std::vector<int> retTypes;
     if(arg_list_)
         arg_list_->RetType(retTypes);
-    size_t i = FunArgTypeCheck(ft_token_,retTypes,arg_list_);
+    size_t i = FunArgCheck(ft_token_,retTypes,arg_list_);
     if(i){
-        GAMMAR_ERR(lineno_,"type or variable mismatch for argument "<<i);
+        GAMMAR_ERR(lineno_,"argument "<<i<<" type mismatch or missing");
         return false;
     }
     return true;
@@ -731,6 +632,11 @@ std::string CFuncCall::Depend() const
     return "";
 }
 
+int CFuncCall::IsArrayBeginEnd() const
+{
+    return IsArrayBeginEndToken(ft_token_);
+}
+
 int CFuncCall::IsSendRecv() const
 {
     return IsSendRecvToken(ft_token_);
@@ -746,18 +652,11 @@ CSharedPtr<CValue> CFuncCall::Evaluate() const
     return FunEvaluate(ft_token_,args,lineno_);
 }
 
-void CFuncCall::Invoke(CSharedPtr<CCmdStruct> cmd) const
+void CFuncCall::Invoke(CSharedPtr<CCmd> cmd) const
 {
+    if(global().err_count_)
+        throw 0;
     FunInvoke(ft_token_,arg_list_,lineno_,cmd);
-}
-
-CSharedPtr<CFuncCall> CFuncCall::Copy() const
-{
-    CSharedPtr<CFuncCall> ret = New<CFuncCall>(lineno_);
-    ret->ft_token_ = ft_token_;
-    if(arg_list_)
-        ret->arg_list_ = arg_list_->Copy();
-    return ret;
 }
 
 //CStmt
@@ -772,7 +671,7 @@ std::string CStmt::ToString() const{
         <<",assert_="<<signa(assert_)
         <<",declare_="<<signa(declare_)
         <<",func_call_="<<signa(func_call_)
-        <<",cmd_struct_="<<signa(cmd_struct_)
+        <<",cmd_="<<signa(cmd_)
         <<")";
     return oss.str();
 }
@@ -783,57 +682,41 @@ std::string CStmt::Signature() const{
     return oss.str();
 }
 
-CSharedPtr<CStmt> CStmt::Copy() const
-{
-    CSharedPtr<CStmt> ret = New<CStmt>(lineno_);
-    ret->type_ = type_;
-    if(assert_)
-        ret->assert_ = assert_->Copy();
-    if(declare_)
-        ret->declare_ = declare_->Copy();
-    if(func_call_)
-        ret->func_call_ = func_call_->Copy();
-    ret->cmd_struct_ = cmd_struct_;
-    return ret;
-}
+//CArrayRange
+CArrayRange::CArrayRange(int ln)
+    : lineno_(ln)
+    , start_index_(-1)
+    , end_index_(-1)
+    , cur_(0)
+    , sz_(-1)
+{}
 
-//CCmdStruct
-CCmdStruct::CCmdStruct(int ln)
+//CCmd
+CCmd::CCmd(int ln)
     : lineno_(ln)
     , endlineno_(0)
-    , cmd_send_flag_(0)
+    , send_flag_(0)
+    , cur_stmt_index_(0)
+    , array_index_(0)
     , inds_(recv_data_)
 {}
 
-std::string CCmdStruct::ToString() const{
+std::string CCmd::ToString() const{
     std::ostringstream oss;
-    oss<<"(struct_name_="<<struct_name_
-        <<",cmd_send_flag_="<<cmd_send_flag_
+    oss<<"(cmd_name_="<<cmd_name_
+        <<",send_flag_="<<send_flag_
         <<")";
     return oss.str();
 }
 
-std::string CCmdStruct::Signature() const{
+std::string CCmd::Signature() const{
     std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")"<<struct_name_;
+    oss<<"(LINE:"<<lineno_<<")"<<cmd_name_;
     return oss.str();
 }
 
-CSharedPtr<CCmdStruct> CCmdStruct::StructCopy() const
+void CCmd::SetByteOrder(bool net_bo)
 {
-    CSharedPtr<CCmdStruct> ret = New<CCmdStruct>(lineno_);
-    ret->endlineno_ = endlineno_;
-    //cmd_send_flag_
-    ret->struct_name_ = struct_name_;
-    //var_table
-    for(size_t i = 0;i < stmt_list_.size();++i)
-        ret->stmt_list_.push_back(stmt_list_[i]->Copy());
-    return ret;
-}
-
-void CCmdStruct::SetByteOrder(bool net_bo)
-{
-    assert(IsCmd());
     if(IsSend())
         outds_.OrderType(net_bo);
     else if(IsRecv())
@@ -843,9 +726,8 @@ void CCmdStruct::SetByteOrder(bool net_bo)
     }
 }
 
-void CCmdStruct::AddConnection(CSharedPtr<CValue> conn,int lineno)
+void CCmd::AddConnection(CSharedPtr<CValue> conn,int lineno)
 {
-    assert(IsCmd());
     assert(conn && conn->IsConnection());
     if(!conn_list_.empty()){
         RUNTIME_ERR(lineno,"only one connction is supported for one command");
@@ -853,46 +735,54 @@ void CCmdStruct::AddConnection(CSharedPtr<CValue> conn,int lineno)
         conn_list_.push_back(conn);
 }
 
-bool CCmdStruct::PutValue(CSharedPtr<CValue> v)
+bool CCmd::PutValue(CSharedPtr<CValue> v)
 {
-    assert(IsCmd());
     assert(v);
     return (outds_<<*v);
 }
 
-bool CCmdStruct::PostPutValue(CSharedPtr<CValue> v,size_t offset)
+bool CCmd::PutArray(CSharedPtr<CDeclare> d)
 {
-    assert(IsCmd());
+    assert(d && d->val_ && d->var_->array_type_->sz_ >= 0);
+    for(int i = 0;i < d->var_->array_type_->sz_;++i)
+        if(!(outds_<<*d->val_))
+            return false;
+    return true;
+}
+
+bool CCmd::PostPutValue(CSharedPtr<CValue> v,size_t offset)
+{
     assert(v);
     return (outds_<<Manip::offset_value(offset,*v));
 }
 
-bool CCmdStruct::PostInsertValue(CSharedPtr<CValue> v,size_t offset)
+bool CCmd::PostInsertValue(CSharedPtr<CValue> v,size_t offset)
 {
-    assert(IsCmd());
     assert(v);
     return (outds_<<Manip::insert(offset,*v));
 }
 
-void CCmdStruct::Begin(CSharedPtr<CExpr> v)
+void CCmd::Begin(CSharedPtr<CExpr> v)
 {
-    assert(IsCmd());
     assert(v);
     if(!begin_list_)
         begin_list_ = New<CArgList>(lineno_);
     begin_list_->Add(v);
 }
 
-void CCmdStruct::End(CSharedPtr<CExpr> v)
+void CCmd::End(CSharedPtr<CExpr> v)
 {
-    assert(IsCmd());
     assert(begin_list_ && v);
     begin_list_->Erase(v);
 }
 
-bool CCmdStruct::SendData(const std::vector<char> & buf) const
+bool CCmd::BeginEmpty() const
 {
-    assert(IsCmd());
+    return (!begin_list_ || begin_list_->args_.empty());
+}
+
+bool CCmd::SendData(const std::vector<char> & buf) const
+{
     for(std::vector<CSharedPtr<CValue> >::const_iterator i = conn_list_.begin();
         i != conn_list_.end();++i)
     {
@@ -920,17 +810,15 @@ bool CCmdStruct::SendData(const std::vector<char> & buf) const
     return true;
 }
 
-bool CCmdStruct::GetValue(CSharedPtr<CValue> v,int lineno)
+bool CCmd::GetValue(CSharedPtr<CValue> v,int lineno)
 {
-    assert(IsCmd());
     assert(v);
     assert(!v->IsRaw());
     return GetVal(*v,lineno);
 }
 
-bool CCmdStruct::GetRaw(std::string & res,const std::string & v,int lineno)
+bool CCmd::GetRaw(std::string & res,const std::string & v,int lineno)
 {
-    assert(IsCmd());
     for(size_t i = 0;i < v.length();++i){
         char ch = 0;
         if(!GetVal(ch,lineno)){
@@ -944,9 +832,8 @@ bool CCmdStruct::GetRaw(std::string & res,const std::string & v,int lineno)
     return true;
 }
 
-bool CCmdStruct::GetArray(CSharedPtr<CDeclare> d)
+bool CCmd::GetArray(CSharedPtr<CDeclare> d)
 {
-    assert(IsCmd());
     const U32 MAX_ARRAY_SIZE = 65535;
     assert(d && d->IsArray());
     if(!d->var_->array_type_->HasSize()){
@@ -961,11 +848,11 @@ bool CCmdStruct::GetArray(CSharedPtr<CDeclare> d)
             d->var_->array_type_->sz_ = int(sz);
     }
     assert(d->val_);
-    SHOW(CRuntime::RealVarname(d->var_->varname_)<<".size() = "
-        <<d->var_->array_type_->sz_);
+    SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()
+        <<".size() = "<<d->var_->array_type_->sz_);
     for(int i = 0;i < d->var_->array_type_->sz_;++i){
         if(GetVal(*d->val_,d->lineno_)){
-            SHOW(CRuntime::RealVarname(d->var_->varname_)<<"["<<i<<"] = "
+            SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()<<"["<<i<<"] = "
                 <<d->val_->ShowValue());
         }else{
             RUNTIME_ERR(d->lineno_,"recv '"<<d->var_->varname_<<"["<<i
@@ -976,22 +863,23 @@ bool CCmdStruct::GetArray(CSharedPtr<CDeclare> d)
     return true;
 }
 
-bool CCmdStruct::GetAssert(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v)
+bool CCmd::GetAssert(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v)
 {
-    assert(IsCmd());
     assert(d && d->IsAssert());
     assert(d->val_);
     if(d->val_->IsRaw()){
         assert(v->IsString());
         bool ret = GetRaw(d->val_->str_,v->str_,d->lineno_);
-        SHOW(CRuntime::RealVarname(d->var_->varname_)<<" = "<<d->val_->ShowValue());
+        SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()
+            <<" = "<<d->val_->ShowValue());
         return ret;
     }else{
         if(!GetVal(*d->val_,d->lineno_)){
             RUNTIME_ERR(d->lineno_,"recv '"<<d->var_->varname_<<"' error");
             return false;
         }
-        SHOW(CRuntime::RealVarname(d->var_->varname_)<<" = "<<d->val_->ShowValue());
+        SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()
+            <<" = "<<d->val_->ShowValue());
         assert(v);
         switch(FunAssert(d->op_token_,d->val_,v)){
             case 1:return true;
@@ -1010,9 +898,8 @@ bool CCmdStruct::GetAssert(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v)
     return false;
 }
 
-bool CCmdStruct::GetStreamIn(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v)
+bool CCmd::GetStreamIn(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v)
 {
-    assert(IsCmd());
     assert(d && d->IsStreamIn());
     assert(d->val_);
     if(!d->val_->IsString()){
@@ -1046,9 +933,8 @@ bool CCmdStruct::GetStreamIn(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v)
     return true;
 }
 
-bool CCmdStruct::RecvData(int lineno)
+bool CCmd::RecvData(int lineno)
 {
-    assert(IsCmd());
     const size_t MAX_BUF = 32 << 10;    //32k
     assert(!conn_list_.empty() && conn_list_[0]);
     const CValue & v = *conn_list_[0];
@@ -1085,18 +971,16 @@ bool CCmdStruct::RecvData(int lineno)
     return true;
 }
 
-void CCmdStruct::DumpRecvData() const
+void CCmd::DumpRecvData() const
 {
-    assert(IsCmd());
     SHOW("  RECV data =");
     if(!recv_data_.empty()){
         SHOW(DumpFormat(recv_data_));
     }
 }
 
-bool CCmdStruct::EnsureRecvData(size_t sz,int lineno)
+bool CCmd::EnsureRecvData(size_t sz,int lineno)
 {
-    assert(IsCmd());
     if(!sz)
         return true;
     const size_t cur = inds_.Tell();
@@ -1108,9 +992,8 @@ bool CCmdStruct::EnsureRecvData(size_t sz,int lineno)
     return true;
 }
 
-void CCmdStruct::InvokeFun(bool (*fp)(std::vector<char> &,std::vector<char> &),size_t sz,int lineno,const std::string & fname)
+void CCmd::InvokeFun(bool (*fp)(std::vector<char> &,std::vector<char> &),size_t sz,int lineno,const std::string & fname)
 {
-    assert(IsCmd());
     assert(fp);
     SHOW("  before invoke function '"<<fname<<"' data = ");
     if(IsSend()){
@@ -1142,4 +1025,75 @@ void CCmdStruct::InvokeFun(bool (*fp)(std::vector<char> &,std::vector<char> &),s
         inds_.SetSource(&recv_data_[0],recv_data_.size(),runtime().net_byte_order_);
         inds_>>Manip::skip(cur);
     }
+}
+
+void CCmd::AddArrayBegin(int lineno)
+{
+    array_stack_.push_back(array_range_.size());
+    array_range_.push_back(CArrayRange(lineno));
+    array_range_.back().start_index_ = stmt_list_.size();
+}
+
+void CCmd::AddArrayEnd(int lineno)
+{
+    if(array_stack_.empty()){
+        RUNTIME_ERR(lineno,"cannot END ARRAY without BEGIN ARRAY");
+        return;
+    }
+    array_range_[array_stack_.back()].end_index_ = stmt_list_.size();
+    array_stack_.pop_back();
+}
+
+void CCmd::StartArray(int lineno)
+{
+    if(!IsRecv()){
+        RUNTIME_ERR(lineno,"ARRAY size is unknown");
+        return;
+    }
+    U32 sz = 0;
+    if(!GetVal(sz,lineno)){
+        RUNTIME_ERR(lineno,"cannot recv array size");
+    }else{
+        SHOW("  ARRAY_SIZE = "<<sz);
+        StartArray(sz,lineno);
+    }
+}
+
+void CCmd::StartArray(size_t sz,int lineno)
+{
+    array_range_[array_index_].sz_ = sz;
+    if(!sz){
+        cur_stmt_index_ = array_range_[array_index_].end_index_;
+    }else{
+        --array_range_[array_index_].sz_;
+        array_stack_.push_back(array_index_);
+    }
+    ++array_index_;
+}
+
+void CCmd::EndArray(int lineno)
+{
+    if(array_stack_.empty()){
+        RUNTIME_ERR(lineno,"cannot END ARRAY without BEGIN ARRAY");
+        return;
+    }
+    size_t i = array_stack_.back();
+    assert(array_range_[i].cur_ <= array_range_[i].sz_);
+    if(array_range_[i].cur_ == array_range_[i].sz_){   //array ends
+        array_stack_.pop_back();
+    }else{                        //array repeats
+        assert(array_range_[i].start_index_ >= 0);
+        ++array_range_[i].cur_;
+        cur_stmt_index_ = array_range_[i].start_index_;
+    }
+}
+
+std::string CCmd::ArrayIndexString() const
+{
+    std::ostringstream oss;
+    for(size_t i = 0;i < array_stack_.size();++i){
+        size_t index = array_stack_[i];
+        oss<<"["<<array_range_[index].cur_<<"]";
+    }
+    return oss.str();
 }

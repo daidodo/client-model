@@ -1,4 +1,7 @@
 %{
+#if defined(WIN32) && !defined(YY_NO_UNISTD_H)
+#   define YY_NO_UNISTD_H
+#endif
 #include <iostream>
 #include "global.h"
 #include "util.h"
@@ -8,10 +11,10 @@
 #include "yystype.h"
 %}
 
-%x CHAR_S QSTR_S
+%x CHAR_S QSTR_S RSTR_S
 %s EOF_S
 
-nl	(\r?\n)
+nl		(\r?\n)
 digit		([0-9])
 nz_digit	([1-9])
 oct_digit	([0-7])
@@ -30,7 +33,7 @@ i64_const	({int_const_val}{i64_suf}?)
 
 %%
 
-<EOF_S><<EOF>>	{return 0;}
+<EOF_S><<EOF>>	|
 <EOF_S>.|\n	{return 0;}
 
 <QSTR_S,CHAR_S>\\a	{CUR_TOK.push_back('\a');}
@@ -41,6 +44,7 @@ i64_const	({int_const_val}{i64_suf}?)
 <QSTR_S,CHAR_S>\\t	{CUR_TOK.push_back('\t');}
 <QSTR_S,CHAR_S>\\v	{CUR_TOK.push_back('\v');}
 <QSTR_S,CHAR_S>\\\"	{CUR_TOK.push_back('\"');}
+<RSTR_S>\\\"		{CUR_TOK += yytext;}
 <QSTR_S,CHAR_S>\\'	{CUR_TOK.push_back('\'');}
 <QSTR_S,CHAR_S>\\[0-7]{1,3}	{
 				int ch = str2num_base8<int>(yytext + 1,yyleng - 1);
@@ -60,28 +64,36 @@ i64_const	({int_const_val}{i64_suf}?)
 				}
 
 <QSTR_S,CHAR_S>\\{nl}	{++LINE_NO;}
-<QSTR_S,CHAR_S>\\.	{CUR_TOK.push_back(yytext[1]);}
-<QSTR_S>\"	{
-			BEGIN INITIAL;
-			yylval.strIdx_ = program().AddQstr(CUR_TOK);
-			return QSTRING;
-		}
-<CHAR_S>'	{
-			BEGIN INITIAL;
-			if(CUR_TOK.size() != 1){
-				SYNTAX_ERR("invalid charactor");
+<RSTR_S>\\{nl}		{
+				++LINE_NO;
+				CUR_TOK += yytext;
 			}
-			yylval.int_ = CUR_TOK[0];
-			return INT;
-		}
-<QSTR_S,CHAR_S>.	{CUR_TOK.push_back(*yytext);}
-<QSTR_S,CHAR_S>{nl}	{SYNTAX_ERR("unterminated string");BEGIN INITIAL;}
+<QSTR_S,CHAR_S>\\.	{CUR_TOK.push_back(yytext[1]);}
+<QSTR_S,RSTR_S>\"	{
+				BEGIN INITIAL;
+				DBG_LEX1("QSTRING",CUR_TOK);
+				yylval.strIdx_ = program().AddQstr(CUR_TOK);
+				return QSTRING;
+			}
+<CHAR_S>'		{
+				BEGIN INITIAL;
+				if(CUR_TOK.size() != 1){
+					SYNTAX_ERR("invalid charactor");
+				}
+				yylval.int_ = CUR_TOK[0];
+				DBG_LEX1("CHAR",yylval.int_);
+				return INT;
+			}
+<QSTR_S,CHAR_S,RSTR_S>.	{CUR_TOK.push_back(*yytext);}
+<QSTR_S,CHAR_S,RSTR_S>{nl}	{SYNTAX_ERR("unterminated string");BEGIN INITIAL;}
 
 "//".* |
 #.*	/* comments */;
 [ \t]+	;
 
+[rR]\"	{CUR_TOK.clear();BEGIN RSTR_S;}
 \"	{CUR_TOK.clear();BEGIN QSTR_S;}
+'	{CUR_TOK.clear();BEGIN CHAR_S;}
 
 U8	{CUR_TOK = yytext;DBG_LEX("U8");return TP_U8;}
 S8	{CUR_TOK = yytext;DBG_LEX("S8");return TP_S8;}
@@ -110,6 +122,9 @@ HEX	{CUR_TOK = yytext;DBG_LEX("HEX");return HEX;}
 UNHEX	{CUR_TOK = yytext;DBG_LEX("UNHEX");return UNHEX;}
 PRINT	{CUR_TOK = yytext;DBG_LEX("PRINT");return PRINT;}
 IP	{CUR_TOK = yytext;DBG_LEX("IP");return IP;}
+ARRAY	{CUR_TOK = yytext;DBG_LEX("ARRAY");return ARRAY;}
+SLEEP	{CUR_TOK = yytext;DBG_LEX("SLEEP");return SLEEP;}
+
 
 COMMAND |
 CMD	{CUR_TOK = yytext;DBG_LEX1("CMD",CUR_TOK);return CMD;}
@@ -163,6 +178,13 @@ DEF	{CUR_TOK = yytext;DBG_LEX1("DEF",CUR_TOK);return DEF;}
 				DBG_LEX1("I64",CUR_TOK);
 				yylval.i64_ = str2i64(yytext,yyleng);
 				return I64;
+			}
+
+\$-?{digit}+		{
+				CUR_TOK = yytext;
+				DBG_LEX1("PROG_ARG",CUR_TOK);
+				yylval.prog_arg_ = atoi(yytext);
+				return PROG_ARG;
 			}
 
 <<EOF>>	{CUR_TOK = "EOF";DBG_LEX(CUR_TOK);BEGIN EOF_S;return EOF_;}
