@@ -149,10 +149,10 @@ struct CDeclare
     int op_token_;
     CSharedPtr<CVariable> var_;
     CSharedPtr<CExpr> expr_;
-    double eva_priority_;
     //value
     CSharedPtr<CValue> val_;
     //post evaluation
+    double eva_priority_;
     ssize_t offset_;
     bool post_byte_order_;  //延后求值的变量记录字节序：true:NBO ; false:HBO
     //functions:

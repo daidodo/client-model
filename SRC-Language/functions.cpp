@@ -380,7 +380,7 @@ void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
         if(args->args_.size() > 1){
             CSharedPtr<CValue> v = (*args)[1]->Evaluate();
             if(!v){
-                RUNTIME_ERR(lineno,"cannot evaluate argument 2");
+                RUNTIME_ERR(lineno,"cannot evaluate parameter 2");
                 return;
             }
             if(!v->ToInteger(sz)){
@@ -437,12 +437,12 @@ void InvokeSleep(CSharedPtr<CArgList> args,int lineno)
     assert(expr);
     CSharedPtr<CValue> v = expr->Evaluate();
     if(!v){
-        RUNTIME_ERR(expr->lineno_,"cannot evaluate argument 1");
+        RUNTIME_ERR(expr->lineno_,"cannot evaluate parameter 1");
         return;
     }
     int sec = 0;
     if(!v->ToInteger(sec)){
-        RUNTIME_ERR(expr->lineno_,"invalid value for argument 1");
+        RUNTIME_ERR(expr->lineno_,"invalid value for parameter 1");
         return;
     }
     sleep(sec);

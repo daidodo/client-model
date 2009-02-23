@@ -339,14 +339,16 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processPost cmd="<<to_str(cmd));
     std::string vname = decl->var_->varname_;
     if(decl->IsConnection())
-        processFixed(decl,0);
-    else{
-        assert(decl->expr_);
-        decl->Evaluate();
-        DBG_RT("processPost Evaluate "<<vname<<"="<<to_str(decl->val_));
-        if((!decl->val_ || decl->val_->IsInteger()) &&      //必须是数值类型
-            (cmd && cmd->IsSend()))                         //必须在发送命令里
-        {
+        return processFixed(decl,0);
+    assert(decl->expr_);
+    if(!decl->Evaluate())
+        return;
+    DBG_RT("processPost Evaluate "<<vname<<"="<<to_str(decl->val_));
+    var_table_[vname] = decl;
+    if(!cmd)
+        return;
+    if(cmd->IsSend()){  //send cmd
+        if(decl->val_->IsInteger()){    //必须是发送命令里的数值类型
             if(cmd->IsInArray()){
                 RUNTIME_ERR(decl->lineno_,"post evaluation in ARRAY is not supported yet, please using :=");
             }else{
@@ -367,15 +369,14 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
                 }
             }
         }
-        var_table_[vname] = decl;
-    }
-    if(!decl->is_def_ && cmd){
-        if(cmd->IsSend()){
+        if(!decl->is_def_){
             decl->offset_ = cmd->SendDataOffset();
             if(!cmd->PutValue(decl->val_)){
                 RUNTIME_ERR(decl->lineno_,"cannot pack '"<<vname<<"'");
             }
-        }else{
+        }
+    }else{  //recv cmd
+        if(!decl->is_def_){
             if(!cmd->GetValue(decl->val_,decl->lineno_)){
                 cmd->DumpRecvData();
                 ASSERT_FAIL(decl->lineno_,"recv '"<<decl->var_->varname_<<"' failed");

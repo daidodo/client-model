@@ -26,6 +26,7 @@ struct CGlobal
 private:
     CGlobal(){}
     ~CGlobal(){}
+    bool outputErrMsg() const;
 public:
     static CGlobal & Inst(){
         static CGlobal inst;

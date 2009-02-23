@@ -180,7 +180,7 @@ DEF	{CUR_TOK = yytext;DBG_LEX1("DEF",CUR_TOK);return DEF;}
 				return I64;
 			}
 
-\$-?{digit}+		{
+\${digit}+		{
 				CUR_TOK = yytext;
 				DBG_LEX1("PROG_ARG",CUR_TOK);
 				yylval.prog_arg_ = atoi(yytext + 1);	//skip '$'

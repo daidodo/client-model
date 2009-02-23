@@ -81,7 +81,7 @@ struct CValue
             case DT_S32:return IntAssign(res,s32_);
             case DT_U64:return IntAssign(res,u64_);
             case DT_S64:return IntAssign(res,s64_);
-            case DT_PA:return IntAssign(res,s64_);
+            case DT_PA:return IntAssign(res,str_);
         }
         return false;
     }
