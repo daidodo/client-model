@@ -50,8 +50,10 @@ CSharedPtr<CValue> CFixValue::Evaluate(int lineno) const
             break;
         case DT_PA:{
             const char * const pa = PM_ARG(prog_arg_);
-            if(!pa)
+            if(!pa){
+                RUNTIME_ERR(lineno,"expect PROGRAM ARGUMENT '$"<<prog_arg_<<"'");
                 return 0;
+            }
             ret->str_ = pa;
             break;}
         default:
@@ -118,7 +120,7 @@ CSharedPtr<CValue> CVariable::Evaluate(int lineno) const
         return 0;
     }
     if(!decl->val_){
-        GAMMAR_ERR(lineno,"variable '"<<varname_
+        GAMMAR_ERR(lineno,"variable '"<<CRuntime::RealVarname(varname_)
             <<"' not initialized yet");
         return 0;
     }
@@ -160,7 +162,8 @@ bool CExpr::CheckDefined(int lineno) const
     if(func_call_)
         return func_call_->CheckDefined();
     if(var_ && var_->Is1stDefine()){
-        GAMMAR_ERR(lineno,"undefined symbol '"<<var_->varname_<<"'");
+        GAMMAR_ERR(lineno,"undefined symbol '"<<CRuntime::RealVarname(var_->varname_)
+            <<"'");
         CUR_VTB.erase(var_->varname_);
         return false;
     }
@@ -284,7 +287,7 @@ bool CArgList::Evaluate(std::vector<CSharedPtr<CValue> > & ret,int lineno) const
     for(size_t i = 0;i < args_.size();++i){
         ret[i] = args_[i]->Evaluate();
         if(!ret[i]){
-            GAMMAR_ERR(lineno,"cannot evaluate argument "<<(i + 1));
+            GAMMAR_ERR(lineno,"cannot evaluate parameter "<<(i + 1));
             return false;
         }
     }
@@ -529,7 +532,7 @@ bool CDeclare::CheckDefined(CSharedPtr<CCmd> cur_cmd)
     if(shadow){
         --shadow->ref_count_;
         if(cur_cmd == shadow->host_cmd_){
-            GAMMAR_ERR(lineno_,"redefine symbol '"<<var_->varname_
+            GAMMAR_ERR(lineno_,"redefine symbol '"<<CRuntime::RealVarname(var_->varname_)
                 <<"', see LINE:"<<shadow->lineno_);
             var_ = shadow;
             ret = false;
@@ -553,7 +556,7 @@ CSharedPtr<CValue> CDeclare::Evaluate()
     if(expr_)
         val_ = expr_->Evaluate();
     if(!val_){
-        RUNTIME_ERR(lineno_,"cannot evaluate '"<<var_->varname_
+        RUNTIME_ERR(lineno_,"cannot evaluate '"<<CRuntime::RealVarname(var_->varname_)
             <<"'");
     }else
         FixRaw();   //区分STR和RAW类型
@@ -855,7 +858,7 @@ bool CCmd::GetArray(CSharedPtr<CDeclare> d)
             SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()<<"["<<i<<"] = "
                 <<d->val_->ShowValue());
         }else{
-            RUNTIME_ERR(d->lineno_,"recv '"<<d->var_->varname_<<"["<<i
+            RUNTIME_ERR(d->lineno_,"recv '"<<CRuntime::RealVarname(d->var_->varname_)<<"["<<i
                 <<"]' error");
             return false;
         }
@@ -875,7 +878,8 @@ bool CCmd::GetAssert(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v)
         return ret;
     }else{
         if(!GetVal(*d->val_,d->lineno_)){
-            RUNTIME_ERR(d->lineno_,"recv '"<<d->var_->varname_<<"' error");
+            RUNTIME_ERR(d->lineno_,"recv '"<<CRuntime::RealVarname(d->var_->varname_)
+                <<"' error");
             return false;
         }
         SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()
@@ -915,7 +919,8 @@ bool CCmd::GetStreamIn(CSharedPtr<CDeclare> d,CSharedPtr<CValue> v)
     for(int j = 0;j < 20;++j){  //log10(2^64) == 19.3
         char ch = 0;
         if(!GetVal(ch,d->lineno_)){
-            RUNTIME_ERR(lineno_,"recv '"<<d->var_->varname_<<"' error");
+            RUNTIME_ERR(lineno_,"recv '"<<CRuntime::RealVarname(d->var_->varname_)
+                <<"' error");
             return false;
         }
         if(ch >= '0' && ch <= '9'){

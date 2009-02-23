@@ -9,6 +9,18 @@ extern FILE * yyin;
 
 int yyparse();
 
+bool CGlobal::outputErrMsg() const
+{
+    if(err_count_){
+        std::cerr<<"total "<<err_count_<<" error";
+        if(err_count_ > 1)
+            std::cerr<<"s";
+        std::cerr<<std::endl;
+        return false;
+    }
+    return true;
+}
+
 void CGlobal::ErrFound(){
     if(++err_count_ > MAX_ERRORS)
         throw 0;
@@ -37,11 +49,7 @@ bool CGlobal::Compile(const std::string & fname){
     }catch(int){}
     fclose(yyin);
     yyin = 0;
-    if(err_count_){
-        std::cerr<<"total "<<err_count_<<" error(s)\n";
-        return false;
-    }
-    return true;
+    return outputErrMsg();
 }
 
 bool CGlobal::Run(int argc,const char * const * argv)
@@ -64,11 +72,7 @@ bool CGlobal::Run(int argc,const char * const * argv)
         runtime_->Interpret(*program_);
         UninitSocket();
     }catch(int){}
-    if(err_count_){
-        std::cerr<<"total "<<err_count_<<" error(s)\n";
-        return false;
-    }
-    return true;
+    return outputErrMsg();
 }
 
 bool CGlobal::AddFunc(const std::string func_name,__Func func_ptr)
