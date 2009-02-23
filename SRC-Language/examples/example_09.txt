@@ -1,6 +1,6 @@
 #!/usr/local/bin/srcc
 # This is an example of SRC Language
-//Arguments test
+//Program Arguments test
 
 STR server_ip := "127.0.0.1";
 U16 server_port := 9531;

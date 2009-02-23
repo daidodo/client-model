@@ -10,7 +10,7 @@
 CRuntime::CRuntime()
     : argc_(0)
     , argv_(0)
-    , net_byte_order_(true)
+    , cur_byte_order_(true)
 {}
 
 void CRuntime::Interpret(CProgram & program)
@@ -86,7 +86,7 @@ void CRuntime::postEvaluate(CSharedPtr<CCmd> cmd)
             continue;
         }
         //set byte order
-        if(decl->post_byte_order_ != net_byte_order_)
+        if(decl->post_byte_order_ != cur_byte_order_)
             InvokeBO(decl->post_byte_order_,cmd);
         //post set value
         if(decl->IsSimplePost()){
@@ -125,39 +125,29 @@ void CRuntime::postEvaluate(CSharedPtr<CCmd> cmd)
     }
 }
 
-bool CRuntime::addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,const std::string & depend)
+void CRuntime::addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,const std::string & depend)
 {
-    if(depend.empty()){
-        addPostVar(vname,decl);
-        return true;
-    }
+    assert(!depend.empty());
     __VnameMap::const_iterator wh = post_map_.find(depend);
+    __VnameIter next;
     if(wh == post_map_.end()){
-        RUNTIME_ERR(decl->lineno_,"no symbol '"<<depend
-            <<"' in post map(internal error)");
-        return false;
+        next = post_list_.end();
+        if(!post_list_.empty())
+            decl->eva_priority_ = Priority(post_list_.back());
+        decl->eva_priority_ += 1000;
+    }else{
+        next = wh->second;
+        decl->eva_priority_ = Priority(*next);
+        ++next;
+        if(next == post_list_.end())
+            decl->eva_priority_ += 1000;
+        else{
+            decl->eva_priority_ += Priority(*next);
+            decl->eva_priority_ /= 2;
+        }
     }
-    __VnameIter next = wh->second;
-    double dep = Priority(*next);
-    ++next;
-    if(next == post_list_.end()){
-        decl->eva_priority_ = dep + 1000;
-    }else
-        decl->eva_priority_ = (dep + Priority(*next)) / 2;
-    decl->post_byte_order_ = net_byte_order_;
+    decl->post_byte_order_ = cur_byte_order_;
     post_map_[vname] = post_list_.insert(next,vname);
-    return true;
-}
-
-void CRuntime::addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl)
-{
-    if(post_list_.empty())
-        decl->eva_priority_ = 1000;
-    else
-        decl->eva_priority_ = Priority(post_list_.front()) / 2;
-    decl->post_byte_order_ = net_byte_order_;
-    post_list_.push_front(vname);
-    post_map_[vname] = post_list_.begin();
 }
 
 void CRuntime::addConnection(CSharedPtr<CValue> conn)
@@ -266,7 +256,7 @@ void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
     if(cmd->IsRecv()){
         SHOW("  RECV command '"<<cmd->cmd_name_<<"'");
     }
-    cmd->SetByteOrder(net_byte_order_);
+    cmd->SetByteOrder(cur_byte_order_);
     for(cmd->cur_stmt_index_ = 0;cmd->cur_stmt_index_ < cmd->stmt_list_.size();
         ++cmd->cur_stmt_index_)
     {
@@ -303,16 +293,17 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processArray cmd="<<to_str(cmd));
     assert(cmd);
     assert(decl->var_->array_type_);
+    const std::string & vname = decl->var_->varname_;
     if(decl->var_->array_type_->expr_){
         CSharedPtr<CValue> sv = decl->var_->array_type_->expr_->Evaluate();
         if(!sv){
             RUNTIME_ERR(decl->lineno_,"cannot evaluate size of array '"
-                <<decl->var_->varname_<<"'");
+                <<RealVarname(vname)<<"'");
             return;
         }
         if(!sv->ToInteger(decl->var_->array_type_->sz_)){
             RUNTIME_ERR(decl->lineno_,"type mismatch for size of array '"
-                <<decl->var_->varname_<<"'");
+                <<RealVarname(vname)<<"'");
             return;
         }
     }else if(cmd->IsSend()){
@@ -321,15 +312,15 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     }
     decl->val_ = decl->var_->Initial(decl->lineno_);
     if(!decl->val_){
-        ASSERT_FAIL(decl->lineno_,"cannot initialize '"<<decl->var_->varname_
+        ASSERT_FAIL(decl->lineno_,"cannot initialize '"<<RealVarname(vname)
             <<"'");
     }
     if(cmd->IsSend() && !cmd->PutArray(decl)){
-        RUNTIME_ERR(decl->lineno_,"cannot pack array '"<<decl->var_->varname_
+        RUNTIME_ERR(decl->lineno_,"cannot pack array '"<<RealVarname(vname)
             <<"'");
     }else if(cmd->IsRecv() && !cmd->GetArray(decl)){
         cmd->DumpRecvData();
-        ASSERT_FAIL(decl->lineno_,"recv '"<<decl->var_->varname_<<"' failed");
+        ASSERT_FAIL(decl->lineno_,"recv '"<<RealVarname(vname)<<"' failed");
     }
 }
 
@@ -337,7 +328,7 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processPost decl="<<to_str(decl));
     DBG_RT("processPost cmd="<<to_str(cmd));
-    std::string vname = decl->var_->varname_;
+    const std::string & vname = decl->var_->varname_;
     if(decl->IsConnection())
         return processFixed(decl,0);
     assert(decl->expr_);
@@ -356,32 +347,28 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
                 std::string depend = decl->Depend();
                 if(depend.empty()){
                     decl->expr_ = 0;
-                    addPostVar(vname,decl);
                 }else{
                     if(vname == depend){
-                        GAMMAR_ERR(decl->lineno_,"symbol '"<<vname<<"' is self-depended");
+                        GAMMAR_ERR(decl->lineno_,"symbol '"<<RealVarname(vname)
+                            <<"' is self-depended");
                     }
-                    if(!addPostVar(vname,decl,depend)){
-                        GAMMAR_ERR(decl->lineno_,"add symbol '"<<vname
-                            <<"' to post list error, depend is '"<<depend
-                            <<"'");
-                    }
+                    addPostVar(vname,decl,depend);
                 }
             }
         }
         if(!decl->is_def_){
             decl->offset_ = cmd->SendDataOffset();
             if(!cmd->PutValue(decl->val_)){
-                RUNTIME_ERR(decl->lineno_,"cannot pack '"<<vname<<"'");
+                RUNTIME_ERR(decl->lineno_,"cannot pack '"<<RealVarname(vname)<<"'");
             }
         }
     }else{  //recv cmd
         if(!decl->is_def_){
             if(!cmd->GetValue(decl->val_,decl->lineno_)){
                 cmd->DumpRecvData();
-                ASSERT_FAIL(decl->lineno_,"recv '"<<decl->var_->varname_<<"' failed");
+                ASSERT_FAIL(decl->lineno_,"recv '"<<RealVarname(vname)<<"' failed");
             }
-            SHOW(RealVarname(decl->var_->varname_)<<cmd->ArrayIndexString()<<" = "
+            SHOW(RealVarname(vname)<<cmd->ArrayIndexString()<<" = "
                 <<decl->val_->ShowValue());
         }
     }
@@ -391,14 +378,14 @@ void CRuntime::processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processFixed decl="<<to_str(decl));
     DBG_RT("processFixed cmd="<<to_str(cmd));
-    const std::string vname = decl->var_->varname_;
+    const std::string & vname = decl->var_->varname_;
     if(decl->Evaluate()){
         if(decl->IsConnection())
             addConnection(decl->val_);
         else{
             var_table_[vname] = decl;
             if(!decl->is_def_ && cmd && cmd->IsSend() && !cmd->PutValue(decl->val_)){
-                RUNTIME_ERR(decl->lineno_,"cannot pack '"<<vname<<"'");
+                RUNTIME_ERR(decl->lineno_,"cannot pack '"<<RealVarname(vname)<<"'");
             }
             decl->expr_ = 0;
         }
@@ -409,9 +396,10 @@ void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processDeclAssert decl="<<to_str(decl));
     DBG_RT("processDeclAssert cmd="<<to_str(cmd));
+    const std::string & vname = decl->var_->varname_;
     decl->val_ = decl->var_->Initial(decl->lineno_);
     if(!decl->val_){
-        RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<decl->var_->varname_
+        RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<RealVarname(vname)
             <<"'");
         return;
     }
@@ -427,16 +415,17 @@ void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         cmd->DumpRecvData();
         ASSERT_FAIL(decl->lineno_,"");
     }
-    var_table_[decl->var_->varname_] = decl;
+    var_table_[vname] = decl;
 }
 
 void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
 {
     DBG_RT("processStreamIn decl="<<to_str(decl));
     DBG_RT("processStreamIn cmd="<<to_str(cmd));
+    const std::string & vname = decl->var_->varname_;
     decl->val_ = decl->var_->Initial(decl->lineno_);
     if(!decl->val_){
-        RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<decl->var_->varname_
+        RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<RealVarname(vname)
             <<"'");
         return;
     }
@@ -452,9 +441,9 @@ void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         cmd->DumpRecvData();
         ASSERT_FAIL(decl->lineno_,"");
     }
-    SHOW(RealVarname(decl->var_->varname_)<<cmd->ArrayIndexString()<<" = "
+    SHOW(RealVarname(vname)<<cmd->ArrayIndexString()<<" = "
         <<decl->val_->ShowValue());
-    var_table_[decl->var_->varname_] = decl;
+    var_table_[vname] = decl;
 }
 
 void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
@@ -464,31 +453,40 @@ void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     assert(cmd && cmd->IsSend());
     if(!cmd->BeginEmpty()){
         RUNTIME_ERR(decl->lineno_,"invalid stream out between BEGIN/END");
+        return;
     }
-    std::string vname = decl->var_->varname_;
+    const std::string & vname = decl->var_->varname_;
     decl->val_ = decl->var_->Initial(decl->lineno_);
     if(!decl->val_){
-        RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<vname<<"'");
+        RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<RealVarname(vname)<<"'");
         return;
     }
     if(cmd->IsInArray()){
         RUNTIME_ERR(decl->lineno_,"invalid stream out in ARRAY");
         return;
     }
+    var_table_[vname] = decl;
+    decl->offset_ = cmd->SendDataOffset();
     decl->eva_priority_ = maxPriority() + 1000; //解决自赋值问题
     std::string depend = decl->Depend();
     if(depend.empty()){
-        addPostVar(vname,decl);
+        assert(decl->expr_);
+        CSharedPtr<CValue> v = decl->expr_->Evaluate();
+        if(!v){
+            RUNTIME_ERR(decl->lineno_,"cannot evaluate right hand expression");
+            return;
+        }
+        decl->expr_ = 0;
+        if(decl->val_->StreamOut(*v,decl->lineno_) && !decl->is_def_ &&
+            !cmd->PostInsertValue(v,decl->offset_))
+        {
+            RUNTIME_ERR(decl->lineno_,"cannot insert value "<<v->ShowValue());
+            return;
+        }
     }else{
         if(vname == depend){
-            GAMMAR_ERR(decl->lineno_,"symbol '"<<vname<<"' is self-depended");
+            GAMMAR_ERR(decl->lineno_,"symbol '"<<RealVarname(vname)<<"' is self-depended");
         }
-        if(!addPostVar(vname,decl,depend)){
-            RUNTIME_ERR(decl->lineno_,"add symbol '"<<vname
-                <<"' to post list error, depend is '"<<depend
-                <<"'");
-        }
+        addPostVar(vname,decl,depend);
     }
-    decl->offset_ = cmd->SendDataOffset();  //在延后求值的时候post insert
-    var_table_[vname] = decl;
 }

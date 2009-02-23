@@ -305,13 +305,15 @@ void InvokeSendRecv(bool is_send,CSharedPtr<CArgList> args,int lineno,CSharedPtr
     }else{
         for(size_t i = 0;i < args->args_.size();++i){
             assert((*args)[i]->var_);  //MUST be variable
-            CSharedPtr<CDeclare> decl = runtime().FindVar((*args)[i]->var_->varname_); //connectin is global
+            const std::string & vname = (*args)[i]->var_->varname_;
+            CSharedPtr<CDeclare> decl = runtime().FindVar(vname); //connectin is global
             if(!decl){
-                RUNTIME_ERR(lineno,"no symbol '"<<(*args)[i]->var_->varname_<<"' found");
+                RUNTIME_ERR(lineno,"no symbol '"<<CRuntime::RealVarname(vname)
+                    <<"' found");
                 return;
             }
             if(!decl->val_){
-                RUNTIME_ERR(lineno,"symbol '"<<(*args)[i]->var_->varname_
+                RUNTIME_ERR(lineno,"symbol '"<<CRuntime::RealVarname(vname)
                     <<"' is not initialized");
                 return;
             }
@@ -327,20 +329,21 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
         if(!(*args)[i])
             continue;
         assert((*args)[i]->IsVar());  //MUST be variable
+        const std::string & vname = (*args)[i]->var_->varname_;
         if(is_begin && (*args)[i]->var_->begin_ != -1){
-            RUNTIME_ERR(lineno,"cannot BEGIN '"<<(*args)[i]->var_->varname_<<"' again");
+            RUNTIME_ERR(lineno,"cannot BEGIN '"<<CRuntime::RealVarname(vname)<<"' again");
             continue;
         }else if(!is_begin && (*args)[i]->var_->begin_ < 0){
-            RUNTIME_ERR(lineno,"END '"<<(*args)[i]->var_->varname_<<"' before BEGIN");
+            RUNTIME_ERR(lineno,"END '"<<CRuntime::RealVarname(vname)<<"' before BEGIN");
             continue;
         }
-        CSharedPtr<CDeclare> decl = runtime().FindVar((*args)[i]->var_->varname_,cmd);
+        CSharedPtr<CDeclare> decl = runtime().FindVar(vname,cmd);
         if(!decl){
-            RUNTIME_ERR(lineno,"no symbol '"<<(*args)[i]->var_->varname_<<"' found");
+            RUNTIME_ERR(lineno,"no symbol '"<<CRuntime::RealVarname(vname)<<"' found");
             continue;
         }
         if(decl->expr_){
-            RUNTIME_ERR(lineno,"variable '"<<(*args)[i]->var_->varname_
+            RUNTIME_ERR(lineno,"variable '"<<CRuntime::RealVarname(vname)
                 <<"' is evaluated by expression, see LINE:"<<(*args)[i]->var_->lineno_);
             continue;
         }else if(!decl->IsSimplePost()){
@@ -348,17 +351,19 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
                 <<decl->lineno_);
             continue;
         }
-        if(is_begin){
+        if(is_begin){   //BEGIN
             (*args)[i]->var_->begin_ = cmd->SendDataOffset();
             cmd->Begin((*args)[i]);
-        }else{  //END
+        }else{          //END
             assert(decl->val_);
             size_t dis = cmd->SendDataOffset() - decl->var_->begin_;
-            if(!decl->val_->FromInteger(dis)){
-                RUNTIME_ERR(lineno,"variable '"<<(*args)[i]->var_->varname_
-                    <<"' is too small to hold offset("<<dis<<")");
-            }
             decl->var_->begin_ = -2;
+            if(!decl->val_->FromInteger(dis)){
+                RUNTIME_ERR(lineno,"variable '"<<CRuntime::RealVarname(vname)
+                    <<"' is too small to hold offset("<<dis<<")");
+            }else if(!decl->is_def_ && !cmd->PostPutValue(decl->val_,decl->offset_)){
+                INTERNAL_ERR("cannot post pack '"<<CRuntime::RealVarname(vname)<<"'");
+            }
             if(args != cmd->begin_list_)    //命令结束时会对所有BEGIN变量自动调用END，此时(args == cmd->begin_list_)
                 cmd->End((*args)[i]);
         }
@@ -371,7 +376,7 @@ void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
     assert(!args->args_.empty() && (*args)[0]);
     CExpr & exp = *(*args)[0];
     assert(exp.IsVar());
-    std::string fun_name = exp.var_->varname_;
+    const std::string & fun_name = exp.var_->varname_;
     CGlobal::__Func fp = global().FindFunc(fun_name);
     if(!fp){
         RUNTIME_ERR(lineno,"cannot find function '"<<fun_name<<"'");
