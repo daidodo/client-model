@@ -13,8 +13,8 @@ NET_BYTE_ORDER
 
 COMMAND QueryCommand	#command definition
 SEND
-RAW http1 := "POST http://127.0.0.1:12345/ HTTP/1.1\r\nContent-Length: "
 DEF U32 pack_len
+RAW http1 := "POST http://127.0.0.1:12345/ HTTP/1.1\r\nContent-Length: "
 RAW pack_len_str << pack_len
 RAW http2 := "\r\nContent-Type: application/octet-stream\r\nConnection:Close\r\n\r\n"
 BEGIN(pack_len)

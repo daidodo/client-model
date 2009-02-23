@@ -23,20 +23,19 @@ struct CRuntime
     __VnameList post_list_;     //延后求值列表
     __VnameMap  post_map_;
     //byte order
-    bool net_byte_order_;      //当前的字节序设置
+    bool cur_byte_order_;      //当前的字节序设置
 //functions:
     CRuntime();
     void SetProgArgs(int argc,const char * const * argv){argc_ = argc - 1;argv_ = argv + 1;}
     void Interpret(CProgram & program);
-    void SetByteOrder(bool net_bo){net_byte_order_ = net_bo;}
+    void SetByteOrder(bool net_bo){cur_byte_order_ = net_bo;}
     CSharedPtr<CDeclare> FindVar(std::string vname,CSharedPtr<CCmd> cmd = 0);
     double Priority(const std::string & vname) const;
     bool IsPost(const std::string & vname) const;
     static std::string RealVarname(const std::string & name);
     const char * ProgArg(int i) const{return (argv_ && i >= 0 && i < argc_ ? argv_[i] : 0);}
 private:
-    bool addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,const std::string & depend);
-    void addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl);
+    void addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,const std::string & depend);
     void addConnection(CSharedPtr<CValue> conn);
     static std::string localVarname(const std::string & name,const CCmd & cmd);
     double maxPriority() const;

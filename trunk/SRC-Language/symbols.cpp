@@ -115,7 +115,7 @@ CSharedPtr<CValue> CVariable::Evaluate(int lineno) const
     }
     CSharedPtr<CDeclare> decl = runtime().FindVar(varname_);
     if(!decl){
-        GAMMAR_ERR(lineno,"variable '"<<varname_
+        GAMMAR_ERR(lineno,"variable '"<<CRuntime::RealVarname(varname_)
             <<"' not found(internal error)");
         return 0;
     }
@@ -955,7 +955,7 @@ bool CCmd::RecvData(int lineno)
             RUNTIME_ERR(lineno,"remote peer close,"<<CSocket::ErrMsg());
             return false;
         }
-        inds_.SetSource(&recv_data_[0],recv_data_.size(),runtime().net_byte_order_);
+        inds_.SetSource(&recv_data_[0],recv_data_.size(),runtime().cur_byte_order_);
         inds_>>Manip::skip(off);
     }else{              //udp
         assert(v.udp_);
@@ -969,7 +969,7 @@ bool CCmd::RecvData(int lineno)
             RUNTIME_ERR(lineno,"remote peer close,"<<CSocket::ErrMsg());
             return false;
         }
-        inds_.SetSource(&recv_data_[0],recv_data_.size(),runtime().net_byte_order_);
+        inds_.SetSource(&recv_data_[0],recv_data_.size(),runtime().cur_byte_order_);
         inds_>>Manip::skip(off);
 
     }
@@ -992,7 +992,7 @@ bool CCmd::EnsureRecvData(size_t sz,int lineno)
     while(sz + cur > recv_data_.size())
         if(!RecvData(lineno))
             return false;
-    inds_.SetSource(&recv_data_[0],recv_data_.size(),runtime().net_byte_order_);
+    inds_.SetSource(&recv_data_[0],recv_data_.size(),runtime().cur_byte_order_);
     inds_>>Manip::skip(cur);
     return true;
 }
@@ -1027,7 +1027,7 @@ void CCmd::InvokeFun(bool (*fp)(std::vector<char> &,std::vector<char> &),size_t 
                 <<"' called");
             return;
         }
-        inds_.SetSource(&recv_data_[0],recv_data_.size(),runtime().net_byte_order_);
+        inds_.SetSource(&recv_data_[0],recv_data_.size(),runtime().cur_byte_order_);
         inds_>>Manip::skip(cur);
     }
 }
