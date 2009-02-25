@@ -10,7 +10,7 @@ INSTALL_INC_DIR := /usr/include
 
 CC := g++
 INCLUDE := -I./
-CXXFLAGS := -fPIC -g $(INCLUDE)
+CXXFLAGS := -Wall -fPIC -g $(INCLUDE)
 CFLAGS := $(CXXFLAGS)
 ARFLAGS := cr
 CP := cp -f
