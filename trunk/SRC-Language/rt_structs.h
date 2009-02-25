@@ -4,7 +4,6 @@
 #include <cassert>
 #include <limits>
 #include "datatypes.h"
-#include "util.h"
 #include "common/Sockets.h"
 #include "common/SharedPtr.h"
 #include "common/DataStream.h"

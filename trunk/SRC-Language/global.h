@@ -1,11 +1,7 @@
 #ifndef DOZERG_GLOBAL_H_20081111
 #define DOZERG_GLOBAL_H_20081111
 
-#include <vector>
-#include <map>
-#include "program.h"
 #include "runtime.h"
-#include "common/SharedPtr.h"
 
 struct CGlobal
 {

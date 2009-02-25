@@ -1,9 +1,7 @@
 #ifndef DOZERG_FUNCTIONS_H_20081119
 #define DOZERG_FUNCTIONS_H_20081119
 
-#include <vector>
 #include "symbols.h"
-#include "common/SharedPtr.h"
 
 typedef CSharedPtr<CValue> __ValuePtr;
 

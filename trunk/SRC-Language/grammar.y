@@ -1,11 +1,6 @@
 %{
-#include <cassert>
-#include <iostream>
 #include "global.h"
-#include "mm.h"
 #include "dbg.h"
-#include "util.h"
-#include "errors.h"
 #include "yystype.h"
 #include "yyhack.h"
 

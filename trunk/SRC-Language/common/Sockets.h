@@ -1,7 +1,7 @@
 #ifndef DOZERG_SOCKTS_H_20080229
 #define DOZERG_SOCKTS_H_20080229
 
-#include <platform.h>
+#include "platform.h"
 #include <vector>           //std::vector
 #include <string>           //std::string
 

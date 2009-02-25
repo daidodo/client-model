@@ -62,15 +62,15 @@ $(SO_TARGET) : $(OBJS)
 
 cleandist : 
 	$(RM) *.o common/*.o
-	$(RM) *.d common/*.d
 
 clean : cleandist
+	$(RM) *.d common/*.d
 	$(RM) $(BIN_DIR)/*
 
 cleanall : clean
 	$(RM) $(RM_SRC)
 
-love : clean all
+love : cleandist all
 
 .PHONEY : all install uninstall gen out lib so deps cleandist clean cleanall love
 

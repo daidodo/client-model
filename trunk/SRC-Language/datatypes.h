@@ -1,8 +1,6 @@
 #ifndef DOZERG_DATA_TYPES_H_20090203
 #define DOZERG_DATA_TYPES_H_20090203
 
-#include "platform.h"
-
 const int DT_NONE = -1;     //none
 const int DT_VOID = 0;      //void
 const int DT_INT =  1;      //int

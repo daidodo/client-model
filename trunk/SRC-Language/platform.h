@@ -6,7 +6,6 @@
 #ifdef WIN32
 
 #   include <Winsock2.h>
-//#   include <Ws2def.h>
 #   include <Ws2tcpip.h>    //inet_ntop,getaddrinfo,freeaddrinfo,gai_strerror
 #   include <io.h>          //isatty
 #   include <errno.h>       //EAGAIN

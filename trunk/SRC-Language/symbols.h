@@ -1,19 +1,13 @@
 #ifndef DOZERG_SYMBOLS_H_20081111
 #define DOZERG_SYMBOLS_H_20081111
 
-#include "platform.h"
 #include <map>
 #include <vector>
 #include <list>
-#include <string>
-#include <sstream>
 #include <algorithm>
-#include <cassert>
 #include "config.h"
 #include "errors.h"
 #include "rt_structs.h"
-#include "common/SharedPtr.h"
-#include "common/DataStream.h"
 
 struct CFixValue;
 struct CVariable;

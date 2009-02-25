@@ -20,18 +20,13 @@ static int yygrowstack(void);
 #define YYPREFIX "yy"
 #line 1 "grammar.y"
 
-#include <cassert>
-#include <iostream>
 #include "global.h"
-#include "mm.h"
 #include "dbg.h"
-#include "util.h"
-#include "errors.h"
 #include "yystype.h"
 #include "yyhack.h"
 
 int yylex();
-#line 35 "y.tab.c"
+#line 30 "y.tab.c"
 #define NL 257
 #define EOF_ 258
 #define IEQ 259
@@ -637,39 +632,39 @@ yyreduce:
     switch (yyn)
     {
 case 1:
-#line 39 "grammar.y"
+#line 34 "grammar.y"
 {DBG_YY("program 1");}
 break;
 case 2:
-#line 41 "grammar.y"
+#line 36 "grammar.y"
 {DBG_YY("program 2");}
 break;
 case 3:
-#line 44 "grammar.y"
+#line 39 "grammar.y"
 {DBG_YY("program_item 1");}
 break;
 case 4:
-#line 45 "grammar.y"
+#line 40 "grammar.y"
 {DBG_YY("program_item 2");}
 break;
 case 5:
-#line 50 "grammar.y"
+#line 45 "grammar.y"
 {DBG_YY("stmt 1");}
 break;
 case 6:
-#line 52 "grammar.y"
+#line 47 "grammar.y"
 {DBG_YY("stmt 2");}
 break;
 case 7:
-#line 54 "grammar.y"
+#line 49 "grammar.y"
 {DBG_YY("stmt 3");}
 break;
 case 8:
-#line 58 "grammar.y"
+#line 53 "grammar.y"
 {DBG_YY("cmd_define 1");}
 break;
 case 9:
-#line 63 "grammar.y"
+#line 58 "grammar.y"
 {
 				DBG_YY("func_call_list 1 ");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].func_call_));
@@ -677,7 +672,7 @@ case 9:
 			}
 break;
 case 10:
-#line 69 "grammar.y"
+#line 64 "grammar.y"
 {
 				DBG_YY("func_call_list 2");
 				DBG_YY("$2 = "<<to_str(yyvsp[0].func_call_));
@@ -685,27 +680,27 @@ case 10:
 			}
 break;
 case 11:
-#line 77 "grammar.y"
+#line 72 "grammar.y"
 {DBG_YY("stmt_list 1");}
 break;
 case 12:
-#line 79 "grammar.y"
+#line 74 "grammar.y"
 {DBG_YY("stmt_list 2");}
 break;
 case 13:
-#line 81 "grammar.y"
+#line 76 "grammar.y"
 {DBG_YY("stmt_list 3");}
 break;
 case 14:
-#line 84 "grammar.y"
+#line 79 "grammar.y"
 {DBG_YY("cmd_begin 1");program().CmdBegin(0);}
 break;
 case 15:
-#line 85 "grammar.y"
+#line 80 "grammar.y"
 {DBG_YY("cmd_begin 2");program().CmdBegin(yyvsp[0].var_);}
 break;
 case 16:
-#line 88 "grammar.y"
+#line 83 "grammar.y"
 {
 				DBG_YY("cmd_end");
 				assert(CUR_CMD);
@@ -714,7 +709,7 @@ case 16:
 			}
 break;
 case 17:
-#line 97 "grammar.y"
+#line 92 "grammar.y"
 {
 				DBG_YY("declare 1");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].declare_));
@@ -725,7 +720,7 @@ case 17:
 			}
 break;
 case 18:
-#line 106 "grammar.y"
+#line 101 "grammar.y"
 {
 				DBG_YY("declare 2");
 				DBG_YY("$2 = "<<to_str(yyvsp[0].declare_));
@@ -737,7 +732,7 @@ case 18:
 			}
 break;
 case 19:
-#line 119 "grammar.y"
+#line 114 "grammar.y"
 {
 				DBG_YY("func_call 1");
 				DBG_YY("$1 = "<<yyvsp[0].token_);
@@ -747,7 +742,7 @@ case 19:
 			}
 break;
 case 20:
-#line 127 "grammar.y"
+#line 122 "grammar.y"
 {
 				DBG_YY("func_call 2");
 				DBG_YY("$1 = "<<yyvsp[-3].token_);
@@ -759,7 +754,7 @@ case 20:
 			}
 break;
 case 21:
-#line 137 "grammar.y"
+#line 132 "grammar.y"
 {
 				DBG_YY("func_call 3");
 				DBG_YY("$1 = "<<yyvsp[-3].token_);
@@ -771,7 +766,7 @@ case 21:
 			}
 break;
 case 22:
-#line 149 "grammar.y"
+#line 144 "grammar.y"
 {
 				DBG_YY("assert_exp 1");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].expr_));
@@ -786,7 +781,7 @@ case 22:
 			}
 break;
 case 23:
-#line 161 "grammar.y"
+#line 156 "grammar.y"
 {
 				DBG_YY("assert_exp 2");
 				DBG_YY("$1 = "<<yyvsp[-1].token_);
@@ -799,7 +794,7 @@ case 23:
 			}
 break;
 case 24:
-#line 174 "grammar.y"
+#line 169 "grammar.y"
 {
 				DBG_YY("simple_declare 1");
 				DBG_YY("$1 = "<<to_str(yyvsp[-1].array_type_));
@@ -822,7 +817,7 @@ case 24:
 			}
 break;
 case 25:
-#line 194 "grammar.y"
+#line 189 "grammar.y"
 {
 				DBG_YY("simple_declare 2");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].var_));
@@ -838,7 +833,7 @@ case 25:
 			}
 break;
 case 26:
-#line 208 "grammar.y"
+#line 203 "grammar.y"
 {
 				DBG_YY("simple_declare 3");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
@@ -857,7 +852,7 @@ case 26:
 			}
 break;
 case 27:
-#line 225 "grammar.y"
+#line 220 "grammar.y"
 {
 				DBG_YY("simple_declare 4");
 				DBG_YY("$1 = "<<to_str(yyvsp[-3].var_));
@@ -875,7 +870,7 @@ case 27:
 			}
 break;
 case 28:
-#line 241 "grammar.y"
+#line 236 "grammar.y"
 {
 				DBG_YY("simple_declare 5");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
@@ -894,7 +889,7 @@ case 28:
 			}
 break;
 case 29:
-#line 258 "grammar.y"
+#line 253 "grammar.y"
 {
 				DBG_YY("simple_declare 6");
 				DBG_YY("$1 = "<<to_str(yyvsp[-4].var_));
@@ -912,7 +907,7 @@ case 29:
 			}
 break;
 case 30:
-#line 274 "grammar.y"
+#line 269 "grammar.y"
 {
 				DBG_YY("simple_declare 7");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
@@ -928,7 +923,7 @@ case 30:
 			}
 break;
 case 31:
-#line 288 "grammar.y"
+#line 283 "grammar.y"
 {
 				DBG_YY("simple_declare 8");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
@@ -944,7 +939,7 @@ case 31:
 			}
 break;
 case 32:
-#line 302 "grammar.y"
+#line 297 "grammar.y"
 {
 				DBG_YY("simple_declare 9");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
@@ -963,7 +958,7 @@ case 32:
 			}
 break;
 case 33:
-#line 322 "grammar.y"
+#line 317 "grammar.y"
 {
 				DBG_YY("arg_list 1");
 				yyval.arg_list_ = 0;
@@ -971,7 +966,7 @@ case 33:
 			}
 break;
 case 34:
-#line 328 "grammar.y"
+#line 323 "grammar.y"
 {
 				DBG_YY("arg_list 2");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].arg_list_));
@@ -981,7 +976,7 @@ case 34:
 			}
 break;
 case 35:
-#line 338 "grammar.y"
+#line 333 "grammar.y"
 {
 				DBG_YY("arg_list_not_empty 1");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].expr_));
@@ -992,7 +987,7 @@ case 35:
 			}
 break;
 case 36:
-#line 347 "grammar.y"
+#line 342 "grammar.y"
 {
 				DBG_YY("arg_list_not_empty 2");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].arg_list_));
@@ -1004,7 +999,7 @@ case 36:
 			}
 break;
 case 37:
-#line 359 "grammar.y"
+#line 354 "grammar.y"
 {
 				DBG_YY("array_type 1");
 				DBG_YY("$1 = "<<yyvsp[-2].token_);
@@ -1015,7 +1010,7 @@ case 37:
 			}
 break;
 case 38:
-#line 368 "grammar.y"
+#line 363 "grammar.y"
 {
 				DBG_YY("array_type 2");
 				DBG_YY("$1 = "<<yyvsp[-3].token_);
@@ -1028,7 +1023,7 @@ case 38:
 			}
 break;
 case 39:
-#line 381 "grammar.y"
+#line 376 "grammar.y"
 {
 				DBG_YY("sim_type_name 1");
 				DBG_YY("$1 = "<<yyvsp[-1].token_);
@@ -1049,7 +1044,7 @@ case 39:
 			}
 break;
 case 40:
-#line 401 "grammar.y"
+#line 396 "grammar.y"
 {
 				DBG_YY("expr 1");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].fix_value_));
@@ -1061,7 +1056,7 @@ case 40:
 			}
 break;
 case 41:
-#line 410 "grammar.y"
+#line 405 "grammar.y"
 {
 				DBG_YY("expr 2");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].func_call_));
@@ -1073,7 +1068,7 @@ case 41:
 			}
 break;
 case 42:
-#line 419 "grammar.y"
+#line 414 "grammar.y"
 {
 				DBG_YY("expr 3");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].var_));
@@ -1085,7 +1080,7 @@ case 42:
 			}
 break;
 case 43:
-#line 431 "grammar.y"
+#line 426 "grammar.y"
 {
 				DBG_YY("fix_value 1");
 				DBG_YY("$1 = "<<yyvsp[0].int_);
@@ -1096,7 +1091,7 @@ case 43:
 			}
 break;
 case 44:
-#line 439 "grammar.y"
+#line 434 "grammar.y"
 {
 				DBG_YY("fix_value 2");
 				DBG_YY("$1 = "<<yyvsp[0].long_);
@@ -1107,7 +1102,7 @@ case 44:
 			}
 break;
 case 45:
-#line 447 "grammar.y"
+#line 442 "grammar.y"
 {
 				DBG_YY("fix_value 3");
 				DBG_YY("$1 = "<<yyvsp[0].i64_);
@@ -1118,7 +1113,7 @@ case 45:
 			}
 break;
 case 46:
-#line 455 "grammar.y"
+#line 450 "grammar.y"
 {
 				DBG_YY("fix_value 4");
 				DBG_YY("$1 = "<<yyvsp[0].strIdx_);
@@ -1129,7 +1124,7 @@ case 46:
 			}
 break;
 case 47:
-#line 463 "grammar.y"
+#line 458 "grammar.y"
 {
 				DBG_YY("fix_value 5");
 				DBG_YY("$1 = "<<yyvsp[0].prog_arg_);
@@ -1140,162 +1135,162 @@ case 47:
 			}
 break;
 case 48:
-#line 473 "grammar.y"
+#line 468 "grammar.y"
 {DBG_YY("func_name = FUN("<<FUN<<")");yyval.token_ = FUN;}
 break;
 case 49:
-#line 474 "grammar.y"
+#line 469 "grammar.y"
 {DBG_YY("func_name = BEGIN("<<BEGIN_<<")");yyval.token_ = BEGIN_;}
 break;
 case 50:
-#line 475 "grammar.y"
+#line 470 "grammar.y"
 {DBG_YY("func_name = END("<<END<<")");yyval.token_ = END;}
 break;
 case 51:
-#line 476 "grammar.y"
+#line 471 "grammar.y"
 {DBG_YY("func_name = HBO("<<HBO<<")");yyval.token_ = HBO;}
 break;
 case 52:
-#line 477 "grammar.y"
+#line 472 "grammar.y"
 {DBG_YY("func_name = NBO("<<NBO<<")");yyval.token_ = NBO;}
 break;
 case 53:
-#line 478 "grammar.y"
+#line 473 "grammar.y"
 {DBG_YY("func_name = SEND("<<SEND<<")");yyval.token_ = SEND;}
 break;
 case 54:
-#line 479 "grammar.y"
+#line 474 "grammar.y"
 {DBG_YY("func_name = RECV("<<RECV<<")");yyval.token_ = RECV;}
 break;
 case 55:
-#line 480 "grammar.y"
+#line 475 "grammar.y"
 {DBG_YY("func_name = HEX("<<HEX<<")");yyval.token_ = HEX;}
 break;
 case 56:
-#line 481 "grammar.y"
+#line 476 "grammar.y"
 {DBG_YY("func_name = UNHEX("<<UNHEX<<")");yyval.token_ = UNHEX;}
 break;
 case 57:
-#line 482 "grammar.y"
+#line 477 "grammar.y"
 {DBG_YY("func_name = PRINT("<<PRINT<<")");yyval.token_ = PRINT;}
 break;
 case 58:
-#line 483 "grammar.y"
+#line 478 "grammar.y"
 {DBG_YY("func_name = IP NBO("<<__IPN<<")");yyval.token_ = __IPN;}
 break;
 case 59:
-#line 484 "grammar.y"
+#line 479 "grammar.y"
 {DBG_YY("func_name = IP HBO("<<__IPH<<")");yyval.token_ = __IPH;}
 break;
 case 60:
-#line 485 "grammar.y"
+#line 480 "grammar.y"
 {DBG_YY("func_name = ARRAY("<<ARRAY<<")");yyval.token_ = ARRAY;}
 break;
 case 61:
-#line 486 "grammar.y"
+#line 481 "grammar.y"
 {DBG_YY("func_name = END ARRAY("<<__END_ARRAY<<")");yyval.token_ = __END_ARRAY;}
 break;
 case 62:
-#line 487 "grammar.y"
+#line 482 "grammar.y"
 {DBG_YY("func_name = SLEEP("<<SLEEP<<")");yyval.token_ = SLEEP;}
 break;
 case 63:
-#line 490 "grammar.y"
+#line 485 "grammar.y"
 {DBG_YY("simple_type = U8("<<TP_U8<<")");yyval.token_ = TP_U8;}
 break;
 case 64:
-#line 491 "grammar.y"
+#line 486 "grammar.y"
 {DBG_YY("simple_type = S8("<<TP_S8<<")");yyval.token_ = TP_S8;}
 break;
 case 65:
-#line 492 "grammar.y"
+#line 487 "grammar.y"
 {DBG_YY("simple_type = U16("<<TP_U16<<")");yyval.token_ =  TP_U16;}
 break;
 case 66:
-#line 493 "grammar.y"
+#line 488 "grammar.y"
 {DBG_YY("simple_type = S16("<<TP_S16<<")");yyval.token_ = TP_S16;}
 break;
 case 67:
-#line 494 "grammar.y"
+#line 489 "grammar.y"
 {DBG_YY("simple_type = U32("<<TP_U32<<")");yyval.token_ = TP_U32;}
 break;
 case 68:
-#line 495 "grammar.y"
+#line 490 "grammar.y"
 {DBG_YY("simple_type = S32("<<TP_S32<<")");yyval.token_ = TP_S32;}
 break;
 case 69:
-#line 496 "grammar.y"
+#line 491 "grammar.y"
 {DBG_YY("simple_type = U64("<<TP_U64<<")");yyval.token_ = TP_U64;}
 break;
 case 70:
-#line 497 "grammar.y"
+#line 492 "grammar.y"
 {DBG_YY("simple_type = S64("<<TP_S64<<")");yyval.token_ = TP_S64;}
 break;
 case 71:
-#line 498 "grammar.y"
+#line 493 "grammar.y"
 {DBG_YY("simple_type = STR("<<STR<<")");yyval.token_ = STR;}
 break;
 case 72:
-#line 499 "grammar.y"
+#line 494 "grammar.y"
 {DBG_YY("simple_type = RAW("<<RAW<<")");yyval.token_ =  RAW;}
 break;
 case 73:
-#line 500 "grammar.y"
+#line 495 "grammar.y"
 {DBG_YY("simple_type = TCP("<<TCP<<")");yyval.token_ = TCP;}
 break;
 case 74:
-#line 501 "grammar.y"
+#line 496 "grammar.y"
 {DBG_YY("simple_type = UDP("<<UDP<<")");yyval.token_ = UDP;}
 break;
 case 75:
-#line 504 "grammar.y"
+#line 499 "grammar.y"
 {DBG_YY("comp_op = OP_LG("<<OP_LG<<")");yyval.token_ = OP_LG;}
 break;
 case 76:
-#line 505 "grammar.y"
+#line 500 "grammar.y"
 {DBG_YY("comp_op = OP_SM("<<OP_SM<<")");yyval.token_ = OP_SM;}
 break;
 case 77:
-#line 506 "grammar.y"
+#line 501 "grammar.y"
 {DBG_YY("comp_op = OP_LEQ("<<OP_LEQ<<")");yyval.token_ = OP_LEQ;}
 break;
 case 78:
-#line 507 "grammar.y"
+#line 502 "grammar.y"
 {DBG_YY("comp_op = OP_SEQ("<<OP_SEQ<<")");yyval.token_ = OP_SEQ;}
 break;
 case 79:
-#line 508 "grammar.y"
+#line 503 "grammar.y"
 {DBG_YY("comp_op = OP_EQ("<<OP_EQ<<")");yyval.token_ = OP_EQ;}
 break;
 case 80:
-#line 509 "grammar.y"
+#line 504 "grammar.y"
 {DBG_YY("comp_op = OP_NEQ("<<OP_NEQ<<")");yyval.token_ = OP_NEQ;}
 break;
 case 81:
-#line 510 "grammar.y"
+#line 505 "grammar.y"
 {DBG_YY("comp_op = OP_NOT("<<OP_NOT<<")");yyval.token_ = OP_NOT;}
 break;
 case 82:
-#line 513 "grammar.y"
+#line 508 "grammar.y"
 {DBG_YY("stream_op = OP_IN("<<OP_IN<<")");yyval.token_ = OP_IN;}
 break;
 case 83:
-#line 514 "grammar.y"
+#line 509 "grammar.y"
 {DBG_YY("stream_op = OP_OUT("<<OP_OUT<<")");yyval.token_ = OP_OUT;}
 break;
 case 84:
-#line 517 "grammar.y"
+#line 512 "grammar.y"
 {DBG_YY("stmt_sep = ;");}
 break;
 case 85:
-#line 518 "grammar.y"
+#line 513 "grammar.y"
 {DBG_YY("stmt_sep = NL");}
 break;
 case 86:
-#line 519 "grammar.y"
+#line 514 "grammar.y"
 {DBG_YY("stmt_sep = EOF");}
 break;
-#line 1299 "y.tab.c"
+#line 1294 "y.tab.c"
     }
     yyssp -= yym;
     yystate = *yyssp;

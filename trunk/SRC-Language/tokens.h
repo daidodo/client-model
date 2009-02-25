@@ -1,8 +1,6 @@
 #ifndef DOZERG_COMMON_H_20081112
 #define DOZERG_COMMON_H_20081112
 
-#include <cstddef>
-#include <vector>
 #include "symbols.h"
 
 bool IsBinaryPredict(int op_token);

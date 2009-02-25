@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 #include "impl/DataStream_impl.h"
-#include "util.h"
+#include "util.h"   //SwapByteOrder
 
 class CInByteStream : public CDataStreamBase
 {
