@@ -1,9 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS 1
 
-#include <cassert>
 #include <iostream>
 #include "global.h"
-#include "errors.h"
 
 extern FILE * yyin;
 

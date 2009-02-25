@@ -1,10 +1,5 @@
-#include <cassert>
-#include <iostream>
 #include "global.h"
-#include "mm.h"
 #include "dbg.h"
-#include "util.h"
-#include "errors.h"
 #include "tokens.h"
 
 CProgram::CProgram()

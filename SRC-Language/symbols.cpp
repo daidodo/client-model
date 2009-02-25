@@ -1,7 +1,5 @@
 #include "global.h"
-#include "mm.h"
 #include "dbg.h"
-#include "util.h"
 #include "tokens.h"
 
 //CFixValue

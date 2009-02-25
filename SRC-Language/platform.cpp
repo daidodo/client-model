@@ -1,7 +1,6 @@
-#include "platform.h"
-
 #include <sstream>
 #include <iostream>
+#include "platform.h"
 
 #ifdef WIN32
 

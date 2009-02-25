@@ -1,7 +1,6 @@
 #ifndef DOZERG_YYSTYPE_H_20081116
 #define DOZERG_YYSTYPE_H_20081116
 
-#include "common/SharedPtr.h"
 #include "symbols.h"
 
 struct yystype{

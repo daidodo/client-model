@@ -2,10 +2,7 @@
 #if defined(WIN32) && !defined(YY_NO_UNISTD_H)
 #   define YY_NO_UNISTD_H
 #endif
-#include <iostream>
 #include "global.h"
-#include "util.h"
-#include "errors.h"
 #include "dbg.h"
 #include "y.tab.h"
 #include "yystype.h"

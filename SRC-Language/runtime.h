@@ -1,12 +1,7 @@
 #ifndef DOZERG_RUNTIME_H_20081115
 #define DOZERG_RUNTIME_H_20081115
 
-#include <string>
-#include <list>
-#include <vector>
-#include <map>
 #include "program.h"
-#include "rt_structs.h"
 
 struct CRuntime
 {
