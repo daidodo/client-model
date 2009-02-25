@@ -143,7 +143,7 @@ int CValue::operator ==(const CValue & v) const
                     return RET_SIGN_MISMATCH;
                 U64 v2 = 0;
                 v.ToInteger(v2);
-                return (v1 == v2 ? RET_TRUE : RET_FALSE);
+                return (U64(v1) == v2 ? RET_TRUE : RET_FALSE);
             }
         }else{
             U64 v1 = 0;
@@ -153,7 +153,7 @@ int CValue::operator ==(const CValue & v) const
                 v.ToInteger(v2);
                 if(v2 < 0)
                     return RET_SIGN_MISMATCH;
-                return (v1 == v2 ? RET_TRUE : RET_FALSE);
+                return (v1 == U64(v2) ? RET_TRUE : RET_FALSE);
             }else{
                 U64 v2 = 0;
                 v.ToInteger(v2);

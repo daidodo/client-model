@@ -1,5 +1,4 @@
 
-#line 3 "<stdout>"
 
 #define  YY_INT_ALIGNED short int
 
@@ -656,8 +655,6 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "scanner.l"
-#line 2 "scanner.l"
 #if defined(WIN32) && !defined(YY_NO_UNISTD_H)
 #   define YY_NO_UNISTD_H
 #endif
@@ -667,7 +664,6 @@ char *yytext;
 #include "yystype.h"
 
 
-#line 671 "<stdout>"
 
 #define INITIAL 0
 #define CHAR_S 1
@@ -853,10 +849,8 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
     
-#line 31 "scanner.l"
 
 
-#line 860 "<stdout>"
 
 	if ( !(yy_init) )
 		{
@@ -940,66 +934,53 @@ do_action:	/* This label is used only to access EOF actions. */
 			goto yy_find_action;
 
 case YY_STATE_EOF(EOF_S):
-#line 33 "scanner.l"
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 34 "scanner.l"
 {return 0;}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 36 "scanner.l"
 {CUR_TOK.push_back('\a');}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 37 "scanner.l"
 {CUR_TOK.push_back('\b');}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 38 "scanner.l"
 {CUR_TOK.push_back('\f');}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 39 "scanner.l"
 {CUR_TOK.push_back('\n');}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 40 "scanner.l"
 {CUR_TOK.push_back('\r');}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 41 "scanner.l"
 {CUR_TOK.push_back('\t');}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 42 "scanner.l"
 {CUR_TOK.push_back('\v');}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 43 "scanner.l"
 {CUR_TOK.push_back('\"');}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 44 "scanner.l"
 {CUR_TOK += yytext;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 45 "scanner.l"
 {CUR_TOK.push_back('\'');}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 46 "scanner.l"
 {
 				int ch = str2num_base8<int>(yytext + 1,yyleng - 1);
 				if(ch > 255){
@@ -1011,7 +992,6 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 54 "scanner.l"
 {
 					int ch = str2num_base16<int>(yytext + 2,yyleng - 2);
 					if(ch > 255){
@@ -1024,13 +1004,11 @@ YY_RULE_SETUP
 case 14:
 /* rule 14 can match eol */
 YY_RULE_SETUP
-#line 63 "scanner.l"
 {++LINE_NO;}
 	YY_BREAK
 case 15:
 /* rule 15 can match eol */
 YY_RULE_SETUP
-#line 64 "scanner.l"
 {
 				++LINE_NO;
 				CUR_TOK += yytext;
@@ -1038,12 +1016,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 68 "scanner.l"
 {CUR_TOK.push_back(yytext[1]);}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 69 "scanner.l"
 {
 				BEGIN INITIAL;
 				DBG_LEX1("QSTRING",CUR_TOK);
@@ -1053,7 +1029,6 @@ YY_RULE_SETUP
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 75 "scanner.l"
 {
 				BEGIN INITIAL;
 				if(CUR_TOK.size() != 1){
@@ -1066,246 +1041,194 @@ YY_RULE_SETUP
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 84 "scanner.l"
 {CUR_TOK.push_back(*yytext);}
 	YY_BREAK
 case 20:
 /* rule 20 can match eol */
 YY_RULE_SETUP
-#line 85 "scanner.l"
 {SYNTAX_ERR("unterminated string");BEGIN INITIAL;}
 	YY_BREAK
 case 21:
-#line 88 "scanner.l"
 case 22:
 YY_RULE_SETUP
-#line 88 "scanner.l"
 /* comments */;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 89 "scanner.l"
 ;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 91 "scanner.l"
 {CUR_TOK.clear();BEGIN RSTR_S;}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 92 "scanner.l"
 {CUR_TOK.clear();BEGIN QSTR_S;}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 93 "scanner.l"
 {CUR_TOK.clear();BEGIN CHAR_S;}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 95 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("U8");return TP_U8;}
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 96 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("S8");return TP_S8;}
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 97 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("U16");return TP_U16;}
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 98 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("S16");return TP_S16;}
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 99 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("U32");return TP_U32;}
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 100 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("S32");return TP_S32;}
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 101 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("U64");return TP_U64;}
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 102 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("S64");return TP_S64;}
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 103 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("STR");return STR;}
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 104 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("RAW");return RAW;}
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 105 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("TCP");return TCP;}
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 106 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("UDP");return UDP;}
 	YY_BREAK
 case 39:
-#line 109 "scanner.l"
 case 40:
 YY_RULE_SETUP
-#line 109 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX1("FUN",CUR_TOK);return FUN;}
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 110 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("BEGIN");return BEGIN_;}
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 111 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("END");return END;}
 	YY_BREAK
 case 43:
-#line 113 "scanner.l"
 case 44:
 YY_RULE_SETUP
-#line 113 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX1("HBO",CUR_TOK);return HBO;}
 	YY_BREAK
 case 45:
-#line 115 "scanner.l"
 case 46:
 YY_RULE_SETUP
-#line 115 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX1("NBO",CUR_TOK);return NBO;}
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 116 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("SEND");return SEND;}
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 117 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("RECV");return RECV;}
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 118 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("HEX");return HEX;}
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 119 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("UNHEX");return UNHEX;}
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 120 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("PRINT");return PRINT;}
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 121 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("IP");return IP;}
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 122 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("ARRAY");return ARRAY;}
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 123 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX("SLEEP");return SLEEP;}
 	YY_BREAK
 case 55:
-#line 127 "scanner.l"
 case 56:
 YY_RULE_SETUP
-#line 127 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX1("CMD",CUR_TOK);return CMD;}
 	YY_BREAK
 case 57:
-#line 130 "scanner.l"
 case 58:
 YY_RULE_SETUP
-#line 130 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX1("DEF",CUR_TOK);return DEF;}
 	YY_BREAK
 case 59:
 /* rule 59 can match eol */
 YY_RULE_SETUP
-#line 132 "scanner.l"
 {CUR_TOK = "\\n";DBG_LEX1("NL",CUR_TOK);++LINE_NO;return NL;}
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 133 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX1("IEQ",CUR_TOK);return IEQ;}
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 135 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX1("OP_OUT",CUR_TOK);return OP_OUT;}
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 136 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX1("OP_IN",CUR_TOK);return OP_IN;}
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 138 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX1("OP_EQ",CUR_TOK);return OP_EQ;}
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 139 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX1("OP_NEQ",CUR_TOK);return OP_NEQ;}
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 140 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX1("OP_SEQ",CUR_TOK);return OP_SEQ;}
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 141 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX1("OP_LEQ",CUR_TOK);return OP_LEQ;}
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 142 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX1("OP_SM",CUR_TOK);return OP_SM;}
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 143 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX1("OP_LG",CUR_TOK);return OP_LG;}
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 144 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX1("NOT",CUR_TOK);return OP_NOT;}
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 146 "scanner.l"
 {
 				CUR_TOK = yytext;
 				DBG_LEX1("VAR_NAME",CUR_TOK);
@@ -1315,7 +1238,6 @@ YY_RULE_SETUP
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 152 "scanner.l"
 {
 				CUR_TOK = yytext;
 				DBG_LEX1("INT",CUR_TOK);
@@ -1325,7 +1247,6 @@ YY_RULE_SETUP
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 158 "scanner.l"
 {
 				CUR_TOK = yytext;
 				DBG_LEX1("LONG",CUR_TOK);
@@ -1335,7 +1256,6 @@ YY_RULE_SETUP
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 164 "scanner.l"
 {
 				CUR_TOK = yytext;
 				DBG_LEX1("LONG",CUR_TOK);
@@ -1348,7 +1268,6 @@ YY_RULE_SETUP
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 173 "scanner.l"
 {
 				CUR_TOK = yytext;
 				DBG_LEX1("I64",CUR_TOK);
@@ -1358,7 +1277,6 @@ YY_RULE_SETUP
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 180 "scanner.l"
 {
 				CUR_TOK = yytext;
 				DBG_LEX1("PROG_ARG",CUR_TOK);
@@ -1370,20 +1288,16 @@ case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(CHAR_S):
 case YY_STATE_EOF(QSTR_S):
 case YY_STATE_EOF(RSTR_S):
-#line 187 "scanner.l"
 {CUR_TOK = "EOF";DBG_LEX(CUR_TOK);BEGIN EOF_S;return EOF_;}
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 188 "scanner.l"
 {CUR_TOK = yytext;DBG_LEX(*yytext);return *yytext;}
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 190 "scanner.l"
 ECHO;
 	YY_BREAK
-#line 1387 "<stdout>"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2367,7 +2281,6 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 190 "scanner.l"
 
 
 
