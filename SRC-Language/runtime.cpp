@@ -341,6 +341,7 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
                 decl->eva_priority_ = maxPriority() + 1000; //解决自赋值问题
                 std::string depend = decl->Depend();
                 if(depend.empty()){
+                    decl->eva_priority_ = 0;
                     decl->expr_ = 0;
                 }else{
                     if(vname == depend){
@@ -449,15 +450,14 @@ void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     if(!cmd->BeginEmpty()){
         RUNTIME_ERR(decl->lineno_,"invalid stream out between BEGIN/END");
         return;
+    }else if(cmd->IsInArray()){
+        RUNTIME_ERR(decl->lineno_,"invalid stream out in ARRAY");
+        return;
     }
     const std::string & vname = decl->var_->varname_;
     decl->val_ = decl->var_->Initial(decl->lineno_);
     if(!decl->val_){
         RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<RealVarname(vname)<<"'");
-        return;
-    }
-    if(cmd->IsInArray()){
-        RUNTIME_ERR(decl->lineno_,"invalid stream out in ARRAY");
         return;
     }
     var_table_[vname] = decl;
@@ -466,6 +466,7 @@ void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     std::string depend = decl->Depend();
     if(depend.empty()){
         assert(decl->expr_);
+        decl->eva_priority_ = 0;
         CSharedPtr<CValue> v = decl->expr_->Evaluate();
         if(!v){
             RUNTIME_ERR(decl->lineno_,"cannot evaluate right hand expression");
@@ -473,9 +474,9 @@ void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         }
         decl->expr_ = 0;
         if(decl->val_->StreamOut(*v,decl->lineno_) && !decl->is_def_ &&
-            !cmd->PostInsertValue(v,decl->offset_))
+            !cmd->PutValue(v))
         {
-            RUNTIME_ERR(decl->lineno_,"cannot insert value "<<v->ShowValue());
+            RUNTIME_ERR(decl->lineno_,"cannot pack value "<<v->ShowValue());
             return;
         }
     }else{

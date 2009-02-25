@@ -207,7 +207,7 @@ bool CValue::StreamOut(const CValue & v,int lineno)
         case DT_U64:oss<<v.u64_;break;
         case DT_S64:oss<<v.s64_;break;
         default:{
-            RUNTIME_ERR(lineno,"invalid right hand type for stream-out operator");
+            RUNTIME_ERR(lineno,"invalid right hand type(integer only) for stream-out operator");
             return false;
         }
     }
