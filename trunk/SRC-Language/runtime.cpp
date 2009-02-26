@@ -474,7 +474,7 @@ void CRuntime::processStreamOut(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         }
         decl->expr_ = 0;
         if(decl->val_->StreamOut(*v,decl->lineno_) && !decl->is_def_ &&
-            !cmd->PutValue(v))
+            !cmd->PutValue(decl->val_))
         {
             RUNTIME_ERR(decl->lineno_,"cannot pack value "<<v->ShowValue());
             return;
