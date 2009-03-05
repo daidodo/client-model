@@ -1,10 +1,10 @@
 # This is an example of SRC Language
 //Send Command example
 
-STR server_ip := "127.0.0.1"
+STR server_ip := "192.168.13.120"
 U16 server_port := 9531
 
-TCP(server_ip,server_port,30000)
+TCP(server_ip,server_port)
 NBO
 
 COMMAND QueryCommand
