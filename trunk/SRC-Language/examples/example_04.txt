@@ -1,8 +1,8 @@
 # This is an example of SRC Language
 //HTTP Send Recv Commands example
 
-STR server_ip := "127.0.0.1";
-#STR server_ip := "192.168.13.120";
+#STR server_ip := "127.0.0.1";
+STR server_ip := "192.168.13.120";
 U16 server_port := 9531;
 
 TCP(server_ip,server_port)
@@ -11,11 +11,7 @@ NET_BYTE_ORDER
 
 CMD QueryCommand SEND
 //http wrap
-  RAW http1 := "POST http://"
-  RAW dst_ip = server_ip
-  RAW htt2 := ":"
-  RAW dst_port << server_port
-  RAW http3 := "/ HTTP/1.1\r\nContent-Length: "
+RAW http1 := "POST http://127.0.0.1:12345/ HTTP/1.1\r\nContent-Length: "
 DEF U32 pack_len
 RAW pack_len_str << pack_len  //stream output
 RAW http2 := "\r\nContent-Type: application/octet-stream\r\nConnection: \

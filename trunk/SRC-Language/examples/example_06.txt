@@ -1,7 +1,7 @@
 # This is an example of SRC Language
 //Post Evaluation example
 
-STR server_ip = "127.0.0.1";
+STR server_ip = "192.168.13.120";
 U16 server_port = 9531;
 STR server_ip2 = server_ip
 U16 server_port2 = server_port;
