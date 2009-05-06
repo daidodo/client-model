@@ -2,6 +2,7 @@
 #define DOZERG_UTILITY_H_20081111
 
 #include "platform.h"   //undef max,min
+#include <cstdlib>
 #include <string>
 #include <vector>
 
