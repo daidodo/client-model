@@ -1,0 +1,24 @@
+                SRC编译器 安装指南：
+1. 获取SRC编译器发布版本“src_xxx.tar.gz”
+2. 解压文件：
+	tar -xzvf src_xxx.tar.gz
+3. 进入源代码目录：
+	cd SRC_xxx/
+4. 编译工程，如果想得到发布版本，请使用：
+	make -f makefile.release
+   如果想得到调试版本，请使用：
+	make
+5. 安装SRC编译器：
+	make install
+   SRC编译器程序srcc会被复制到/usr/local/bin目录下，
+   库文件会被复制到/usr/local/lib目录下，
+   头文件会被复制到/usr/local/include目录下。
+6. 进入bin目录：
+	cd ../bin/
+	ls -la
+   完整的SRC编译器与库文件会显示出来。
+7. 如果想卸载SRC编译器，请进入源代码目录SRC_xxx/，然后：
+	make uninstall
+    所有复制到/usr/local目录下的SRC编译器文件都会被删除。
+
+欢迎使用!
