@@ -1,14 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SRC Library", "SRC Library.vcproj", "{CD8EDF04-C37C-44AE-A314-A9A8D4DC01E4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SRC Library", "SRC Library\SRC Library.vcproj", "{2EA9D01C-3D0F-4B05-B77A-0287065B8F38}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SRC Compiler", "SRC Compiler.vcproj", "{1AFCC973-29F1-496D-A565-677038A54112}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SRC Compiler", "SRC Compiler\SRC Compiler.vcproj", "{514DD53C-40C9-416E-9483-9269243B73CD}"
 	ProjectSection(ProjectDependencies) = postProject
-		{CD8EDF04-C37C-44AE-A314-A9A8D4DC01E4} = {CD8EDF04-C37C-44AE-A314-A9A8D4DC01E4}
+		{2EA9D01C-3D0F-4B05-B77A-0287065B8F38} = {2EA9D01C-3D0F-4B05-B77A-0287065B8F38}
 	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Rand String", "..\Rand String\Rand String.vcproj", "{5A03E27F-13D1-427C-8AC5-239FB4CFFCFE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -16,18 +14,14 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CD8EDF04-C37C-44AE-A314-A9A8D4DC01E4}.Debug|Win32.ActiveCfg = Debug|Win32
-		{CD8EDF04-C37C-44AE-A314-A9A8D4DC01E4}.Debug|Win32.Build.0 = Debug|Win32
-		{CD8EDF04-C37C-44AE-A314-A9A8D4DC01E4}.Release|Win32.ActiveCfg = Release|Win32
-		{CD8EDF04-C37C-44AE-A314-A9A8D4DC01E4}.Release|Win32.Build.0 = Release|Win32
-		{1AFCC973-29F1-496D-A565-677038A54112}.Debug|Win32.ActiveCfg = Debug|Win32
-		{1AFCC973-29F1-496D-A565-677038A54112}.Debug|Win32.Build.0 = Debug|Win32
-		{1AFCC973-29F1-496D-A565-677038A54112}.Release|Win32.ActiveCfg = Release|Win32
-		{1AFCC973-29F1-496D-A565-677038A54112}.Release|Win32.Build.0 = Release|Win32
-		{5A03E27F-13D1-427C-8AC5-239FB4CFFCFE}.Debug|Win32.ActiveCfg = Debug|Win32
-		{5A03E27F-13D1-427C-8AC5-239FB4CFFCFE}.Debug|Win32.Build.0 = Debug|Win32
-		{5A03E27F-13D1-427C-8AC5-239FB4CFFCFE}.Release|Win32.ActiveCfg = Release|Win32
-		{5A03E27F-13D1-427C-8AC5-239FB4CFFCFE}.Release|Win32.Build.0 = Release|Win32
+		{2EA9D01C-3D0F-4B05-B77A-0287065B8F38}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2EA9D01C-3D0F-4B05-B77A-0287065B8F38}.Debug|Win32.Build.0 = Debug|Win32
+		{2EA9D01C-3D0F-4B05-B77A-0287065B8F38}.Release|Win32.ActiveCfg = Release|Win32
+		{2EA9D01C-3D0F-4B05-B77A-0287065B8F38}.Release|Win32.Build.0 = Release|Win32
+		{514DD53C-40C9-416E-9483-9269243B73CD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{514DD53C-40C9-416E-9483-9269243B73CD}.Debug|Win32.Build.0 = Debug|Win32
+		{514DD53C-40C9-416E-9483-9269243B73CD}.Release|Win32.ActiveCfg = Release|Win32
+		{514DD53C-40C9-416E-9483-9269243B73CD}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

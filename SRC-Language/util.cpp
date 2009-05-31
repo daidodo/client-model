@@ -243,17 +243,25 @@ std::string Dump(const char * v,size_t sz,size_t show_sz,bool hasLen)
 
 std::string UnHex(const char * v,size_t sz)
 {
-    if(!v || !sz)
-        return "";
+    typedef const char * __Ptr;
+    assert(v);
     std::string ret;
     ret.reserve(sz >> 1);
-    for(size_t i = 1;i < sz;i += 2){
-        int t1 = UnHexChar(v[i - 1]);
-        int t2 = UnHexChar(v[i]);
-        if(t1 < 0 || t2 < 0)
-            break;
-        ret.push_back((t1 << 4) + t2);
+    int r = -1;
+    for(__Ptr i = v,e = v + sz;i < e;++i){
+        int t = UnHexChar(*i);
+        if(r < 0){
+            if(t >= 0)
+                r = t;
+        }else{
+            if(t >= 0)
+                r = (r << 4) + t;
+            ret.push_back(r);
+            r = -1;
+        }
     }
+    if(r >= 0)
+        ret.push_back(r);
     return ret;
 }
 
