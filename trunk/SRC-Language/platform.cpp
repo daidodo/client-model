@@ -1,8 +1,11 @@
+#include <vector>
 #include <sstream>
 #include <iostream>
 #include "platform.h"
 
 #ifdef WIN32
+
+#include <cstdlib>      //MB_CUR_MAX,wcstombs
 
 bool InitSocket(){
     WORD wVersionRequested = MAKEWORD(2,2);
@@ -36,7 +39,14 @@ std::string ErrorMsg(int error_no)
         1024,
         0))
     {
-        oss<<", "<<msg;
+        oss<<", ";
+#ifdef UNICODE
+        std::vector<char> buf(MB_CUR_MAX * (sizeof msg / sizeof(TCHAR)));
+        wcstombs(&buf[0],msg,buf.size());
+        oss<<&buf[0];
+#else
+        oss<<msg;
+#endif
     }
     return oss.str();
 }

@@ -49,7 +49,7 @@ so : $(SO_TARGET)
 deps : $(DEPS)
 
 %.d : %.cpp $(YACC_OBJ)
-	$(CXX) -MM $(INCLUDE) -o $*.d $<
+	@$(CXX) -MM $(INCLUDE) -o $*.d $<
 
 $(OUT_TARGET) : $(OBJS)
 	$(CXX) -o $@ $^
