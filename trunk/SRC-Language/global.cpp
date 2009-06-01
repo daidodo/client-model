@@ -31,12 +31,12 @@ void CGlobal::Init(){
     program_ = New<CProgram>();
 }
 
-bool CGlobal::Compile(const std::string & fname){
+bool CGlobal::Compile(const char * fname){
     if(!program_){
         std::cerr<<"compile environment not initialized!\n";
         return false;
     }
-    yyin = fopen(fname.c_str(),"r");
+    yyin = fopen(fname,"r");
     if(!yyin){
         std::cerr<<"cannot open file '"<<fname<<"'\n";
         return false;
@@ -73,18 +73,15 @@ bool CGlobal::Run(int argc,const char * const * argv)
     return outputErrMsg();
 }
 
-bool CGlobal::AddFunc(const std::string func_name,__Func func_ptr)
+bool CGlobal::AddFunc(const char * func_name,__SRC_UserFunc func_ptr,unsigned int dst_len_max)
 {
-    assert(func_ptr);
-    __Func & fp = func_map_[func_name];
-    if(fp)
+    assert(func_name && func_ptr);
+    assert(dst_len_max > 0 && dst_len_max < (10 << 20));
+    __FunNode & fn = func_map_[func_name];
+    if(fn.func_)
         return false;
-    fp = func_ptr;
+    fn.func_ = func_ptr;
+    fn.dst_len_max_ = dst_len_max;
     return true;
 }
 
-CGlobal::__Func CGlobal::FindFunc(const std::string func_name) const
-{
-    std::map<std::string,__Func>::const_iterator wh = func_map_.find(func_name);
-    return (wh == func_map_.end() ? 0 : wh->second);
-}

@@ -8,6 +8,7 @@
 #include "config.h"
 #include "errors.h"
 #include "rt_structs.h"
+#include "SRC_language.h"
 
 struct CFixValue;
 struct CVariable;
@@ -250,7 +251,7 @@ struct CCmd
     bool IsRecv() const{return send_flag_ == 2;}
     void SetByteOrder(bool net_bo);
     void AddConnection(CSharedPtr<CValue> conn,int lineno);
-    void InvokeFun(bool (*fp)(std::vector<char> &,std::vector<char> &),size_t sz,int lineno,const std::string & fname);
+    void InvokeFun(__SRC_UserFunc fp,unsigned int dst_max_len,size_t sz,int lineno,const std::string & fname);
     void AddArrayBegin(int lineno);
     void AddArrayEnd(int lineno);
     void StartArray(int lineno);

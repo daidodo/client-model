@@ -374,10 +374,11 @@ void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
     CExpr & exp = *(*args)[0];
     assert(exp.IsVar());
     const std::string & fun_name = exp.var_->varname_;
-    CGlobal::__Func fp = global().FindFunc(fun_name);
-    if(!fp){
+    const CGlobal::__FunNode * fn = global().FindFunc(fun_name);
+    if(!fn){
         RUNTIME_ERR(lineno,"cannot find function '"<<fun_name<<"'");
     }else{
+        assert(fn->func_ && fn->dst_len_max_);
         size_t sz = 0;
         if(args->args_.size() > 1){
             CSharedPtr<CValue> v = (*args)[1]->Evaluate();
@@ -390,7 +391,7 @@ void InvokeFUN(CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCmd> cmd)
                 return;
             }
         }
-        cmd->InvokeFun(fp,sz,lineno,fun_name);
+        cmd->InvokeFun(fn->func_,fn->dst_len_max_,sz,lineno,fun_name);
     }
 }
 
