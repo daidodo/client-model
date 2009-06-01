@@ -2,11 +2,16 @@
 #define DOZERG_GLOBAL_H_20081111
 
 #include "runtime.h"
+#include "SRC_language.h"
 
 struct CGlobal
 {
-    typedef std::vector<char>   __Buf;
-    typedef bool (*__Func)(__Buf &,__Buf &);
+    struct __FunNode{
+        __SRC_UserFunc func_;
+        unsigned int dst_len_max_;
+        __FunNode():func_(0),dst_len_max_(0){}
+    };
+    typedef std::map<std::string,__FunNode> __FuncMap;
     static const int MAX_ERRORS = 3;
     //parse infos
     int lineno;
@@ -18,7 +23,7 @@ struct CGlobal
     //runtime
     CSharedPtr<CRuntime> runtime_;
     //functions
-    std::map<std::string,__Func> func_map_;
+    __FuncMap func_map_;
 private:
     CGlobal(){}
     ~CGlobal(){}
@@ -30,10 +35,13 @@ public:
     }
     void ErrFound();
     void Init();
-    bool Compile(const std::string & fname);
+    bool Compile(const char * fname);
     bool Run(int argc,const char * const * argv);
-    bool AddFunc(const std::string func_name,__Func func_ptr);
-    __Func FindFunc(const std::string func_name) const;
+    bool AddFunc(const char * func_name,__SRC_UserFunc func_ptr,unsigned int dst_len_max);
+    const __FunNode * FindFunc(const std::string func_name) const{
+        __FuncMap::const_iterator wh = func_map_.find(func_name);
+        return (wh == func_map_.end() ? 0 : &wh->second);
+    }
 };
 
 inline CGlobal & global(){return CGlobal::Inst();}

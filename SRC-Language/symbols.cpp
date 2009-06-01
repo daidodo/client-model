@@ -995,27 +995,29 @@ bool CCmd::EnsureRecvData(size_t sz,int lineno)
     return true;
 }
 
-void CCmd::InvokeFun(bool (*fp)(std::vector<char> &,std::vector<char> &),size_t sz,int lineno,const std::string & fname)
+void CCmd::InvokeFun(__SRC_UserFunc fp,unsigned int dst_max_len,size_t sz,int lineno,const std::string & fname)
 {
-    assert(fp);
+    assert(fp && dst_max_len);
     SHOW("  before invoke function '"<<fname<<"' data = ");
     if(IsSend()){
         std::vector<char> src;
         outds_.ExportData(src);
         SHOW(DumpFormat(src));
-        std::vector<char> dst;
-        if(!fp(src,dst)){
+        std::vector<char> dst(dst_max_len);
+        if(!fp(&src[0],(unsigned int)src.size(),&dst[0],dst_max_len)){
             RUNTIME_ERR(lineno,"invoke function '"<<fname<<"' returns false");
             dst.swap(src);
         }
+        dst.resize(dst_max_len);
         outds_.ImportData(dst);
     }else if(IsRecv()){     //recv
         SHOW(DumpFormat(recv_data_));
         if(!EnsureRecvData(sz,lineno))
             return;
         const size_t cur = inds_.Tell();
-        std::vector<char> dst;
-        if(fp(recv_data_,dst)){
+        std::vector<char> dst(dst_max_len);
+        if(fp(&recv_data_[0],(unsigned int)recv_data_.size(),&dst[0],dst_max_len)){
+            dst.resize(dst_max_len);
             recv_data_.swap(dst);
         }else{
             RUNTIME_ERR(lineno,"invoke function '"<<fname<<"' returns false");
