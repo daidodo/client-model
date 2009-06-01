@@ -42,7 +42,8 @@ std::string ErrorMsg(int error_no)
         oss<<", ";
 #ifdef UNICODE
         std::vector<char> buf(MB_CUR_MAX * (sizeof msg / sizeof(TCHAR)));
-        wcstombs(&buf[0],msg,buf.size());
+        size_t i = 0;
+        wcstombs_s(&i,&buf[0],buf.size(),msg,buf.size());
         oss<<&buf[0];
 #else
         oss<<msg;
