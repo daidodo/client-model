@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="SRC Library"
+	Name="SRC Lib"
 	ProjectGUID="{2EA9D01C-3D0F-4B05-B77A-0287065B8F38}"
 	RootNamespace="SRCLibrary"
 	Keyword="Win32Proj"
@@ -411,7 +411,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\SRC Library.rc"
+				RelativePath=".\SRC Lib.rc"
 				>
 			</File>
 		</Filter>
