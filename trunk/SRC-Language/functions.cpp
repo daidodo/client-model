@@ -235,7 +235,7 @@ __ValuePtr EvaluateHEX(const std::vector<__ValuePtr> & args,int lineno)
     if(!args[0]->IsStrOrPA()){
         RUNTIME_ERR(lineno,"invalid conversion to string");
     }else
-        ret->str_ = DumpHex(args[0]->str_,0,false);
+        ret->str_ = DumpHex(args[0]->str_,' ',false);
     return ret;
 }
 __ValuePtr EvaluateUNHEX(const std::vector<__ValuePtr> & args,int lineno)
