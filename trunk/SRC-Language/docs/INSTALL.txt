@@ -1,5 +1,7 @@
                 SRC编译器 安装指南：
-1. 获取SRC编译器发布版本“src_xxx.tar.gz”
+
+For Linux
+1. 获取SRC编译器在Linux下的发布版本“src_xxx.tar.gz”
 2. 解压文件：
 	tar -xzvf src_xxx.tar.gz
 3. 进入源代码目录：
@@ -20,5 +22,9 @@
 7. 如果想卸载SRC编译器，请进入源代码目录SRC_xxx/，然后：
 	make uninstall
     所有复制到/usr/local目录下的SRC编译器文件都会被删除。
+
+For Windows
+1. 获取SRC编译器在Windows下的发布版本“SRC Compiler xxx for win32.rar”
+2. 解压至任意目录
 
 欢迎使用!
