@@ -4,9 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 10.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SRC Lib", "SRC Lib\SRC Lib.vcproj", "{2EA9D01C-3D0F-4B05-B77A-0287065B8F38}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SRC Compiler", "SRC Compiler\SRC Compiler.vcproj", "{514DD53C-40C9-416E-9483-9269243B73CD}"
-	ProjectSection(ProjectDependencies) = postProject
-		{2EA9D01C-3D0F-4B05-B77A-0287065B8F38} = {2EA9D01C-3D0F-4B05-B77A-0287065B8F38}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SRC Dll", "SRC Dll\SRC Dll.vcproj", "{ADE23C03-0351-4095-85CA-C9B92DF10D82}"
 EndProject

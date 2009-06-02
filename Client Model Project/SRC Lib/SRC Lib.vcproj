@@ -406,14 +406,6 @@
 		<Filter
 			Name="资源文件"
 			>
-			<File
-				RelativePath=".\resource.h"
-				>
-			</File>
-			<File
-				RelativePath=".\SRC Lib.rc"
-				>
-			</File>
 		</Filter>
 	</Files>
 	<Globals>

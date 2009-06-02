@@ -65,8 +65,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,1,0,1
- PRODUCTVERSION 2,1,0,1
+ FILEVERSION 2,2,0,1
+ PRODUCTVERSION 2,2,0,1
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -79,20 +79,20 @@ VS_VERSION_INFO VERSIONINFO
 BEGIN
     BLOCK "StringFileInfo"
     BEGIN
-        BLOCK "040904b0"
+        BLOCK "080004b0"
         BEGIN
-            VALUE "FileDescription", "SRC ?????"
-            VALUE "FileVersion", "2, 1, 0, 1"
+            VALUE "FileDescription", "SRC Dynamic Link Library"
+            VALUE "FileVersion", "2, 2, 0, 1"
             VALUE "InternalName", "SRC"
-            VALUE "LegalCopyright", "Copyright (C) 2009"
+            VALUE "LegalCopyright", "DoZerg. All rights reserved. Copyright (C) 2009"
             VALUE "OriginalFilename", "SRC.dll"
-            VALUE "ProductName", "SRC ?????"
-            VALUE "ProductVersion", "2, 1, 0, 1"
+            VALUE "ProductName", "SRC Dynamic Link Library"
+            VALUE "ProductVersion", "2, 2, 0, 1"
         END
     END
     BLOCK "VarFileInfo"
     BEGIN
-        VALUE "Translation", 0x409, 1200
+        VALUE "Translation", 0x800, 1200
     END
 END
 
