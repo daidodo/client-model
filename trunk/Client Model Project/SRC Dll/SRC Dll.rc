@@ -86,7 +86,7 @@ BEGIN
             VALUE "InternalName", "SRC"
             VALUE "LegalCopyright", "DoZerg. All rights reserved. Copyright (C) 2009"
             VALUE "OriginalFilename", "SRC.dll"
-            VALUE "ProductName", "SRC Dynamic Link Library"
+            VALUE "ProductName", "SRC Language Compiler"
             VALUE "ProductVersion", "2, 2, 0, 1"
         END
     END
