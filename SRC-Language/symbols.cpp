@@ -55,7 +55,7 @@ CSharedPtr<CValue> CFixValue::Evaluate(int lineno) const
             ret->str_ = pa;
             break;}
         default:
-            GAMMAR_ERR(lineno,"invalid fixed value(internal error)");
+            GAMMAR_ERR(lineno,"invalid fixed value type="<<type_<<"(internal error)");
             return 0;
     }
     return ret;
