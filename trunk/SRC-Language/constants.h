@@ -1,6 +1,7 @@
 #ifndef DOZERG_DATA_TYPES_H_20090203
 #define DOZERG_DATA_TYPES_H_20090203
 
+// data types that SRC supported
 const int DT_NONE = -1;     //none
 const int DT_VOID = 0;      //void
 const int DT_INT =  1;      //int
@@ -57,5 +58,13 @@ inline bool DT_IsProgArg(int type){return type == DT_PA;}
 inline bool DT_IsIntOrPA(int type){return DT_IsInteger(type) || DT_IsProgArg(type);}
 
 inline bool DT_IsStrOrPA(int type){return DT_IsString(type) || DT_IsProgArg(type);}
+
+
+// return values for assertions
+const int RET_FALSE = 0;             //assert false
+const int RET_TRUE = 1;              //assert true
+const int RET_SIGN_MISMATCH = -1;    //signed, unsigned mismatch
+const int RET_TYPE_ERROR = -2;       //argument type error
+const int RET_OP_ERROR = -3;         //operator error
 
 #endif

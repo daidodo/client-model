@@ -3,7 +3,7 @@
 
 #include <cassert>
 #include <limits>
-#include "datatypes.h"
+#include "constants.h"
 #include "common/Sockets.h"
 #include "common/SharedPtr.h"
 #include "common/DataStream.h"
@@ -23,12 +23,6 @@ struct CUdp : public CUdpSocket
     //functions:
     explicit CUdp(int ln);
 };
-
-const int RET_FALSE = 0;             //assert false
-const int RET_TRUE = 1;              //assert true
-const int RET_SIGN_MISMATCH = -1;    //signed, unsigned mismatch
-const int RET_TYPE_ERROR = -2;       //argument type error
-const int RET_OP_ERROR = -3;         //operator error
 
 struct CValue
 {
@@ -108,12 +102,6 @@ struct CValue
     int operator !=(const CValue & v) const;
     int operator !() const;
     bool StreamOut(const CValue & v,int lineno);
-private:
-    template<typename T>
-    bool operator <(T v) const{
-        return true;
-    }
-    int intFromPA() const;
  };
 
 COutByteStream & operator <<(COutByteStream & ds,const CValue & v);
