@@ -859,7 +859,6 @@ case 28:
 					yyval.declare_->var_->varname_ = t->varname_;
 					yyval.declare_->var_->host_cmd_ = CUR_CMD;
 				}
-				yyval.declare_->var_->type_ = 2;
 				yyval.declare_->var_->array_type_ = yyvsp[-1].array_type_;
 				DBG_YY("$$ = "<<to_str(yyval.declare_));
 			}
@@ -1060,7 +1059,8 @@ case 43:
 				DBG_YY("$1 = "<<yyvsp[-2].token_);
 				yyval.array_type_ = New<CArrayType>(LINE_NO);
 				yyval.array_type_->tp_token_ = yyvsp[-2].token_;
-				yyval.array_type_->expr_ = 0;
+				yyval.array_type_->has_sz_ = false;
+				yyval.array_type_->sz_expr_ = 0;
 				DBG_YY("$$ = "<<to_str(yyval.array_type_));
 			}
 break;
@@ -1072,7 +1072,8 @@ case 44:
 				assert(yyvsp[-1].expr_);
 				yyval.array_type_ = New<CArrayType>(LINE_NO);
 				yyval.array_type_->tp_token_ = yyvsp[-3].token_;
-				yyval.array_type_->expr_ = yyvsp[-1].expr_;
+				yyval.array_type_->has_sz_ = true;
+				yyval.array_type_->sz_expr_ = yyvsp[-1].expr_;
 				DBG_YY("$$ = "<<to_str(yyval.array_type_));
 			}
 break;
@@ -1091,7 +1092,6 @@ case 45:
 					yyval.var_->varname_ = t->varname_;
 					yyval.var_->host_cmd_ = CUR_CMD;
 				}
-				yyval.var_->type_ = 1;
 				yyval.var_->tp_token_ = yyvsp[-1].token_;
 				DBG_YY("$$ = "<<to_str(yyval.var_));
 			}

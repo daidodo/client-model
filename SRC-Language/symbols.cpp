@@ -64,7 +64,6 @@ CSharedPtr<CValue> CFixValue::Evaluate(int lineno) const
 //CVariable
 CVariable::CVariable(int ln)
     : lineno_(ln)
-    , type_(0)
     , tp_token_(0)
     , ref_count_(0)
     , begin_(-1)
@@ -73,7 +72,6 @@ CVariable::CVariable(int ln)
 std::string CVariable::ToString() const{
     std::ostringstream oss;
     oss<<"(varname_="<<varname_
-        <<",type_="<<type_
         <<",tp_token_="<<tp_token_
         <<",array_type_="<<signa(array_type_)
         <<",ref_count_="<<ref_count_
@@ -311,14 +309,16 @@ std::string CArgList::Depend() const
 CArrayType::CArrayType(int ln)
     : lineno_(ln)
     , tp_token_(0)
+    , has_sz_(false)
     , sz_(-1)
 {}
 
 std::string CArrayType::ToString() const{
     std::ostringstream oss;
     oss<<"(tp_token_="<<tp_token_
+        <<",has_sz_="<<has_sz_
         <<",sz_="<<sz_
-        <<",expr_="<<signa(expr_)
+        <<",sz_expr_="<<signa(sz_expr_)
         <<")";
     return oss.str();
 }
@@ -331,7 +331,7 @@ std::string CArrayType::Signature() const{
 
 bool CArrayType::Validate() const
 {
-    if(expr_ && !DT_IsInteger(expr_->RetType())){
+    if(sz_expr_ && !DT_IsInteger(sz_expr_->RetType())){
         GAMMAR_ERR(lineno_,"invalid type for array size");
         return false;
     }
@@ -340,8 +340,8 @@ bool CArrayType::Validate() const
 
 bool CArrayType::CheckDefined(int lineno) const
 {
-    if(expr_)
-        return expr_->CheckDefined(lineno);
+    if(sz_expr_)
+        return sz_expr_->CheckDefined(lineno);
     return true;
 }
 
@@ -526,7 +526,7 @@ bool CDeclare::IsStreamOut() const
 bool CDeclare::CheckDefined(CSharedPtr<CCmd> cur_cmd)
 {
     bool ret = true;
-    CSharedPtr<CVariable>& shadow = var_->shadow_;
+    CSharedPtr<CVariable> & shadow = var_->shadow_;
     if(shadow){
         --shadow->ref_count_;
         if(cur_cmd == shadow->host_cmd_){

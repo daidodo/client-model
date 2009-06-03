@@ -217,7 +217,6 @@ array_declare : array_type VAR_NAME
 					$$->var_->varname_ = t->varname_;
 					$$->var_->host_cmd_ = CUR_CMD;
 				}
-				$$->var_->type_ = 2;
 				$$->var_->array_type_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -420,7 +419,8 @@ array_type : simple_type '[' ']'
 				DBG_YY("$1 = "<<$1);
 				$$ = New<CArrayType>(LINE_NO);
 				$$->tp_token_ = $1;
-				$$->expr_ = 0;
+				$$->has_sz_ = false;
+				$$->sz_expr_ = 0;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	| simple_type '[' expr ']'
@@ -431,7 +431,8 @@ array_type : simple_type '[' ']'
 				assert($3);
 				$$ = New<CArrayType>(LINE_NO);
 				$$->tp_token_ = $1;
-				$$->expr_ = $3;
+				$$->has_sz_ = true;
+				$$->sz_expr_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
@@ -451,7 +452,6 @@ sim_type_name : simple_type VAR_NAME
 					$$->varname_ = t->varname_;
 					$$->host_cmd_ = CUR_CMD;
 				}
-				$$->type_ = 1;
 				$$->tp_token_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
