@@ -44,20 +44,19 @@ struct CVariable
 {
     std::string varname_;
     const int lineno_;
-    int type_;
     int tp_token_;
-    int ref_count_;
+    int ref_count_;     //记录是否有重复定义
     ssize_t begin_;     //for BEGIN(var), END(var)
     CSharedPtr<CArrayType> array_type_;
     CSharedPtr<CCmd> host_cmd_;
-    CSharedPtr<CVariable> shadow_;
+    CSharedPtr<CVariable> shadow_;  //在出现重复定义时，记录前一个定义
     //functions:
     explicit CVariable(int ln);
     std::string ToString() const;
     std::string Signature() const;
     bool IsGlobal() const{return !host_cmd_;}
     bool Is1stDefine() const{return ref_count_ == 0;}
-    bool IsArray() const{return type_ == 2;}
+    bool IsArray() const{return array_type_ != 0;}
     bool IsConnection() const;
     bool IsRaw() const;
     int RetType() const;
@@ -106,8 +105,9 @@ struct CArrayType
 {
     const int lineno_;
     int tp_token_;
-    int sz_;     //数组大小
-    CSharedPtr<CExpr> expr_;
+    bool has_sz_;               //是否显式指定了数组大小
+    int sz_;                    //数组大小
+    CSharedPtr<CExpr> sz_expr_; //数组大小的计算式
     //functions:
     explicit CArrayType(int ln);
     std::string ToString() const;
@@ -115,7 +115,7 @@ struct CArrayType
     bool Validate() const;
     bool CheckDefined(int lineno) const;
     int RetType() const;
-    bool HasSize() const{return sz_ > 0;}
+    bool HasSize() const{return has_sz_;}
     int Size() const{return sz_;}
     CSharedPtr<CValue> Evaluate() const;
 };

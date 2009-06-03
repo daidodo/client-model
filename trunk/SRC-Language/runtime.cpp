@@ -289,8 +289,8 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     assert(cmd);
     assert(decl->var_->array_type_);
     const std::string & vname = decl->var_->varname_;
-    if(decl->var_->array_type_->expr_){
-        CSharedPtr<CValue> sv = decl->var_->array_type_->expr_->Evaluate();
+    if(decl->var_->array_type_->sz_expr_){
+        CSharedPtr<CValue> sv = decl->var_->array_type_->sz_expr_->Evaluate();
         if(!sv){
             RUNTIME_ERR(decl->lineno_,"cannot evaluate size of array '"
                 <<RealVarname(vname)<<"'");
