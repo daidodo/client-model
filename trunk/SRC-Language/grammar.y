@@ -88,7 +88,7 @@ cmd_end : END CMD	{
 			}
 	;
 
-declare : array_declare
+declare : constant_declare
 			{
 				DBG_YY("declare 1");
 				DBG_YY("$1 = "<<to_str($1));
@@ -97,7 +97,7 @@ declare : array_declare
 				DBG_YY("$$ = "<<to_str($$));
 				program().AddStmt($$);
 			}
-	| constant_declare
+	| post_declare
 			{
 				DBG_YY("declare 2");
 				DBG_YY("$1 = "<<to_str($1));
@@ -106,7 +106,7 @@ declare : array_declare
 				DBG_YY("$$ = "<<to_str($$));
 				program().AddStmt($$);
 			}
-	| post_declare
+	| array_declare
 			{
 				DBG_YY("declare 3");
 				DBG_YY("$1 = "<<to_str($1));
