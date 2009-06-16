@@ -857,7 +857,7 @@ bool CCmd::GetArray(CSharedPtr<CDeclare> d)
                 <<d->val_->ShowValue());
         }else{
             RUNTIME_ERR(d->lineno_,"recv '"<<CRuntime::RealVarname(d->var_->varname_)<<"["<<i
-                <<"]' error");
+                <<"/"<<d->var_->array_type_->sz_<<"]' error");
             return false;
         }
     }
