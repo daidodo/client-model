@@ -1,4 +1,4 @@
-#define TEST 0
+#define TEST 1
 
 #include <iostream>
 #include "SRC_language.h"

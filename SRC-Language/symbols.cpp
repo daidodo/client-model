@@ -731,7 +731,7 @@ void CCmd::AddConnection(CSharedPtr<CValue> conn,int lineno)
 {
     assert(conn && conn->IsConnection());
     if(!conn_list_.empty()){
-        RUNTIME_ERR(lineno,"only one connction is supported for one command");
+        RUNTIME_ERR(lineno,"only one SEND/RECV is supported for each CMD");
     }else
         conn_list_.push_back(conn);
 }
