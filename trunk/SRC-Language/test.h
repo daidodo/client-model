@@ -42,6 +42,7 @@ void test_4(int argc,const char ** argv)
         cerr<<"compile error\n";
         return;
     }
-    if(!SRC_run(argc,argv))
-        cerr<<"run error\n";
+    for(int i = 0;i < 1;++i)
+        if(!SRC_run(argc,argv))
+            cerr<<"run error\n";
 }

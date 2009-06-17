@@ -342,7 +342,7 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
                 std::string depend = decl->Depend();
                 if(depend.empty()){
                     decl->eva_priority_ = 0;
-                    decl->expr_ = 0;
+                    //decl->expr_ = 0;
                 }else{
                     if(vname == depend){
                         GAMMAR_ERR(decl->lineno_,"symbol '"<<RealVarname(vname)
