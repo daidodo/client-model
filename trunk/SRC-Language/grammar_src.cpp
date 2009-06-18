@@ -1127,7 +1127,6 @@ case 48:
 				yyval.array_type_ = New<CArrayType>(LINE_NO);
 				yyval.array_type_->tp_token_ = yyvsp[-2].token_;
 				yyval.array_type_->has_sz_ = false;
-				yyval.array_type_->sz_expr_ = 0;
 				DBG_YY("$$ = "<<to_str(yyval.array_type_));
 			}
 break;
