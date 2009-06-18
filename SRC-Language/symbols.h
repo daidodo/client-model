@@ -105,7 +105,7 @@ struct CArrayType
 {
     const int lineno_;
     int tp_token_;
-    bool has_sz_;               //是否显式指定了数组大小
+    bool has_sz_;               //是否明确指定了数组大小
     int sz_;                    //数组大小
     CSharedPtr<CExpr> sz_expr_; //数组大小的计算式
     //functions:

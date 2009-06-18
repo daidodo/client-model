@@ -479,7 +479,6 @@ array_type : simple_type '[' ']'
 				$$ = New<CArrayType>(LINE_NO);
 				$$->tp_token_ = $1;
 				$$->has_sz_ = false;
-				$$->sz_expr_ = 0;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	| simple_type '[' expr ']'
