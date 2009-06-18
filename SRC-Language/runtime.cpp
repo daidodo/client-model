@@ -185,8 +185,7 @@ void CRuntime::processAssertExp(CSharedPtr<CAssertExp> ass,CSharedPtr<CCmd> cmd)
     DBG_RT("processAssertExp cmd="<<to_str(cmd));
     assert(cmd && cmd->IsRecv());
     if(!ass->Assert()){
-        cmd->DumpRecvData();
-        ASSERT_FAIL(ass->lineno_,"");
+        ASSERT_FAIL(cmd,ass->lineno_,"");
     }
 }
 
@@ -313,16 +312,12 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         return;
     }
     decl->val_ = decl->var_->Initial(decl->lineno_);
-    if(!decl->val_){
-        ASSERT_FAIL(decl->lineno_,"cannot initialize '"<<RealVarname(vname)
-            <<"'");
-    }
+    assert(!decl->val_);
     if(cmd->IsSend() && !cmd->PutArray(decl)){
         RUNTIME_ERR(decl->lineno_,"cannot pack array '"<<RealVarname(vname)
             <<"'");
     }else if(cmd->IsRecv() && !cmd->GetArray(decl)){
-        cmd->DumpRecvData();
-        ASSERT_FAIL(decl->lineno_,"recv '"<<RealVarname(vname)<<"' failed");
+        ASSERT_FAIL(cmd,decl->lineno_,"recv '"<<RealVarname(vname)<<"' failed");
     }
 }
 
@@ -368,8 +363,7 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     }else{  //recv cmd
         if(!decl->is_def_){
             if(!cmd->GetValue(decl->val_,decl->lineno_)){
-                cmd->DumpRecvData();
-                ASSERT_FAIL(decl->lineno_,"recv '"<<RealVarname(vname)<<"' failed");
+                ASSERT_FAIL(cmd,decl->lineno_,"recv '"<<RealVarname(vname)<<"' failed");
             }
             SHOW(RealVarname(vname)<<cmd->ArrayIndexString()<<" = "
                 <<decl->val_->ShowValue());
@@ -415,8 +409,7 @@ void CRuntime::processDeclAssert(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     //decl->expr_ = 0;
     assert(cmd && cmd->IsRecv());
     if(!cmd->GetAssert(decl,v)){
-        cmd->DumpRecvData();
-        ASSERT_FAIL(decl->lineno_,"");
+        ASSERT_FAIL(cmd,decl->lineno_,"");
     }
     var_table_[vname] = decl;
 }
@@ -441,8 +434,7 @@ void CRuntime::processStreamIn(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     //decl->expr_ = 0;
     assert(cmd && cmd->IsRecv());
     if(!cmd->GetStreamIn(decl,v)){
-        cmd->DumpRecvData();
-        ASSERT_FAIL(decl->lineno_,"");
+        ASSERT_FAIL(cmd,decl->lineno_,"");
     }
     SHOW(RealVarname(vname)<<cmd->ArrayIndexString()<<" = "
         <<decl->val_->ShowValue());

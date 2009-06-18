@@ -835,7 +835,6 @@ bool CCmd::GetRaw(std::string & res,const std::string & v,int lineno)
 
 bool CCmd::GetArray(CSharedPtr<CDeclare> d)
 {
-    const U32 MAX_ARRAY_SIZE = 65535;
     assert(d && d->IsArray());
     if(!d->var_->array_type_->HasSize()){
         U32 sz = 0;
@@ -843,8 +842,7 @@ bool CCmd::GetArray(CSharedPtr<CDeclare> d)
             RUNTIME_ERR(d->lineno_,"recv array size error");
             return false;
         }else if(sz > MAX_ARRAY_SIZE){
-            RUNTIME_ERR(d->lineno_,"array size is larger than "<<MAX_ARRAY_SIZE);
-            return false;
+            ASSERT_FAIL(this,d->lineno_,"array size is larger than "<<MAX_ARRAY_SIZE);
         }else
             d->var_->array_type_->sz_ = int(sz);
     }
@@ -1066,6 +1064,9 @@ void CCmd::StartArray(int lineno)
         RUNTIME_ERR(lineno,"cannot recv array size");
     }else{
         SHOW("  ARRAY_SIZE = "<<sz);
+        if(sz >= MAX_ARRAY_SIZE){
+            ASSERT_FAIL(this,lineno,"array size is larger than "<<MAX_ARRAY_SIZE);
+        }
         StartArray(sz,lineno);
     }
 }
