@@ -450,3 +450,25 @@ void InvokeSleep(CSharedPtr<CArgList> args,int lineno)
     }
     sleep(sec);
 }
+
+void InvokeDebug(CSharedPtr<CArgList> args,int lineno)
+{
+    bool debug = true;
+    if(args && !args->args_.empty()){
+        assert(args->args_.size() == 1);
+        CSharedPtr<CExpr> expr = (*args)[0];
+        assert(expr);
+        CSharedPtr<CValue> v = expr->Evaluate();
+        if(!v){
+            RUNTIME_ERR(expr->lineno_,"cannot evaluate parameter 1");
+            return;
+        }
+        int val = 0;
+        if(!v->ToInteger(val)){
+            RUNTIME_ERR(expr->lineno_,"invalid value for parameter 1");
+            return;
+        }
+        debug = (val != 0);
+    }
+    runtime().Debug(debug);
+}

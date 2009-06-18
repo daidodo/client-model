@@ -121,7 +121,7 @@ PRINT	{CUR_TOK = yytext;DBG_LEX("PRINT");return PRINT;}
 IP	{CUR_TOK = yytext;DBG_LEX("IP");return IP;}
 ARRAY	{CUR_TOK = yytext;DBG_LEX("ARRAY");return ARRAY;}
 SLEEP	{CUR_TOK = yytext;DBG_LEX("SLEEP");return SLEEP;}
-
+DEBUG	{CUR_TOK = yytext;DBG_LEX("DEBUG");return __DEBUG;}
 
 COMMAND |
 CMD	{CUR_TOK = yytext;DBG_LEX1("CMD",CUR_TOK);return CMD;}
