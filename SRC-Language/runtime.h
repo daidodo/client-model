@@ -12,13 +12,15 @@ struct CRuntime
     int argc_;
     const char * const * argv_;
     //connections
-    CSharedPtr<CValue> default_conn_;  //默认连接
+    CSharedPtr<CValue> default_conn_;   //默认连接
     //variables
     std::map<std::string,CSharedPtr<CDeclare> > var_table_;
-    __VnameList post_list_;     //延后求值列表
+    __VnameList post_list_;             //延后求值列表
     __VnameMap  post_map_;
     //byte order
-    bool cur_byte_order_;      //当前的字节序设置
+    bool cur_byte_order_;               //当前的字节序设置
+    //debug
+    bool debug_;                        //是否输出调试信息
 //functions:
     CRuntime();
     void SetProgArgs(int argc,const char * const * argv){argc_ = argc - 1;argv_ = argv + 1;}
@@ -29,6 +31,8 @@ struct CRuntime
     bool IsPost(const std::string & vname) const;
     static std::string RealVarname(const std::string & name);
     const char * ProgArg(int i) const{return (argv_ && i >= 0 && i < argc_ ? argv_[i] : 0);}
+    void Debug(bool dbg){debug_ = dbg;}
+    bool Debug() const{return debug_;}
 private:
     void addPostVar(const std::string & vname,CSharedPtr<CDeclare> decl,const std::string & depend);
     void addConnection(CSharedPtr<CValue> conn);

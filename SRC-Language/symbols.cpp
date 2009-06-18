@@ -998,11 +998,15 @@ bool CCmd::EnsureRecvData(size_t sz,int lineno)
 void CCmd::InvokeFun(__SRC_UserFunc fp,unsigned int dst_max_len,size_t sz,int lineno,const std::string & fname)
 {
     assert(fp && dst_max_len);
-    SHOW("  before invoke function '"<<fname<<"' data = ");
+    if(runtime().Debug()){
+        SHOW("  before invoke function '"<<fname<<"' data = ");
+    }
     if(IsSend()){
         std::vector<char> src;
         outds_.ExportData(src);
-        SHOW(DumpFormat(src));
+        if(runtime().Debug()){
+            SHOW(DumpFormat(src));
+        }
         std::vector<char> dst(dst_max_len);
         if(!fp(&src[0],(unsigned int)src.size(),&dst[0],dst_max_len)){
             RUNTIME_ERR(lineno,"invoke function '"<<fname<<"' returns false");
@@ -1011,7 +1015,9 @@ void CCmd::InvokeFun(__SRC_UserFunc fp,unsigned int dst_max_len,size_t sz,int li
         dst.resize(dst_max_len);
         outds_.ImportData(dst);
     }else if(IsRecv()){     //recv
-        SHOW(DumpFormat(recv_data_));
+        if(runtime().Debug()){
+            SHOW(DumpFormat(recv_data_));
+        }
         if(!EnsureRecvData(sz,lineno))
             return;
         const size_t cur = inds_.Tell();

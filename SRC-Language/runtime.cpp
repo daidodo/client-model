@@ -6,6 +6,7 @@ CRuntime::CRuntime()
     : argc_(0)
     , argv_(0)
     , cur_byte_order_(true)
+    , debug_(false)
 {}
 
 void CRuntime::Interpret(CProgram & program)
@@ -272,14 +273,20 @@ void CRuntime::processCmd(CSharedPtr<CCmd> cmd)
         //print data buffer
         std::vector<char> buf;
         cmd->outds_.ExportData(buf);
-        SHOW("  SEND command '"<<cmd->cmd_name_<<"' data =");
-        SHOW(DumpFormat(buf));
+        if(runtime().Debug()){
+            SHOW("  SEND command '"<<cmd->cmd_name_<<"' data =");
+            SHOW(DumpFormat(buf));
+        }else{
+            SHOW("  SEND command '"<<cmd->cmd_name_<<"'");
+        }
         //send data
 #if __REAL_CONNECT
         cmd->SendData(buf);
 #endif
-    }else   //recv
-        cmd->DumpRecvData();
+    }else{   //recv
+        if(runtime().Debug())
+            cmd->DumpRecvData();
+    }
 }
 
 void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)

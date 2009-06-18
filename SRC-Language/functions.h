@@ -45,4 +45,6 @@ void InvokeArray(bool is_start,CSharedPtr<CArgList> args,int lineno,CSharedPtr<C
 
 void InvokeSleep(CSharedPtr<CArgList> args,int lineno);
 
+void InvokeDebug(CSharedPtr<CArgList> args,int lineno);
+
 #endif

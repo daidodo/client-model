@@ -19,7 +19,8 @@ bool IsUnaryPredict(int op_token){
 
 bool IsGlobalOnlyToken(int type_token)
 {
-    return IsConnectionToken(type_token);
+    return IsConnectionToken(type_token)
+        || type_token == __DEBUG;
 }
 
 bool IsLocalOnlyToken(int type_token)
@@ -58,7 +59,7 @@ int FunRetType(int fun_token,const std::vector<int> * types)
         case BEGIN_:case END:
         case FUN:case PRINT:
         case ARRAY:case __END_ARRAY:
-        case SLEEP:
+        case SLEEP:case __DEBUG:
             return DT_VOID;
         case TP_U8:
             return DT_U8;
@@ -103,7 +104,8 @@ size_t FunArgCheck(int fun_token,const std::vector<int> & types,CSharedPtr<CArgL
         case TP_U8:case TP_S8:
         case TP_U16:case TP_S16:
         case TP_U32:case TP_S32:
-        case TP_U64:case TP_S64:{   //integer
+        case TP_U64:case TP_S64:
+        case __DEBUG:{   //integer
             if(types.size() == 1 && !DT_IsIntOrPA(types[0]))
                 return 1;
             else if(types.size() > 1)
@@ -304,6 +306,8 @@ void FunInvoke(int fun_token,CSharedPtr<CArgList> args,int lineno,CSharedPtr<CCm
             break;
         case SLEEP:
             InvokeSleep(args,lineno);
+        case __DEBUG:
+            InvokeDebug(args,lineno);
     }
 }
 
