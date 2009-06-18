@@ -65,7 +65,7 @@ cleandist :
 
 clean : cleandist
 	$(RM) *.d common/*.d
-	$(RM) $(BIN_DIR)/*
+	$(RM) $(BIN_DIR)/$(INC_TARGET) $(OUT_TARGET) $(LIB_TARGET) $(SO_TARGET)
 
 cleanall : clean
 	$(RM) $(RM_SRC)

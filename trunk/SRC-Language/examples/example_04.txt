@@ -3,7 +3,7 @@
 
 #STR server_ip := "127.0.0.1";
 STR server_ip := "192.168.13.120";
-U16 server_port := 9532;
+U16 server_port := 9531;
 
 TCP(server_ip,server_port)
 
@@ -20,7 +20,7 @@ BEGIN(pack_len)
 //cmd data
 U16 ver := 100
 U16 cmd_type:(161)
-U32 seq = $1
+U32 seq = 12
 U32 len(0)
 BEGIN(len)
 STR file_hash = "http://www.xunlei.com"
