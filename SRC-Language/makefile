@@ -10,7 +10,7 @@ INSTALL_INC_DIR := /usr/include
 
 CC := g++
 INCLUDE := -I./
-CXXFLAGS := -Wall -fPIC -pg -g -O0 $(INCLUDE)
+CXXFLAGS := -Wall -fPIC -g -O0 $(INCLUDE)
 CFLAGS := $(CXXFLAGS)
 ARFLAGS := cr
 CP := cp -f
@@ -52,7 +52,7 @@ deps : $(DEPS)
 	@$(CXX) -MM $(INCLUDE) -o $*.d $<
 
 $(OUT_TARGET) : $(OBJS)
-	$(CXX) -pg -o $@ $^
+	$(CXX) -o $@ $^
 
 $(LIB_TARGET) : $(OBJS)
 	$(AR) $(ARFLAGS) $@ $^
@@ -65,7 +65,7 @@ cleandist :
 
 clean : cleandist
 	$(RM) *.d common/*.d
-	$(RM) $(BIN_DIR)/*
+	$(RM) $(BIN_DIR)/$(INC_TARGET) $(OUT_TARGET) $(LIB_TARGET) $(SO_TARGET)
 
 cleanall : clean
 	$(RM) $(RM_SRC)
