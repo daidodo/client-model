@@ -105,7 +105,7 @@ size_t FunArgCheck(int fun_token,const std::vector<int> & types,CSharedPtr<CArgL
         case TP_U16:case TP_S16:
         case TP_U32:case TP_S32:
         case TP_U64:case TP_S64:
-        case __DEBUG:{   //integer
+        case ARRAY:case __DEBUG:{   //integer
             if(types.size() == 1 && !DT_IsIntOrPA(types[0]))
                 return 1;
             else if(types.size() > 1)
@@ -176,12 +176,6 @@ size_t FunArgCheck(int fun_token,const std::vector<int> & types,CSharedPtr<CArgL
             if(types.empty() || (!DT_IsStrOrPA(types[0]) && !DT_IsIntOrPA(types[0])))
                 return 1;
             if(types.size() > 1)
-                return 2;
-            break;}
-        case ARRAY:{
-            if(types.size() == 1 && !DT_IsIntOrPA(types[0]))
-                return 1;
-            else if(types.size() > 1)
                 return 2;
             break;}
         case __END_ARRAY:{

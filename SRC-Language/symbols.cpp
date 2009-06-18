@@ -106,7 +106,7 @@ int CVariable::RetType() const
 CSharedPtr<CValue> CVariable::Evaluate(int lineno) const
 {
     if(array_type_){
-        GAMMAR_ERR(lineno,"cannot evaluate array, see LINE:"<<lineno_);
+        GAMMAR_ERR(lineno,"cannot evaluate array, see LINE "<<lineno_);
         return 0;
     }
     CSharedPtr<CDeclare> decl = runtime().FindVar(varname_);
@@ -531,7 +531,7 @@ bool CDeclare::CheckDefined(CSharedPtr<CCmd> cur_cmd)
         --shadow->ref_count_;
         if(cur_cmd == shadow->host_cmd_){
             GAMMAR_ERR(lineno_,"redefine symbol '"<<CRuntime::RealVarname(var_->varname_)
-                <<"', see LINE:"<<shadow->lineno_);
+                <<"', see LINE "<<shadow->lineno_);
             var_ = shadow;
             ret = false;
         }else

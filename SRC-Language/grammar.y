@@ -16,17 +16,17 @@ int yylex();
 %token <long_> LONG
 %token <i64_> I64
 %token <strIdx_> QSTRING
-%token <var_> VAR_NAME
 %token <prog_arg_> PROG_ARG
+%token <var_> VAR_NAME
 
 %type <token_> simple_type func_name comp_op stream_op
 %type <fix_value_> fix_value
-%type <var_> sim_type_name
+%type <var_> sim_type_name array_type_name
 %type <expr_> expr
 %type <array_type_> array_type
 %type <arg_list_> arg_list arg_list_not_empty
 %type <assert_exp_> assert_exp
-%type <declare_> declare array_declare constant_declare post_declare assert_declare stream_declare define_declare
+%type <declare_> declare constant_declare post_declare array_declare assert_declare stream_declare define_declare
 %type <func_call_> func_call
 
 %%
@@ -65,26 +65,6 @@ func_call_list : func_call
 				DBG_YY("func_call_list 2");
 				DBG_YY("$2 = "<<to_str($2));
 				program().AddStmt($2);
-			}
-	;
-
-stmt_assert_list : stmt
-			{DBG_YY("stmt_list 1");}
-	| stmt_assert_list stmt
-			{DBG_YY("stmt_list 2");}
-	| stmt_assert_list assert_exp
-			{DBG_YY("stmt_list 3");}
-	;
-
-cmd_begin : CMD		{DBG_YY("cmd_begin 1");program().CmdBegin(0);}
-	| CMD VAR_NAME	{DBG_YY("cmd_begin 2");program().CmdBegin($2);}
-	;
-
-cmd_end : END CMD	{
-				DBG_YY("cmd_end");
-				assert(CUR_CMD);
-				CUR_CMD->endlineno_ = LINE_NO;
-				program().CmdEnd();
 			}
 	;
 
@@ -144,6 +124,26 @@ declare : constant_declare
 			}
 	;
 
+stmt_assert_list : stmt
+			{DBG_YY("stmt_list 1");}
+	| stmt_assert_list stmt
+			{DBG_YY("stmt_list 2");}
+	| stmt_assert_list assert_exp
+			{DBG_YY("stmt_list 3");}
+	;
+
+cmd_begin : CMD		{DBG_YY("cmd_begin 1");program().CmdBegin(0);}
+	| CMD VAR_NAME	{DBG_YY("cmd_begin 2");program().CmdBegin($2);}
+	;
+
+cmd_end : END CMD	{
+				DBG_YY("cmd_end");
+				assert(CUR_CMD);
+				CUR_CMD->endlineno_ = LINE_NO;
+				program().CmdEnd();
+			}
+	;
+
 	/* level 3 */
 func_call : func_name	
 			{
@@ -171,53 +171,6 @@ func_call : func_name
 				$$ = New<CFuncCall>(LINE_NO);
 				$$->ft_token_ = $1;
 				$$->arg_list_ = $3;
-				DBG_YY("$$ = "<<to_str($$));
-			}
-	;
-
-assert_exp : expr comp_op expr
-			{
-				DBG_YY("assert_exp 1");
-				DBG_YY("$1 = "<<to_str($1));
-				DBG_YY("$2 = "<<$2);
-				DBG_YY("$3 = "<<to_str($3));
-				$$ = New<CAssertExp>(LINE_NO);
-				$$->op_token_ = $2;
-				$$->expr1_ = $1;
-				$$->expr2_ = $3;
-				DBG_YY("$$ = "<<to_str($$));
-				program().AddStmt($$);
-			}
-	| comp_op expr	{
-				DBG_YY("assert_exp 2");
-				DBG_YY("$1 = "<<$1);
-				DBG_YY("$2 = "<<to_str($2));
-				$$ = New<CAssertExp>(LINE_NO);
-				$$->op_token_ = $1;
-				$$->expr1_ = $2;
-				DBG_YY("$$ = "<<to_str($$));
-				program().AddStmt($$);
-			}
-	;
-
-array_declare : array_type VAR_NAME
-			{
-				DBG_YY("array_declare 1");
-				DBG_YY("$1 = "<<to_str($1));
-				DBG_YY("$2 = "<<to_str($2));
-				assert($1 && $2);
-				$$ = New<CDeclare>($1->lineno_);
-				$$->type_ = 1;
-				$$->var_ = $2;
-				if($$->var_->ref_count_ > 0){
-					//redefinition, but we need the whole declaration
-					CSharedPtr<CVariable> t = $$->var_;
-					$$->var_ = New<CVariable>(LINE_NO);
-					$$->var_->shadow_ = t;
-					$$->var_->varname_ = t->varname_;
-					$$->var_->host_cmd_ = CUR_CMD;
-				}
-				$$->var_->array_type_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
@@ -306,6 +259,18 @@ post_declare : sim_type_name
 			}
 	;
 
+array_declare : array_type_name
+			{
+				DBG_YY("array_declare 1");
+				DBG_YY("$1 = "<<to_str($1));
+				assert($1);
+				$$ = New<CDeclare>($1->lineno_);
+				$$->type_ = 1;
+				$$->var_ = $1;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	;
+
 assert_declare : sim_type_name comp_op expr
 			{
 				DBG_YY("assert_declare 1");
@@ -375,6 +340,31 @@ define_declare : DEF constant_declare
 			}
 	;
 
+assert_exp : expr comp_op expr
+			{
+				DBG_YY("assert_exp 1");
+				DBG_YY("$1 = "<<to_str($1));
+				DBG_YY("$2 = "<<$2);
+				DBG_YY("$3 = "<<to_str($3));
+				$$ = New<CAssertExp>(LINE_NO);
+				$$->op_token_ = $2;
+				$$->expr1_ = $1;
+				$$->expr2_ = $3;
+				DBG_YY("$$ = "<<to_str($$));
+				program().AddStmt($$);
+			}
+	| comp_op expr	{
+				DBG_YY("assert_exp 2");
+				DBG_YY("$1 = "<<$1);
+				DBG_YY("$2 = "<<to_str($2));
+				$$ = New<CAssertExp>(LINE_NO);
+				$$->op_token_ = $1;
+				$$->expr1_ = $2;
+				DBG_YY("$$ = "<<to_str($$));
+				program().AddStmt($$);
+			}
+	;
+
 	/* level 4 */
 arg_list : /* empty */
 			{
@@ -413,26 +403,22 @@ arg_list_not_empty : expr
 			}
 	;
 
-array_type : simple_type '[' ']'
+array_type_name : array_type VAR_NAME
 			{
-				DBG_YY("array_type 1");
-				DBG_YY("$1 = "<<$1);
-				$$ = New<CArrayType>(LINE_NO);
-				$$->tp_token_ = $1;
-				$$->has_sz_ = false;
-				$$->sz_expr_ = 0;
-				DBG_YY("$$ = "<<to_str($$));
-			}
-	| simple_type '[' expr ']'
-			{
-				DBG_YY("array_type 2");
-				DBG_YY("$1 = "<<$1);
-				DBG_YY("$3 = "<<to_str($3));
-				assert($3);
-				$$ = New<CArrayType>(LINE_NO);
-				$$->tp_token_ = $1;
-				$$->has_sz_ = true;
-				$$->sz_expr_ = $3;
+				DBG_YY("array_type_name 1");
+				DBG_YY("$1 = "<<to_str($1));
+				DBG_YY("$2 = "<<to_str($2));
+				assert($1 && $2);
+				$$ = $2;
+				if($$->ref_count_ > 0){
+					//redefinition, but we need the whole declaration
+					CSharedPtr<CVariable> t = $$;
+					$$ = New<CVariable>(LINE_NO);
+					$$->shadow_ = t;
+					$$->varname_ = t->varname_;
+					$$->host_cmd_ = CUR_CMD;
+				}
+				$$->array_type_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
@@ -482,6 +468,30 @@ expr : fix_value	{
 				$$ = New<CExpr>(LINE_NO);
 				$$->type_ = 3;
 				$$->var_ = $1;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	;
+
+array_type : simple_type '[' ']'
+			{
+				DBG_YY("array_type 1");
+				DBG_YY("$1 = "<<$1);
+				$$ = New<CArrayType>(LINE_NO);
+				$$->tp_token_ = $1;
+				$$->has_sz_ = false;
+				$$->sz_expr_ = 0;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	| simple_type '[' expr ']'
+			{
+				DBG_YY("array_type 2");
+				DBG_YY("$1 = "<<$1);
+				DBG_YY("$3 = "<<to_str($3));
+				assert($3);
+				$$ = New<CArrayType>(LINE_NO);
+				$$->tp_token_ = $1;
+				$$->has_sz_ = true;
+				$$->sz_expr_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;

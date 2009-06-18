@@ -341,10 +341,10 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
         }
         /*if(decl->expr_){
             RUNTIME_ERR(lineno,"variable '"<<CRuntime::RealVarname(vname)
-                <<"' is evaluated by expression, see LINE:"<<(*args)[i]->var_->lineno_);
+                <<"' is evaluated by expression, see LINE "<<(*args)[i]->var_->lineno_);
             continue;
         }else */if(!decl->IsSimplePost()){
-            GAMMAR_ERR(lineno,"invalid variable for BEGIN or END function, see LINE:"
+            GAMMAR_ERR(lineno,"invalid variable for BEGIN or END function, see LINE "
                 <<decl->lineno_);
             continue;
         }

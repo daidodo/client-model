@@ -9,11 +9,11 @@ struct yystype{
         long        long_;
         long long   i64_;
         size_t      strIdx_;
-        int         token_;
         int         prog_arg_;
+        int         token_;
     };
-    CSharedPtr<CFixValue>   fix_value_;
     CSharedPtr<CVariable>   var_;
+    CSharedPtr<CFixValue>   fix_value_;
     CSharedPtr<CArgList>    arg_list_;
     CSharedPtr<CExpr>       expr_;
     CSharedPtr<CArrayType>  array_type_;
