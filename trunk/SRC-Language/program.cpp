@@ -185,13 +185,13 @@ void CProgram::CmdBegin(CSharedPtr<CVariable> var)
     bool good = true;
     if(!isGlobal()){
         GAMMAR_ERR(LINE_NO,"cannot define command '"<<name
-            <<"' in local scope of '"<<cur_cmd->cmd_name_<<"', see LINE:"
+            <<"' in local scope of '"<<cur_cmd->cmd_name_<<"', see LINE "
             <<var_lineno);
         good = false;
     }
     if(var){
         if(!var->Is1stDefine()){
-            GAMMAR_ERR(LINE_NO,"cannot redefine symbol '"<<name<<"', see LINE:"
+            GAMMAR_ERR(LINE_NO,"cannot redefine symbol '"<<name<<"', see LINE "
                 <<var_lineno);
             good = false;
         }else{
@@ -203,7 +203,7 @@ void CProgram::CmdBegin(CSharedPtr<CVariable> var)
         return;
     CSharedPtr<CCmd> & cmd = cmd_table[name];
     if(cmd){
-        GAMMAR_ERR(LINE_NO,"cannot redefine command '"<<name<<"', see LINE:"
+        GAMMAR_ERR(LINE_NO,"cannot redefine command '"<<name<<"', see LINE "
             <<cmd->lineno_);
         return;
     }
@@ -226,7 +226,7 @@ void CProgram::CmdEnd()
     DBG_YY("end command="<<signa(cur_cmd));
     if(cur_cmd->send_flag_ == 0){
         GAMMAR_ERR(LINE_NO,"missing SEND/RECV flag for command '"
-            <<cur_cmd->cmd_name_<<"', see LINE:"<<cur_cmd->lineno_);
+            <<cur_cmd->cmd_name_<<"', see LINE "<<cur_cmd->lineno_);
         global_stmts.pop_back();    //保持cmd_name_在cmd_table内
     }
     if(cur_cmd->IsInArray()){

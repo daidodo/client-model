@@ -42,14 +42,14 @@ struct CFixValue
 
 struct CVariable
 {
-    std::string varname_;
     const int lineno_;
+    std::string varname_;
     int tp_token_;
     int ref_count_;     //记录是否有重复定义
     ssize_t begin_;     //for BEGIN(var), END(var)
     CSharedPtr<CArrayType> array_type_;
     CSharedPtr<CCmd> host_cmd_;
-    CSharedPtr<CVariable> shadow_;  //在出现重复定义时，记录前一个定义
+    CSharedPtr<CVariable> shadow_;  //当出现重复定义时，记录前一个定义
     //functions:
     explicit CVariable(int ln);
     std::string ToString() const;
