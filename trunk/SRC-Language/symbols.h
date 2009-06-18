@@ -226,6 +226,7 @@ struct CArrayRange
 
 struct CCmd
 {
+    static const U32 MAX_ARRAY_SIZE = 65535;
     const int lineno_;
     int endlineno_;
     int send_flag_; //0:unknown ; 1:send ; 2:recv
