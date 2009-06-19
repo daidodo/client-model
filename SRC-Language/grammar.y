@@ -23,11 +23,19 @@ int yylex();
 %type <fix_value_> fix_value
 %type <var_> sim_type_name array_type_name
 %type <expr_> expr
-%type <array_type_> array_type
 %type <arg_list_> arg_list arg_list_not_empty
-%type <assert_exp_> assert_exp
-%type <declare_> declare constant_declare post_declare array_declare assert_declare stream_declare define_declare
+
+%type <declare_> declare
+%type <constDecl_> constant_declare
+%type <postDecl_> post_declare
+%type <arrayDecl_> array_declare
+%type <assertDecl_> assert_declare
+%type <streamDecl_> stream_declare
+%type <defDecl_> define_declare
+
 %type <func_call_> func_call
+
+%type <assert_exp_> assert_exp
 
 %%
 	/* top */
@@ -46,14 +54,13 @@ stmt :  stmt_sep
 	| func_call_list stmt_sep
 			{DBG_YY("stmt 2");}
 	| declare stmt_sep
-			{DBG_YY("stmt 3");}
+			{
+				DBG_YY("stmt 3");
+				DBG_YY("$1 = "<<to_str($1));
+				program().AddStmt($1);
+			}
 	;
 
-cmd_define : cmd_begin stmt_assert_list cmd_end stmt_sep
-			{DBG_YY("cmd_define 1");}
-	;
-
-	/* level 2 */
 func_call_list : func_call
 			{
 				DBG_YY("func_call_list 1 ");
@@ -68,60 +75,12 @@ func_call_list : func_call
 			}
 	;
 
-declare : constant_declare
-			{
-				DBG_YY("declare 1");
-				DBG_YY("$1 = "<<to_str($1));
-				assert($1);
-				$$ = $1;
-				DBG_YY("$$ = "<<to_str($$));
-				program().AddStmt($$);
-			}
-	| post_declare
-			{
-				DBG_YY("declare 2");
-				DBG_YY("$1 = "<<to_str($1));
-				assert($1);
-				$$ = $1;
-				DBG_YY("$$ = "<<to_str($$));
-				program().AddStmt($$);
-			}
-	| array_declare
-			{
-				DBG_YY("declare 3");
-				DBG_YY("$1 = "<<to_str($1));
-				assert($1);
-				$$ = $1;
-				DBG_YY("$$ = "<<to_str($$));
-				program().AddStmt($$);
-			}
-	| assert_declare
-			{
-				DBG_YY("declare 4");
-				DBG_YY("$1 = "<<to_str($1));
-				assert($1);
-				$$ = $1;
-				DBG_YY("$$ = "<<to_str($$));
-				program().AddStmt($$);
-			}
-	| stream_declare
-			{
-				DBG_YY("declare 5");
-				DBG_YY("$1 = "<<to_str($1));
-				assert($1);
-				$$ = $1;
-				DBG_YY("$$ = "<<to_str($$));
-				program().AddStmt($$);
-			}
-	| define_declare
-			{
-				DBG_YY("declare 6");
-				DBG_YY("$1 = "<<to_str($1));
-				assert($1);
-				$$ = $1;
-				DBG_YY("$$ = "<<to_str($$));
-				program().AddStmt($$);
-			}
+cmd_define : cmd_begin stmt_assert_list cmd_end stmt_sep
+			{DBG_YY("cmd_define 1");}
+	;
+
+cmd_begin : CMD		{DBG_YY("cmd_begin 1");program().CmdBegin(0);}
+	| CMD VAR_NAME	{DBG_YY("cmd_begin 2");program().CmdBegin($2);}
 	;
 
 stmt_assert_list : stmt
@@ -129,11 +88,11 @@ stmt_assert_list : stmt
 	| stmt_assert_list stmt
 			{DBG_YY("stmt_list 2");}
 	| stmt_assert_list assert_exp
-			{DBG_YY("stmt_list 3");}
-	;
-
-cmd_begin : CMD		{DBG_YY("cmd_begin 1");program().CmdBegin(0);}
-	| CMD VAR_NAME	{DBG_YY("cmd_begin 2");program().CmdBegin($2);}
+			{
+				DBG_YY("stmt_list 3");
+				DBG_YY("$2 = "<<to_str($2));
+				program().AddStmt($2);
+			}
 	;
 
 cmd_end : END CMD	{
@@ -144,7 +103,63 @@ cmd_end : END CMD	{
 			}
 	;
 
-	/* level 3 */
+	/* level 2 */
+declare : constant_declare
+			{
+				DBG_YY("declare 1");
+				DBG_YY("$1 = "<<to_str($1));
+				assert($1);
+				$$ = New<CDeclare>(LINE_NO);
+				$$->constDecl_ = $1;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	| post_declare
+			{
+				DBG_YY("declare 2");
+				DBG_YY("$1 = "<<to_str($1));
+				assert($1);
+				$$ = New<CDeclare>(LINE_NO);
+				$$->postDecl_ = $1;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	| array_declare
+			{
+				DBG_YY("declare 3");
+				DBG_YY("$1 = "<<to_str($1));
+				assert($1);
+				$$ = New<CDeclare>(LINE_NO);
+				$$->arrayDecl_ = $1;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	| assert_declare
+			{
+				DBG_YY("declare 4");
+				DBG_YY("$1 = "<<to_str($1));
+				assert($1);
+				$$ = New<CDeclare>(LINE_NO);
+				$$->assertDecl_ = $1;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	| stream_declare
+			{
+				DBG_YY("declare 5");
+				DBG_YY("$1 = "<<to_str($1));
+				assert($1);
+				$$ = New<CDeclare>(LINE_NO);
+				$$->streamDecl_ = $1;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	| define_declare
+			{
+				DBG_YY("declare 6");
+				DBG_YY("$1 = "<<to_str($1));
+				assert($1);
+				$$ = New<CDeclare>(LINE_NO);
+				$$->defDecl_ = $1;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	;
+
 func_call : func_name	
 			{
 				DBG_YY("func_call 1");
@@ -175,6 +190,30 @@ func_call : func_name
 			}
 	;
 
+assert_exp : expr comp_op expr
+			{
+				DBG_YY("assert_exp 1");
+				DBG_YY("$1 = "<<to_str($1));
+				DBG_YY("$2 = "<<$2);
+				DBG_YY("$3 = "<<to_str($3));
+				$$ = New<CAssertExp>(LINE_NO);
+				$$->op_token_ = $2;
+				$$->expr1_ = $1;
+				$$->expr2_ = $3;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	| comp_op expr	{
+				DBG_YY("assert_exp 2");
+				DBG_YY("$1 = "<<$1);
+				DBG_YY("$2 = "<<to_str($2));
+				$$ = New<CAssertExp>(LINE_NO);
+				$$->op_token_ = $1;
+				$$->expr1_ = $2;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	;
+
+	/* level 3 */
 constant_declare : sim_type_name IEQ expr
 			{
 				DBG_YY("constant_declare 1");
@@ -269,6 +308,10 @@ array_declare : array_type_name
 				$$->var_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
+	| array_type_name '=' array_value
+			{
+	
+			}
 	;
 
 assert_declare : sim_type_name comp_op expr
@@ -340,31 +383,6 @@ define_declare : DEF constant_declare
 			}
 	;
 
-assert_exp : expr comp_op expr
-			{
-				DBG_YY("assert_exp 1");
-				DBG_YY("$1 = "<<to_str($1));
-				DBG_YY("$2 = "<<$2);
-				DBG_YY("$3 = "<<to_str($3));
-				$$ = New<CAssertExp>(LINE_NO);
-				$$->op_token_ = $2;
-				$$->expr1_ = $1;
-				$$->expr2_ = $3;
-				DBG_YY("$$ = "<<to_str($$));
-				program().AddStmt($$);
-			}
-	| comp_op expr	{
-				DBG_YY("assert_exp 2");
-				DBG_YY("$1 = "<<$1);
-				DBG_YY("$2 = "<<to_str($2));
-				$$ = New<CAssertExp>(LINE_NO);
-				$$->op_token_ = $1;
-				$$->expr1_ = $2;
-				DBG_YY("$$ = "<<to_str($$));
-				program().AddStmt($$);
-			}
-	;
-
 	/* level 4 */
 arg_list : /* empty */
 			{
@@ -403,22 +421,25 @@ arg_list_not_empty : expr
 			}
 	;
 
-array_type_name : array_type VAR_NAME
+array_type_name : sim_type_name '[' ']'
 			{
 				DBG_YY("array_type_name 1");
-				DBG_YY("$1 = "<<to_str($1));
-				DBG_YY("$2 = "<<to_str($2));
-				assert($1 && $2);
-				$$ = $2;
-				if($$->ref_count_ > 0){
-					//redefinition, but we need the whole declaration
-					CSharedPtr<CVariable> t = $$;
-					$$ = New<CVariable>(LINE_NO);
-					$$->shadow_ = t;
-					$$->varname_ = t->varname_;
-					$$->host_cmd_ = CUR_CMD;
-				}
-				$$->array_type_ = $1;
+				DBG_YY("$1 = "<<$1);
+				$$ = New<CType>(LINE_NO);
+				$$->tp_token_ = $1;
+				$$->has_sz_ = false;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	| sim_type_name '[' expr ']'
+			{
+				DBG_YY("array_type_name 2");
+				DBG_YY("$1 = "<<$1);
+				DBG_YY("$3 = "<<to_str($3));
+				assert($3);
+				$$ = New<CType>(LINE_NO);
+				$$->tp_token_ = $1;
+				$$->has_sz_ = true;
+				$$->sz_expr_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
@@ -472,30 +493,15 @@ expr : fix_value	{
 			}
 	;
 
-array_type : simple_type '[' ']'
+array_value : '{' arg_list '}'
 			{
-				DBG_YY("array_type 1");
-				DBG_YY("$1 = "<<$1);
-				$$ = New<CArrayType>(LINE_NO);
-				$$->tp_token_ = $1;
-				$$->has_sz_ = false;
-				DBG_YY("$$ = "<<to_str($$));
+	
 			}
-	| simple_type '[' expr ']'
-			{
-				DBG_YY("array_type 2");
-				DBG_YY("$1 = "<<$1);
-				DBG_YY("$3 = "<<to_str($3));
-				assert($3);
-				$$ = New<CArrayType>(LINE_NO);
-				$$->tp_token_ = $1;
-				$$->has_sz_ = true;
-				$$->sz_expr_ = $3;
-				DBG_YY("$$ = "<<to_str($$));
+	| QSTRING	{
+	
 			}
 	;
 
-	/* basic symbols */
 fix_value : INT		{
 				DBG_YY("fix_value 1");
 				DBG_YY("$1 = "<<$1);
@@ -538,6 +544,7 @@ fix_value : INT		{
 			}
 	;
 
+	/* basic symbols */
 func_name : FUN		{DBG_YY("func_name = FUN("<<FUN<<")");$$ = FUN;}
 	| BEGIN_ 	{DBG_YY("func_name = BEGIN("<<BEGIN_<<")");$$ = BEGIN_;}
 	| END		{DBG_YY("func_name = END("<<END<<")");$$ = END;}
@@ -565,7 +572,7 @@ simple_type : TP_U8	{DBG_YY("simple_type = U8("<<TP_U8<<")");$$ = TP_U8;}
 	| TP_U64	{DBG_YY("simple_type = U64("<<TP_U64<<")");$$ = TP_U64;}
 	| TP_S64	{DBG_YY("simple_type = S64("<<TP_S64<<")");$$ = TP_S64;}
 	| STR		{DBG_YY("simple_type = STR("<<STR<<")");$$ = STR;}
-	| RAW		{DBG_YY("simple_type = RAW("<<RAW<<")");$$ =  RAW;}
+	| RAW		{DBG_YY("simple_type = RAW("<<STR<<")");$$ = RAW;}
 	| TCP		{DBG_YY("simple_type = TCP("<<TCP<<")");$$ = TCP;}
 	| UDP		{DBG_YY("simple_type = UDP("<<UDP<<")");$$ = UDP;}
 	;

@@ -2,6 +2,75 @@
 #include "dbg.h"
 #include "tokens.h"
 
+//CVariable
+CVariable::CVariable(int ln)
+    : lineno_(ln)
+    , ref_count_(0)
+    //, begin_(-1)
+{}
+
+std::string CVariable::ToString() const{
+    std::ostringstream oss;
+    oss<<"(varname_="<<varname_
+        <<",tp_token_="<<tp_token_
+        <<",datatype_="<<signa(datatype_)
+        <<",ref_count_="<<ref_count_
+        <<",host_cmd_="<<signa(host_cmd_)
+        <<",shadow_="<<to_str(shadow_)
+        <<",begin_="<<begin_
+        <<")";
+    return oss.str();
+}
+
+std::string CVariable::Signature() const{
+    std::ostringstream oss;
+    oss<<"(LINE:"<<lineno_<<")"<<varname_;
+    return oss.str();
+}
+
+bool CVariable::IsConnection() const
+{
+    return IsConnectionToken(tp_token_);
+}
+
+bool CVariable::IsRaw() const
+{
+    return IsRawToken(tp_token_);
+}
+
+int CVariable::RetType() const
+{
+    return (datatype_ ? datatype_->RetType() : FunRetType(tp_token_));
+}
+
+CSharedPtr<CValue> CVariable::Evaluate(int lineno) const
+{
+    if(datatype_){
+        GAMMAR_ERR(lineno,"cannot evaluate array, see LINE "<<lineno_);
+        return 0;
+    }
+    CSharedPtr<CDeclare> decl = runtime().FindVar(varname_);
+    if(!decl){
+        GAMMAR_ERR(lineno,"variable '"<<CRuntime::RealVarname(varname_)
+            <<"' not found(internal error)");
+        return 0;
+    }
+    if(!decl->val_){
+        GAMMAR_ERR(lineno,"variable '"<<CRuntime::RealVarname(varname_)
+            <<"' not initialized yet");
+        return 0;
+    }
+    return decl->val_;
+}
+
+CSharedPtr<CValue> CVariable::Initial(int lineno) const
+{
+    if(datatype_)
+        return datatype_->Evaluate();
+    std::vector<CSharedPtr<CValue> > args;
+    return FunEvaluate(tp_token_,args,lineno);
+}
+
 //CFixValue
 CFixValue::CFixValue(int ln)
     : lineno_(ln)
@@ -61,74 +130,53 @@ CSharedPtr<CValue> CFixValue::Evaluate(int lineno) const
     return ret;
 }
 
-//CVariable
-CVariable::CVariable(int ln)
+//CType
+CType::CType(int ln)
     : lineno_(ln)
+    , type_(0)
     , tp_token_(0)
-    , ref_count_(0)
-    , begin_(-1)
 {}
 
-std::string CVariable::ToString() const{
+std::string CType::ToString() const{
     std::ostringstream oss;
-    oss<<"(varname_="<<varname_
+    oss<<"(type_="<<type_
         <<",tp_token_="<<tp_token_
-        <<",array_type_="<<signa(array_type_)
-        <<",ref_count_="<<ref_count_
-        <<",host_cmd_="<<signa(host_cmd_)
-        <<",shadow_="<<to_str(shadow_)
-        <<",begin_="<<begin_
+        <<",sz_expr_="<<signa(sz_expr_)
         <<")";
     return oss.str();
 }
 
-std::string CVariable::Signature() const{
+std::string CType::Signature() const{
     std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")"<<varname_;
+    oss<<"(LINE:"<<lineno_<<")";
     return oss.str();
 }
 
-bool CVariable::IsConnection() const
+bool CType::Validate() const
 {
-    return IsConnectionToken(tp_token_);
-}
-
-bool CVariable::IsRaw() const
-{
-    return IsRawToken(tp_token_);
-}
-
-int CVariable::RetType() const
-{
-    return (array_type_ ? array_type_->RetType() : FunRetType(tp_token_));
-}
-
-CSharedPtr<CValue> CVariable::Evaluate(int lineno) const
-{
-    if(array_type_){
-        GAMMAR_ERR(lineno,"cannot evaluate array, see LINE "<<lineno_);
-        return 0;
+    if(sz_expr_ && !DT_IsInteger(sz_expr_->RetType())){
+        GAMMAR_ERR(lineno_,"invalid type for array size");
+        return false;
     }
-    CSharedPtr<CDeclare> decl = runtime().FindVar(varname_);
-    if(!decl){
-        GAMMAR_ERR(lineno,"variable '"<<CRuntime::RealVarname(varname_)
-            <<"' not found(internal error)");
-        return 0;
-    }
-    if(!decl->val_){
-        GAMMAR_ERR(lineno,"variable '"<<CRuntime::RealVarname(varname_)
-            <<"' not initialized yet");
-        return 0;
-    }
-    return decl->val_;
+    return true;
 }
 
-CSharedPtr<CValue> CVariable::Initial(int lineno) const
+bool CType::CheckDefined(int lineno) const
 {
-    if(array_type_)
-        return array_type_->Evaluate();
+    if(sz_expr_)
+        return sz_expr_->CheckDefined(lineno);
+    return true;
+}
+
+int CType::RetType() const
+{
+    return FunRetType(tp_token_);
+}
+
+CSharedPtr<CValue> CType::Evaluate() const
+{
     std::vector<CSharedPtr<CValue> > args;
-    return FunEvaluate(tp_token_,args,lineno);
+    return FunEvaluate(tp_token_,args,lineno_);
 }
 
 //CExpr
@@ -305,57 +353,6 @@ std::string CArgList::Depend() const
     return ret;
 }
 
-//CArrayType
-CArrayType::CArrayType(int ln)
-    : lineno_(ln)
-    , tp_token_(0)
-    , has_sz_(false)
-    , sz_(-1)
-{}
-
-std::string CArrayType::ToString() const{
-    std::ostringstream oss;
-    oss<<"(tp_token_="<<tp_token_
-        <<",has_sz_="<<has_sz_
-        <<",sz_="<<sz_
-        <<",sz_expr_="<<signa(sz_expr_)
-        <<")";
-    return oss.str();
-}
-
-std::string CArrayType::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")";
-    return oss.str();
-}
-
-bool CArrayType::Validate() const
-{
-    if(sz_expr_ && !DT_IsInteger(sz_expr_->RetType())){
-        GAMMAR_ERR(lineno_,"invalid type for array size");
-        return false;
-    }
-    return true;
-}
-
-bool CArrayType::CheckDefined(int lineno) const
-{
-    if(sz_expr_)
-        return sz_expr_->CheckDefined(lineno);
-    return true;
-}
-
-int CArrayType::RetType() const
-{
-    return FunRetType(tp_token_);
-}
-
-CSharedPtr<CValue> CArrayType::Evaluate() const
-{
-    std::vector<CSharedPtr<CValue> > args;
-    return FunEvaluate(tp_token_,args,lineno_);
-}
-
 //CAssertExp
 CAssertExp::CAssertExp(int ln)
     : lineno_(ln)
@@ -486,9 +483,9 @@ bool CDeclare::IsGlobalOnly() const
 bool CDeclare::Validate() const
 {
     if(IsArray()){
-        if(!var_->array_type_->Validate())
+        if(!var_->datatype_->Validate())
             return false;
-        if(CannotBeArray(var_->array_type_->tp_token_)){
+        if(CannotBeArray(var_->datatype_->tp_token_)){
             GAMMAR_ERR(lineno_,"invaid array type");
             return false;
         }
@@ -744,8 +741,8 @@ bool CCmd::PutValue(CSharedPtr<CValue> v)
 
 bool CCmd::PutArray(CSharedPtr<CDeclare> d)
 {
-    assert(d && d->val_ && d->var_->array_type_->sz_ >= 0);
-    for(int i = 0;i < d->var_->array_type_->sz_;++i)
+    assert(d && d->val_ && d->var_->datatype_->sz_ >= 0);
+    for(int i = 0;i < d->var_->datatype_->sz_;++i)
         if(!(outds_<<*d->val_))
             return false;
     return true;
@@ -836,7 +833,7 @@ bool CCmd::GetRaw(std::string & res,const std::string & v,int lineno)
 bool CCmd::GetArray(CSharedPtr<CDeclare> d)
 {
     assert(d && d->IsArray());
-    if(!d->var_->array_type_->HasSize()){
+    if(!d->var_->datatype_->HasSize()){
         U32 sz = 0;
         if(!GetVal(sz,d->lineno_)){
             RUNTIME_ERR(d->lineno_,"recv array size error");
@@ -844,18 +841,18 @@ bool CCmd::GetArray(CSharedPtr<CDeclare> d)
         }else if(sz > MAX_ARRAY_SIZE){
             ASSERT_FAIL(this,d->lineno_,"array size is larger than "<<MAX_ARRAY_SIZE);
         }else
-            d->var_->array_type_->sz_ = int(sz);
+            d->var_->datatype_->sz_ = int(sz);
     }
     assert(d->val_);
     SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()
-        <<".size() = "<<d->var_->array_type_->sz_);
-    for(int i = 0;i < d->var_->array_type_->sz_;++i){
+        <<".size() = "<<d->var_->datatype_->sz_);
+    for(int i = 0;i < d->var_->datatype_->sz_;++i){
         if(GetVal(*d->val_,d->lineno_)){
             SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()<<"["<<i<<"] = "
                 <<d->val_->ShowValue());
         }else{
             RUNTIME_ERR(d->lineno_,"recv '"<<CRuntime::RealVarname(d->var_->varname_)<<"["<<i
-                <<"/"<<d->var_->array_type_->sz_<<"]' error");
+                <<"/"<<d->var_->datatype_->sz_<<"]' error");
             return false;
         }
     }
