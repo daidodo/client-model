@@ -293,16 +293,16 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processArray decl="<<to_str(decl));
     DBG_RT("processArray cmd="<<to_str(cmd));
     assert(cmd);
-    assert(decl->var_->array_type_);
+    assert(decl->var_->datatype_);
     const std::string & vname = decl->var_->varname_;
-    if(decl->var_->array_type_->sz_expr_){
-        CSharedPtr<CValue> sv = decl->var_->array_type_->sz_expr_->Evaluate();
+    if(decl->var_->datatype_->sz_expr_){
+        CSharedPtr<CValue> sv = decl->var_->datatype_->sz_expr_->Evaluate();
         if(!sv){
             RUNTIME_ERR(decl->lineno_,"cannot evaluate size of array '"
                 <<RealVarname(vname)<<"'");
             return;
         }
-        if(!sv->ToInteger(decl->var_->array_type_->sz_)){
+        if(!sv->ToInteger(decl->var_->datatype_->sz_)){
             RUNTIME_ERR(decl->lineno_,"type mismatch for size of array '"
                 <<RealVarname(vname)<<"'");
             return;
