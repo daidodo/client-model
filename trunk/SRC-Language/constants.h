@@ -63,7 +63,7 @@ const int TF_SIMPLE = 0;    //simple type
 const int TF_ARRAY = 1;     //array type without size
 const int TF_ARRAY_SZ = 2;  //array type with size
 
-// send flags
+// cmd send/recv flags
 const int SF_UNKNOWN = 0;   //unknown
 const int SF_SEND = 1;      //send
 const int SF_RECV = 2;      //recv
