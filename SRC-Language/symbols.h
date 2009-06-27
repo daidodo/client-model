@@ -11,13 +11,19 @@
 #include "SRC_language.h"
 
 struct CFixValue;
-struct CVariable;
+struct CArrayValue;
 struct CExpr;
+struct CVariable;
 struct CArgList;
-struct CType;
-struct CAssertExp;
+struct CConstDecl;
+struct CPostDecl;
+struct CArrayDecl;
+struct CAssertDecl;
+struct CStreamDecl;
+struct CDefineDecl;
 struct CDeclare;
 struct CFuncCall;
+struct CAssertExp;
 struct CStmt;
 struct CCmd;
 
@@ -35,9 +41,9 @@ struct CFixValue
     //functions:
     explicit CFixValue(int ln);
     std::string ToString() const;
-    std::string Signature() const;
-
+    std::string Signature() const{return ToString();}
     int RetType() const{return type_;}
+
     CSharedPtr<CValue> Evaluate(int lineno) const;
 };
 
@@ -50,6 +56,7 @@ struct CArrayValue
     explicit CArrayValue(int ln);
     std::string ToString() const;
     std::string Signature() const;
+
 };
 
 struct CExpr

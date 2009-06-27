@@ -12,22 +12,19 @@ struct yystype{
         int         prog_arg_;
         int         token_;
     };
-    CSharedPtr<CVariable>   var_;
     CSharedPtr<CFixValue>   fix_value_;
-    CSharedPtr<CArgList>    arg_list_;
+    CSharedPtr<CArrayValue> array_val_;
     CSharedPtr<CExpr>       expr_;
-    CSharedPtr<CType>   datatype_;
-
-    CSharedPtr<CDeclare>    declare_;
+    CSharedPtr<CVariable>   var_;
+    CSharedPtr<CArgList>    arg_list_;
     CSharedPtr<CConstDecl>  constDecl_;
     CSharedPtr<CPostDecl>   postDecl_;
     CSharedPtr<CArrayDecl>  arrayDecl_;
     CSharedPtr<CAssertDecl> assertDecl_;
     CSharedPtr<CStreamDecl> streamDecl_;
     CSharedPtr<CDefineDecl> defDecl_;
-
+    CSharedPtr<CDeclare>    declare_;
     CSharedPtr<CFuncCall>   func_call_;
-    
     CSharedPtr<CAssertExp>  assert_exp_;
 };
 

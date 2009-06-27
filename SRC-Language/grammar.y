@@ -21,20 +21,18 @@ int yylex();
 
 %type <token_> simple_type func_name comp_op stream_op
 %type <fix_value_> fix_value
-%type <var_> sim_type_name array_type_name
+%type <array_val_> array_value
 %type <expr_> expr
-%type <arg_list_> arg_list arg_list_not_empty
-
-%type <declare_> declare
+%type <var_> sim_type_name array_type_name
+%type <arg_list_> arg_list_not_empty arg_list
 %type <constDecl_> constant_declare
 %type <postDecl_> post_declare
 %type <arrayDecl_> array_declare
 %type <assertDecl_> assert_declare
 %type <streamDecl_> stream_declare
 %type <defDecl_> define_declare
-
+%type <declare_> declare
 %type <func_call_> func_call
-
 %type <assert_exp_> assert_exp
 
 %%
@@ -57,6 +55,7 @@ stmt :  stmt_sep
 			{
 				DBG_YY("stmt 3");
 				DBG_YY("$1 = "<<to_str($1));
+				assert($1);
 				program().AddStmt($1);
 			}
 	;
@@ -65,12 +64,14 @@ func_call_list : func_call
 			{
 				DBG_YY("func_call_list 1 ");
 				DBG_YY("$1 = "<<to_str($1));
+				assert($1);
 				program().AddStmt($1);
 			}
 	| func_call_list func_call
 			{
 				DBG_YY("func_call_list 2");
 				DBG_YY("$2 = "<<to_str($2));
+				assert($2);
 				program().AddStmt($2);
 			}
 	;
@@ -91,6 +92,7 @@ stmt_assert_list : stmt
 			{
 				DBG_YY("stmt_list 3");
 				DBG_YY("$2 = "<<to_str($2));
+				assert($2);
 				program().AddStmt($2);
 			}
 	;
@@ -196,6 +198,8 @@ assert_exp : expr comp_op expr
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$2 = "<<$2);
 				DBG_YY("$3 = "<<to_str($3));
+				assert($1);
+				assert($3);
 				$$ = New<CAssertExp>(LINE_NO);
 				$$->op_token_ = $2;
 				$$->expr1_ = $1;
@@ -206,6 +210,7 @@ assert_exp : expr comp_op expr
 				DBG_YY("assert_exp 2");
 				DBG_YY("$1 = "<<$1);
 				DBG_YY("$2 = "<<to_str($2));
+				assert($2);
 				$$ = New<CAssertExp>(LINE_NO);
 				$$->op_token_ = $1;
 				$$->expr1_ = $2;
@@ -234,7 +239,7 @@ constant_declare : sim_type_name IEQ expr
 				assert($1);
 				$$ = New<CConstDecl>($1->lineno_);
 				$$->var_ = $1;
-				$$->AddArg($3,LINE_NO);
+				$$->AddArg($4,LINE_NO);
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
