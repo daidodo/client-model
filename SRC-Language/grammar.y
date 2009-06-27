@@ -219,16 +219,11 @@ constant_declare : sim_type_name IEQ expr
 				DBG_YY("constant_declare 1");
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$3 = "<<to_str($3));
-				assert($1 && $3);
-				$$ = New<CDeclare>($1->lineno_);
-				$$->type_ = 5;
+				assert($1);
+				assert($3);
+				$$ = New<CConstDecl>($1->lineno_);
 				$$->var_ = $1;
-				$$->expr_ = New<CExpr>($1->lineno_);
-				$$->expr_->type_ = 2;
-				$$->expr_->func_call_ = New<CFuncCall>($1->lineno_);
-				$$->expr_->func_call_->ft_token_ = $1->tp_token_;
-				$$->expr_->func_call_->arg_list_ = New<CArgList>($1->lineno_);
-				$$->expr_->func_call_->arg_list_->Add($3);
+				$$->expr_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	| sim_type_name ':' '(' arg_list ')'
@@ -237,14 +232,9 @@ constant_declare : sim_type_name IEQ expr
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$4 = "<<to_str($4));
 				assert($1);
-				$$ = New<CDeclare>($1->lineno_);
-				$$->type_ = 6;
+				$$ = New<CConstDecl>($1->lineno_);
 				$$->var_ = $1;
-				$$->expr_ = New<CExpr>(LINE_NO);
-				$$->expr_->type_ = 2;
-				$$->expr_->func_call_ =  New<CFuncCall>(LINE_NO);
-				$$->expr_->func_call_->ft_token_ = $1->tp_token_;
-				$$->expr_->func_call_->arg_list_ = $4;
+				$$->AddArg($3,LINE_NO);
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
@@ -254,13 +244,8 @@ post_declare : sim_type_name
 				DBG_YY("post_declare 1");
 				DBG_YY("$1 = "<<to_str($1));
 				assert($1);
-				$$ = New<CDeclare>($1->lineno_);
-				$$->type_ = 2;
+				$$ = New<CPostDecl>($1->lineno_);
 				$$->var_ = $1;
-				$$->expr_ = New<CExpr>($1->lineno_);
-				$$->expr_->type_ = 2;
-				$$->expr_->func_call_ = New<CFuncCall>($1->lineno_);
-				$$->expr_->func_call_->ft_token_ = $1->tp_token_;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	| sim_type_name '=' expr
@@ -268,16 +253,11 @@ post_declare : sim_type_name
 				DBG_YY("post_declare 2");
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$3 = "<<to_str($3));
-				assert($1 && $3);
-				$$ = New<CDeclare>($1->lineno_);
-				$$->type_ = 3;
+				assert($1);
+				assert($3);
+				$$ = New<CPostDecl>($1->lineno_);
 				$$->var_ = $1;
-				$$->expr_ = New<CExpr>($1->lineno_);
-				$$->expr_->type_ = 2;
-				$$->expr_->func_call_ = New<CFuncCall>($1->lineno_);
-				$$->expr_->func_call_->ft_token_ = $1->tp_token_;
-				$$->expr_->func_call_->arg_list_ = New<CArgList>($1->lineno_);
-				$$->expr_->func_call_->arg_list_->Add($3);
+				$$->expr_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	| sim_type_name '(' arg_list ')'
@@ -286,14 +266,9 @@ post_declare : sim_type_name
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$3 = "<<to_str($3));
 				assert($1);
-				$$ = New<CDeclare>($1->lineno_);
-				$$->type_ = 4;
+				$$ = New<CPostDecl>($1->lineno_);
 				$$->var_ = $1;
-				$$->expr_ = New<CExpr>(LINE_NO);
-				$$->expr_->type_ = 2;
-				$$->expr_->func_call_ =  New<CFuncCall>(LINE_NO);
-				$$->expr_->func_call_->ft_token_ = $1->tp_token_;
-				$$->expr_->func_call_->arg_list_ = $3;
+				$$->AddArg($3,LINE_NO);
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
@@ -303,14 +278,21 @@ array_declare : array_type_name
 				DBG_YY("array_declare 1");
 				DBG_YY("$1 = "<<to_str($1));
 				assert($1);
-				$$ = New<CDeclare>($1->lineno_);
-				$$->type_ = 1;
+				$$ = New<CArrayDecl>($1->lineno_);
 				$$->var_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	| array_type_name '=' array_value
 			{
-	
+				DBG_YY("array_declare 2");
+				DBG_YY("$1 = "<<to_str($1));
+				DBG_YY("$3 = "<<to_str($3));
+				assert($1);
+				assert($3);
+				$$ = New<CArrayDecl>($1->lineno_);
+				$$->var_ = $1;
+				$$->arr_val_ = $3;
+				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
 
@@ -320,11 +302,11 @@ assert_declare : sim_type_name comp_op expr
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$2 = "<<$2);
 				DBG_YY("$3 = "<<to_str($3));
-				assert($1 && $3);
-				$$ = New<CDeclare>($1->lineno_);
-				$$->type_ = 7;
+				assert($1);
+				assert($3);
+				$$ = New<CAssertDecl>($1->lineno_);
 				$$->var_ = $1;
-				$$->op_token_ = $2;
+				$$->comp_op_ = $2;
 				$$->expr_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -336,11 +318,11 @@ stream_declare : sim_type_name stream_op expr
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$2 = "<<$2);
 				DBG_YY("$3 = "<<to_str($3));
-				assert($1 && $3);
-				$$ = New<CDeclare>($1->lineno_);
-				$$->type_ = 8;
+				assert($1);
+				assert($3);
+				$$ = New<CStreamDecl>($1->lineno_);
 				$$->var_ = $1;
-				$$->op_token_ = $2;
+				$$->stream_op_ = $2;
 				$$->expr_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -351,14 +333,10 @@ stream_declare : sim_type_name stream_op expr
 				DBG_YY("$2 = "<<$2);
 				DBG_YY("$3 = "<<$3);
 				assert($1);
-				$$ = New<CDeclare>($1->lineno_);
-				$$->type_ = 9;
+				$$ = New<CStreamDecl>($1->lineno_);
 				$$->var_ = $1;
-				$$->op_token_ = $2;
-				$$->expr_ = New<CExpr>(LINE_NO);
-				$$->expr_->type_ = 2;
-				$$->expr_->func_call_ =  New<CFuncCall>(LINE_NO);
-				$$->expr_->func_call_->ft_token_ = $3;
+				$$->stream_op_ = $2;
+				$$->tp_token_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
@@ -368,8 +346,8 @@ define_declare : DEF constant_declare
 				DBG_YY("define_declare 1");
 				DBG_YY("$2 = "<<to_str($2));
 				assert($2);
-				$$ = $2;
-				$$->is_def_ = 1;
+				$$ = New<CDefineDecl>(LINE_NO);
+				$$->const_decl_ = $2;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	| DEF post_declare
@@ -377,8 +355,8 @@ define_declare : DEF constant_declare
 				DBG_YY("define_declare 2");
 				DBG_YY("$2 = "<<to_str($2));
 				assert($2);
-				$$ = $2;
-				$$->is_def_ = 1;
+				$$ = New<CDefineDecl>(LINE_NO);
+				$$->post_decl_ = $2;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
@@ -387,7 +365,6 @@ define_declare : DEF constant_declare
 arg_list : /* empty */
 			{
 				DBG_YY("arg_list 1");
-				$$ = 0;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	| arg_list_not_empty
@@ -414,7 +391,8 @@ arg_list_not_empty : expr
 				DBG_YY("arg_list_not_empty 2");
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$3 = "<<to_str($3));
-				assert($1 && $3);
+				assert($1);
+				assert($3);
 				$$ = $1;
 				$$->Add($3);
 				DBG_YY("$$ = "<<to_str($$));
@@ -424,21 +402,20 @@ arg_list_not_empty : expr
 array_type_name : sim_type_name '[' ']'
 			{
 				DBG_YY("array_type_name 1");
-				DBG_YY("$1 = "<<$1);
-				$$ = New<CType>(LINE_NO);
-				$$->tp_token_ = $1;
-				$$->has_sz_ = false;
+				DBG_YY("$1 = "<<to_str($1));
+				assert($1);
+				$$ = $1;
+				$$->flag_ = TF_ARRAY;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	| sim_type_name '[' expr ']'
 			{
 				DBG_YY("array_type_name 2");
-				DBG_YY("$1 = "<<$1);
+				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$3 = "<<to_str($3));
+				assert($1);
 				assert($3);
-				$$ = New<CType>(LINE_NO);
-				$$->tp_token_ = $1;
-				$$->has_sz_ = true;
+				$$->flag_ = TF_ARRAY_SZ;
 				$$->sz_expr_ = $3;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -450,15 +427,8 @@ sim_type_name : simple_type VAR_NAME
 				DBG_YY("$1 = "<<$1);
 				DBG_YY("$2 = "<<to_str($2));
 				assert($2);
-				$$ = $2;
-				if($$->ref_count_ > 0){
-					//redefinition, but we need the whole declaration
-					CSharedPtr<CVariable> t = $$;
-					$$ = New<CVariable>(LINE_NO);
-					$$->shadow_ = t;
-					$$->varname_ = t->varname_;
-					$$->host_cmd_ = CUR_CMD;
-				}
+				$$ = CVariable::CheckRedefine($2,LINE_NO,CUR_CMD);
+				$$->flag_ = TF_SIMPLE;
 				$$->tp_token_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -469,7 +439,6 @@ expr : fix_value	{
 				DBG_YY("$1 = "<<to_str($1));
 				assert($1);
 				$$ = New<CExpr>(LINE_NO);
-				$$->type_ = 1;
 				$$->fix_value_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -478,7 +447,6 @@ expr : fix_value	{
 				DBG_YY("$1 = "<<to_str($1));
 				assert($1);
 				$$ = New<CExpr>(LINE_NO);
-				$$->type_ = 2;
 				$$->func_call_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -487,7 +455,6 @@ expr : fix_value	{
 				DBG_YY("$1 = "<<to_str($1));
 				assert($1);
 				$$ = New<CExpr>(LINE_NO);
-				$$->type_ = 3;
 				$$->var_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
@@ -495,10 +462,20 @@ expr : fix_value	{
 
 array_value : '{' arg_list '}'
 			{
+				DBG_YY("array_value 1");
+				DBG_YY("$2 = "<<to_str($2));
+				assert($2);
+				$$ = New<CArrayValue>(LINE_NO);
+				$$->arglist_ = $2;
+				DBG_YY("$$ = "<<to_str($$));
 	
 			}
 	| QSTRING	{
-	
+				DBG_YY("array_value 2");
+				DBG_YY("$1 = "<<$1);
+				$$ = New<CArrayValue>(LINE_NO);
+				$$->strIdx_ = $1;
+				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
 

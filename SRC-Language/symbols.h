@@ -21,24 +21,6 @@ struct CFuncCall;
 struct CStmt;
 struct CCmd;
 
-struct CType
-{
-    const int lineno_;
-    int flag_;      //TF_XXX
-    int tp_token_;
-    CSharedPtr<CExpr> sz_expr_; //size expression for array type
-    //functions:
-    explicit CType(int ln);
-    std::string ToString() const;
-    std::string Signature() const;
-
-    bool Validate() const;
-    bool CheckDefined(int lineno) const;
-    int RetType() const;
-    bool HasSize() const{return type_ != 0;}
-    CSharedPtr<CValue> Evaluate() const;
-};
-
 struct CFixValue
 {
     const int lineno_;
@@ -92,13 +74,16 @@ struct CExpr
 struct CVariable
 {
     const int lineno_;
-    CSharedPtr<CType> type_;
+    int flag_;      //TF_XXX
+    int tp_token_;
+    CSharedPtr<CExpr> sz_expr_; //size expression for array type
     std::string varname_;
     //internel
     int ref_count_;         //记录是否有重复定义
     CSharedPtr<CCmd> host_cmd_;
     CSharedPtr<CVariable> shadow_;  //当出现重复定义时，记录前一个定义
     //functions:
+    static CSharedPtr<CVariable> CheckRedefine(CSharedPtr<CVariable> var,int lineno,CSharedPtr<CCmd> cur_cmd);
     explicit CVariable(int ln);
     std::string ToString() const;
     std::string Signature() const;
@@ -121,9 +106,9 @@ struct CArgList
     explicit CArgList(int ln);
     std::string ToString() const;
     std::string Signature() const;
+    void Add(CSharedPtr<CExpr> arg);
 
     CSharedPtr<CExpr> operator [](size_t i) const;
-    void Add(CSharedPtr<CExpr> arg);
     void Erase(CSharedPtr<CExpr> arg);
     bool CheckDefined(int lineno) const;
     bool Validate() const;
@@ -141,6 +126,16 @@ struct CConstDecl
     explicit CConstDecl(int ln);
     std::string ToString() const;
     std::string Signature() const;
+    void AddArg(CSharedPtr<CArgList> arg_list,int lineno){
+        assert(var_);
+        assert(!expr_);
+        if(arg_list){
+            expr_ = New<CExpr>(lineno);
+            expr_->func_call_ =  New<CFuncCall>(lineno);
+            expr_->func_call_->ft_token_ = var_->tp_token_;
+            expr_->func_call_->arg_list_ = arg_list;
+        }
+    }
 };
 
 struct CPostDecl
@@ -152,6 +147,14 @@ struct CPostDecl
     explicit CPostDecl(int ln);
     std::string ToString() const;
     std::string Signature() const;
+    void AddArg(CSharedPtr<CArgList> arg_list,int lineno){
+        if(arg_list){
+            expr_ = New<CExpr>(lineno);
+            expr_->func_call_ =  New<CFuncCall>(lineno);
+            expr_->func_call_->ft_token_ = var_->tp_token_;
+            expr_->func_call_->arg_list_ = arg_list;
+        }
+    }
 };
 
 struct CArrayDecl

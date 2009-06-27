@@ -3,6 +3,19 @@
 #include "tokens.h"
 
 //CVariable
+CSharedPtr<CVariable> CVariable::CheckRedefine(CSharedPtr<CVariable> var,int lineno,CSharedPtr<CCmd> cur_cmd)
+{
+    if(var->ref_count_ > 0){
+        //redefinition, but we need the whole declaration
+        CSharedPtr<CVariable> ret = New<CVariable>(lineno);
+        ret->shadow_ = var;
+        ret->varname_ = var->varname_;
+        ret->host_cmd_ = cur_cmd;
+        return ret;
+    }
+    return var;
+}
+
 CVariable::CVariable(int ln)
     : lineno_(ln)
     , ref_count_(0)
