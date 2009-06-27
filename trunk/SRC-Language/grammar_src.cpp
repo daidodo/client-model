@@ -89,16 +89,16 @@ int yylex();
 #define VAR_NAME 305
 #define YYERRCODE 256
 static const short yylhs[] = {                           -1,
-    0,    0,   20,   20,   21,   21,   21,   24,   24,   22,
-   25,   25,   26,   26,   26,   27,   11,   11,   11,   11,
-   11,   11,   18,   18,   18,   19,   19,   12,   12,   13,
-   13,   13,   14,   14,   15,   16,   16,   17,   17,    9,
-    9,   10,   10,    7,    7,    6,    8,    8,    8,   28,
-   28,    5,    5,    5,    5,    5,    2,    2,    2,    2,
+    0,    0,   21,   21,   22,   22,   22,   25,   25,   23,
+   26,   26,   27,   27,   27,   28,   18,   18,   18,   18,
+   18,   18,   19,   19,   19,   20,   20,   12,   12,   13,
+   13,   13,   14,   14,   15,   16,   16,   17,   17,   11,
+   11,   10,   10,    9,    9,    8,    7,    7,    7,    6,
+    6,    5,    5,    5,    5,    5,    2,    2,    2,    2,
     2,    2,    2,    2,    2,    2,    2,    2,    2,    2,
     2,    2,    1,    1,    1,    1,    1,    1,    1,    1,
     1,    1,    1,    1,    3,    3,    3,    3,    3,    3,
-    3,    4,    4,   23,   23,   23,
+    3,    4,    4,   24,   24,   24,
 };
 static const short yylen[] = {                            2,
     0,    2,    1,    1,    1,    2,    2,    1,    2,    4,
@@ -116,35 +116,35 @@ static const short yydefred[] = {                         1,
     0,   95,   96,    0,    0,   73,   74,   75,   76,   77,
    78,   79,   80,   81,   82,   83,   84,   57,    0,    0,
    60,   61,   62,   63,   64,   65,   66,    0,   71,   72,
-   94,    0,    0,    0,    0,    0,   17,   18,   19,   20,
-   21,   22,    8,    2,    3,    4,    5,    0,    0,   12,
+   94,    0,    0,    0,    0,   17,   18,   19,   20,   21,
+   22,    0,    8,    2,    3,    4,    5,    0,    0,   12,
     0,    0,   38,   39,   69,   70,   68,   67,   46,    0,
     0,    0,   85,   86,   87,   88,   89,   90,   91,   92,
    93,    0,    0,    0,    0,    0,    0,    0,    7,    0,
     9,    6,   13,    0,   52,   53,   54,   55,   56,   49,
    47,   42,    0,    0,   48,    0,   28,    0,    0,   31,
    44,    0,   35,    0,   36,   51,    0,   34,    0,    0,
-    0,    0,   15,   14,    0,   25,    0,   24,   32,    0,
+    0,    0,   15,   14,    0,    0,   25,   24,   32,    0,
    45,    0,   16,   27,    0,   10,   43,   29,   50,   26,
 };
 static const short yydgoto[] = {                          1,
-   80,   33,   76,   77,   91,   34,   35,   92,   93,   94,
-   36,   37,   38,   39,   40,   41,   42,   95,  113,   44,
-   45,   46,   47,   48,   49,   84,  115,  108,
+   80,   33,   76,   77,   91,  108,   92,   34,   35,   93,
+   94,   36,   37,   38,   39,   40,   41,   42,   95,  113,
+   44,   45,   46,   47,   48,   49,   84,  115,
 };
 static const short yysindex[] = {                         0,
-  287,    0,    0, -290, -157,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0, -269, -262,
+  287,    0,    0, -292, -157,    0,    0,    0,    0,    0,
+    0,    0,    0,    0,    0,    0,    0,    0, -264, -262,
     0,    0,    0,    0,    0,    0,    0, -256,    0,    0,
-    0,  -35,  -14,   86,  -33,  -57,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,  412,  317,    0,
- -272,  -13,    0,    0,    0,    0,    0,    0,    0,  485,
+    0,  -35,  -14,   86,  -33,    0,    0,    0,    0,    0,
+    0,  -57,    0,    0,    0,    0,    0,  412,  317,    0,
+ -276,  -13,    0,    0,    0,    0,    0,    0,    0,  485,
   485,  485,    0,    0,    0,    0,    0,    0,    0,    0,
     0,  485,   -6,  485,  441,  485,  485, -120,    0,   -4,
     0,    0,    0,  186,    0,    0,    0,    0,    0,    0,
-    0,    0,   -3,   -7,    0,    1,    0,    2,  485,    0,
-    0,  -47,    0,   -4,    0,    0,  485,    0, -247,  485,
- -218,    0,    0,    0,  -57,    0,  485,    0,    0,    3,
+    0,    0,   -7,   -3,    0,   -2,    0,    2,  485,    0,
+    0,  -47,    0,   -4,    0,    0,  485,    0, -246,  485,
+ -218,    0,    0,    0,  -57,  485,    0,    0,    0,    3,
     0,  -78,    0,    0,  485,    0,    0,    0,    0,    0,
 };
 static const short yyrindex[] = {                         0,
@@ -157,27 +157,27 @@ static const short yyrindex[] = {                         0,
    17,    0,    0,    0,    0,    0,    0,    0,    0,    0,
     0,   17,    0,    0,    0,    0,    0,    0,    0,    0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,  -34,    0,    0,    0,    0,   17,    0,
+    0,    0,  -34,    0,    0,    0,    0,    0,   17,    0,
     0,    0,    0,  -49,    0,    0,  -76,    0,  129,    0,
     0,  236,    0,    0,    0,    0,    0,    0,    0,    0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
 };
 static const short yygindex[] = {                         0,
-   11,    0,  -70,    0,    0,   47,    0,  -45,  -37,    0,
-    0,   54,   56,    0,    0,    0,    0,    8,    0,    0,
-  -29,    0,  -25,    0,    0,    0,    0,    0,
+   11,    0,  -69,    0,    0,    0,  -44,   47,    0,    0,
+  -37,   54,   56,    0,    0,    0,    0,    0,    8,    0,
+    0,  -29,    0,  -31,    0,    0,    0,    0,
 };
 #define YYTABLESIZE 790
 static const short yytable[] = {                         58,
    58,   31,  107,   58,   60,   30,   41,   33,   43,   37,
-   79,   32,  123,  110,   50,   51,   97,   55,   58,   83,
-   57,   58,   82,   96,   56,   61,   72,   78,  100,  102,
-  103,  105,   59,   99,   98,   60,  117,  116,  111,   56,
-  125,  118,  119,  128,   73,  121,  129,   74,   40,   59,
+   79,   32,   50,  123,  110,   51,   82,   97,   58,   83,
+   57,   58,   55,   96,   56,   61,   72,   78,   59,  100,
+  102,  103,  105,   99,   98,   60,  116,  117,  118,  111,
+   56,  125,  119,  128,   73,  121,  129,   74,   40,   59,
    59,   52,   58,   59,  114,   81,   43,   40,   53,   32,
-   54,  120,    0,    0,  124,    0,    0,    0,   59,  122,
-    0,  127,   63,   64,   65,   66,   67,   68,   69,  130,
-    0,    0,    0,    0,   58,    0,    0,  104,    0,  126,
+   54,  120,    0,    0,    0,  124,    0,    0,   59,  122,
+    0,  127,   63,   64,   65,   66,   67,   68,   69,    0,
+  130,    0,    0,  126,   58,    0,    0,  104,    0,    0,
    41,  112,    0,    0,   32,    0,    0,    0,    0,    0,
    23,    0,   59,   23,    6,    7,    8,    9,   10,   11,
    12,   13,   14,   15,   16,   17,    0,    0,   23,    0,
@@ -251,14 +251,14 @@ static const short yytable[] = {                         58,
 };
 static const short yycheck[] = {                         40,
    41,   59,  123,   44,   40,   59,   41,   59,    1,   59,
-   36,    1,  260,   84,  305,    5,   62,  287,   59,   49,
-  277,  278,   48,   61,  287,   40,   40,   61,   74,   75,
-   76,   77,  305,   40,   72,   40,   44,   41,   84,  287,
-  111,   41,   41,   41,   58,   93,  125,   61,  125,   40,
+   42,    1,  305,  260,   84,    5,   48,   62,   59,   49,
+  277,  278,  287,   61,  287,   40,   40,   61,  305,   74,
+   75,   76,   77,   40,   72,   40,   44,   41,   41,   84,
+  287,  111,   41,   41,   58,   93,  125,   61,  125,   40,
    41,    5,   93,   44,   84,   48,   49,   41,    5,   49,
-    5,   99,   -1,   -1,  110,   -1,   -1,   -1,   59,  107,
-   -1,  117,  291,  292,  293,  294,  295,  296,  297,  125,
-   -1,   -1,   -1,   -1,  125,   -1,   -1,   77,   -1,  115,
+    5,   99,   -1,   -1,   -1,  110,   -1,   -1,   59,  107,
+   -1,  116,  291,  292,  293,  294,  295,  296,  297,   -1,
+  125,   -1,   -1,  115,  125,   -1,   -1,   77,   -1,   -1,
   125,   84,   -1,   -1,   84,   -1,   -1,   -1,   -1,   -1,
    41,   -1,   93,   44,  262,  263,  264,  265,  266,  267,
   268,  269,  270,  271,  272,  273,   -1,   -1,   59,   -1,
@@ -694,6 +694,7 @@ case 7:
 	{
 				DBG_YY("stmt 3");
 				DBG_YY("$1 = "<<to_str(yyvsp[-1].declare_));
+				assert(yyvsp[-1].declare_);
 				program().AddStmt(yyvsp[-1].declare_);
 			}
 break;
@@ -701,6 +702,7 @@ case 8:
 	{
 				DBG_YY("func_call_list 1 ");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].func_call_));
+				assert(yyvsp[0].func_call_);
 				program().AddStmt(yyvsp[0].func_call_);
 			}
 break;
@@ -708,6 +710,7 @@ case 9:
 	{
 				DBG_YY("func_call_list 2");
 				DBG_YY("$2 = "<<to_str(yyvsp[0].func_call_));
+				assert(yyvsp[0].func_call_);
 				program().AddStmt(yyvsp[0].func_call_);
 			}
 break;
@@ -730,6 +733,7 @@ case 15:
 	{
 				DBG_YY("stmt_list 3");
 				DBG_YY("$2 = "<<to_str(yyvsp[0].assert_exp_));
+				assert(yyvsp[0].assert_exp_);
 				program().AddStmt(yyvsp[0].assert_exp_);
 			}
 break;
@@ -838,6 +842,8 @@ case 26:
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].expr_));
 				DBG_YY("$2 = "<<yyvsp[-1].token_);
 				DBG_YY("$3 = "<<to_str(yyvsp[0].expr_));
+				assert(yyvsp[-2].expr_);
+				assert(yyvsp[0].expr_);
 				yyval.assert_exp_ = New<CAssertExp>(LINE_NO);
 				yyval.assert_exp_->op_token_ = yyvsp[-1].token_;
 				yyval.assert_exp_->expr1_ = yyvsp[-2].expr_;
@@ -850,6 +856,7 @@ case 27:
 				DBG_YY("assert_exp 2");
 				DBG_YY("$1 = "<<yyvsp[-1].token_);
 				DBG_YY("$2 = "<<to_str(yyvsp[0].expr_));
+				assert(yyvsp[0].expr_);
 				yyval.assert_exp_ = New<CAssertExp>(LINE_NO);
 				yyval.assert_exp_->op_token_ = yyvsp[-1].token_;
 				yyval.assert_exp_->expr1_ = yyvsp[0].expr_;
@@ -861,16 +868,11 @@ case 28:
 				DBG_YY("constant_declare 1");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
 				DBG_YY("$3 = "<<to_str(yyvsp[0].expr_));
-				assert(yyvsp[-2].var_ && yyvsp[0].expr_);
-				yyval.constDecl_ = New<CDeclare>(yyvsp[-2].var_->lineno_);
-				yyval.constDecl_->type_ = 5;
+				assert(yyvsp[-2].var_);
+				assert(yyvsp[0].expr_);
+				yyval.constDecl_ = New<CConstDecl>(yyvsp[-2].var_->lineno_);
 				yyval.constDecl_->var_ = yyvsp[-2].var_;
-				yyval.constDecl_->expr_ = New<CExpr>(yyvsp[-2].var_->lineno_);
-				yyval.constDecl_->expr_->type_ = 2;
-				yyval.constDecl_->expr_->func_call_ = New<CFuncCall>(yyvsp[-2].var_->lineno_);
-				yyval.constDecl_->expr_->func_call_->ft_token_ = yyvsp[-2].var_->tp_token_;
-				yyval.constDecl_->expr_->func_call_->arg_list_ = New<CArgList>(yyvsp[-2].var_->lineno_);
-				yyval.constDecl_->expr_->func_call_->arg_list_->Add(yyvsp[0].expr_);
+				yyval.constDecl_->expr_ = yyvsp[0].expr_;
 				DBG_YY("$$ = "<<to_str(yyval.constDecl_));
 			}
 break;
@@ -880,14 +882,9 @@ case 29:
 				DBG_YY("$1 = "<<to_str(yyvsp[-4].var_));
 				DBG_YY("$4 = "<<to_str(yyvsp[-1].arg_list_));
 				assert(yyvsp[-4].var_);
-				yyval.constDecl_ = New<CDeclare>(yyvsp[-4].var_->lineno_);
-				yyval.constDecl_->type_ = 6;
+				yyval.constDecl_ = New<CConstDecl>(yyvsp[-4].var_->lineno_);
 				yyval.constDecl_->var_ = yyvsp[-4].var_;
-				yyval.constDecl_->expr_ = New<CExpr>(LINE_NO);
-				yyval.constDecl_->expr_->type_ = 2;
-				yyval.constDecl_->expr_->func_call_ =  New<CFuncCall>(LINE_NO);
-				yyval.constDecl_->expr_->func_call_->ft_token_ = yyvsp[-4].var_->tp_token_;
-				yyval.constDecl_->expr_->func_call_->arg_list_ = yyvsp[-1].arg_list_;
+				yyval.constDecl_->AddArg(yyvsp[-1].arg_list_,LINE_NO);
 				DBG_YY("$$ = "<<to_str(yyval.constDecl_));
 			}
 break;
@@ -896,13 +893,8 @@ case 30:
 				DBG_YY("post_declare 1");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].var_));
 				assert(yyvsp[0].var_);
-				yyval.postDecl_ = New<CDeclare>(yyvsp[0].var_->lineno_);
-				yyval.postDecl_->type_ = 2;
+				yyval.postDecl_ = New<CPostDecl>(yyvsp[0].var_->lineno_);
 				yyval.postDecl_->var_ = yyvsp[0].var_;
-				yyval.postDecl_->expr_ = New<CExpr>(yyvsp[0].var_->lineno_);
-				yyval.postDecl_->expr_->type_ = 2;
-				yyval.postDecl_->expr_->func_call_ = New<CFuncCall>(yyvsp[0].var_->lineno_);
-				yyval.postDecl_->expr_->func_call_->ft_token_ = yyvsp[0].var_->tp_token_;
 				DBG_YY("$$ = "<<to_str(yyval.postDecl_));
 			}
 break;
@@ -911,16 +903,11 @@ case 31:
 				DBG_YY("post_declare 2");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
 				DBG_YY("$3 = "<<to_str(yyvsp[0].expr_));
-				assert(yyvsp[-2].var_ && yyvsp[0].expr_);
-				yyval.postDecl_ = New<CDeclare>(yyvsp[-2].var_->lineno_);
-				yyval.postDecl_->type_ = 3;
+				assert(yyvsp[-2].var_);
+				assert(yyvsp[0].expr_);
+				yyval.postDecl_ = New<CPostDecl>(yyvsp[-2].var_->lineno_);
 				yyval.postDecl_->var_ = yyvsp[-2].var_;
-				yyval.postDecl_->expr_ = New<CExpr>(yyvsp[-2].var_->lineno_);
-				yyval.postDecl_->expr_->type_ = 2;
-				yyval.postDecl_->expr_->func_call_ = New<CFuncCall>(yyvsp[-2].var_->lineno_);
-				yyval.postDecl_->expr_->func_call_->ft_token_ = yyvsp[-2].var_->tp_token_;
-				yyval.postDecl_->expr_->func_call_->arg_list_ = New<CArgList>(yyvsp[-2].var_->lineno_);
-				yyval.postDecl_->expr_->func_call_->arg_list_->Add(yyvsp[0].expr_);
+				yyval.postDecl_->expr_ = yyvsp[0].expr_;
 				DBG_YY("$$ = "<<to_str(yyval.postDecl_));
 			}
 break;
@@ -930,14 +917,9 @@ case 32:
 				DBG_YY("$1 = "<<to_str(yyvsp[-3].var_));
 				DBG_YY("$3 = "<<to_str(yyvsp[-1].arg_list_));
 				assert(yyvsp[-3].var_);
-				yyval.postDecl_ = New<CDeclare>(yyvsp[-3].var_->lineno_);
-				yyval.postDecl_->type_ = 4;
+				yyval.postDecl_ = New<CPostDecl>(yyvsp[-3].var_->lineno_);
 				yyval.postDecl_->var_ = yyvsp[-3].var_;
-				yyval.postDecl_->expr_ = New<CExpr>(LINE_NO);
-				yyval.postDecl_->expr_->type_ = 2;
-				yyval.postDecl_->expr_->func_call_ =  New<CFuncCall>(LINE_NO);
-				yyval.postDecl_->expr_->func_call_->ft_token_ = yyvsp[-3].var_->tp_token_;
-				yyval.postDecl_->expr_->func_call_->arg_list_ = yyvsp[-1].arg_list_;
+				yyval.postDecl_->AddArg(yyvsp[-1].arg_list_,LINE_NO);
 				DBG_YY("$$ = "<<to_str(yyval.postDecl_));
 			}
 break;
@@ -946,15 +928,22 @@ case 33:
 				DBG_YY("array_declare 1");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].var_));
 				assert(yyvsp[0].var_);
-				yyval.arrayDecl_ = New<CDeclare>(yyvsp[0].var_->lineno_);
-				yyval.arrayDecl_->type_ = 1;
+				yyval.arrayDecl_ = New<CArrayDecl>(yyvsp[0].var_->lineno_);
 				yyval.arrayDecl_->var_ = yyvsp[0].var_;
 				DBG_YY("$$ = "<<to_str(yyval.arrayDecl_));
 			}
 break;
 case 34:
 	{
-	
+				DBG_YY("array_declare 2");
+				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
+				DBG_YY("$3 = "<<to_str(yyvsp[0].array_val_));
+				assert(yyvsp[-2].var_);
+				assert(yyvsp[0].array_val_);
+				yyval.arrayDecl_ = New<CArrayDecl>(yyvsp[-2].var_->lineno_);
+				yyval.arrayDecl_->var_ = yyvsp[-2].var_;
+				yyval.arrayDecl_->arr_val_ = yyvsp[0].array_val_;
+				DBG_YY("$$ = "<<to_str(yyval.arrayDecl_));
 			}
 break;
 case 35:
@@ -963,11 +952,11 @@ case 35:
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
 				DBG_YY("$2 = "<<yyvsp[-1].token_);
 				DBG_YY("$3 = "<<to_str(yyvsp[0].expr_));
-				assert(yyvsp[-2].var_ && yyvsp[0].expr_);
-				yyval.assertDecl_ = New<CDeclare>(yyvsp[-2].var_->lineno_);
-				yyval.assertDecl_->type_ = 7;
+				assert(yyvsp[-2].var_);
+				assert(yyvsp[0].expr_);
+				yyval.assertDecl_ = New<CAssertDecl>(yyvsp[-2].var_->lineno_);
 				yyval.assertDecl_->var_ = yyvsp[-2].var_;
-				yyval.assertDecl_->op_token_ = yyvsp[-1].token_;
+				yyval.assertDecl_->comp_op_ = yyvsp[-1].token_;
 				yyval.assertDecl_->expr_ = yyvsp[0].expr_;
 				DBG_YY("$$ = "<<to_str(yyval.assertDecl_));
 			}
@@ -978,11 +967,11 @@ case 36:
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
 				DBG_YY("$2 = "<<yyvsp[-1].token_);
 				DBG_YY("$3 = "<<to_str(yyvsp[0].expr_));
-				assert(yyvsp[-2].var_ && yyvsp[0].expr_);
-				yyval.streamDecl_ = New<CDeclare>(yyvsp[-2].var_->lineno_);
-				yyval.streamDecl_->type_ = 8;
+				assert(yyvsp[-2].var_);
+				assert(yyvsp[0].expr_);
+				yyval.streamDecl_ = New<CStreamDecl>(yyvsp[-2].var_->lineno_);
 				yyval.streamDecl_->var_ = yyvsp[-2].var_;
-				yyval.streamDecl_->op_token_ = yyvsp[-1].token_;
+				yyval.streamDecl_->stream_op_ = yyvsp[-1].token_;
 				yyval.streamDecl_->expr_ = yyvsp[0].expr_;
 				DBG_YY("$$ = "<<to_str(yyval.streamDecl_));
 			}
@@ -994,14 +983,10 @@ case 37:
 				DBG_YY("$2 = "<<yyvsp[-1].token_);
 				DBG_YY("$3 = "<<yyvsp[0].token_);
 				assert(yyvsp[-2].var_);
-				yyval.streamDecl_ = New<CDeclare>(yyvsp[-2].var_->lineno_);
-				yyval.streamDecl_->type_ = 9;
+				yyval.streamDecl_ = New<CStreamDecl>(yyvsp[-2].var_->lineno_);
 				yyval.streamDecl_->var_ = yyvsp[-2].var_;
-				yyval.streamDecl_->op_token_ = yyvsp[-1].token_;
-				yyval.streamDecl_->expr_ = New<CExpr>(LINE_NO);
-				yyval.streamDecl_->expr_->type_ = 2;
-				yyval.streamDecl_->expr_->func_call_ =  New<CFuncCall>(LINE_NO);
-				yyval.streamDecl_->expr_->func_call_->ft_token_ = yyvsp[0].token_;
+				yyval.streamDecl_->stream_op_ = yyvsp[-1].token_;
+				yyval.streamDecl_->tp_token_ = yyvsp[0].token_;
 				DBG_YY("$$ = "<<to_str(yyval.streamDecl_));
 			}
 break;
@@ -1010,8 +995,8 @@ case 38:
 				DBG_YY("define_declare 1");
 				DBG_YY("$2 = "<<to_str(yyvsp[0].constDecl_));
 				assert(yyvsp[0].constDecl_);
-				yyval.defDecl_ = yyvsp[0].constDecl_;
-				yyval.defDecl_->is_def_ = 1;
+				yyval.defDecl_ = New<CDefineDecl>(LINE_NO);
+				yyval.defDecl_->const_decl_ = yyvsp[0].constDecl_;
 				DBG_YY("$$ = "<<to_str(yyval.defDecl_));
 			}
 break;
@@ -1020,15 +1005,14 @@ case 39:
 				DBG_YY("define_declare 2");
 				DBG_YY("$2 = "<<to_str(yyvsp[0].postDecl_));
 				assert(yyvsp[0].postDecl_);
-				yyval.defDecl_ = yyvsp[0].postDecl_;
-				yyval.defDecl_->is_def_ = 1;
+				yyval.defDecl_ = New<CDefineDecl>(LINE_NO);
+				yyval.defDecl_->post_decl_ = yyvsp[0].postDecl_;
 				DBG_YY("$$ = "<<to_str(yyval.defDecl_));
 			}
 break;
 case 40:
 	{
 				DBG_YY("arg_list 1");
-				yyval.arg_list_ = 0;
 				DBG_YY("$$ = "<<to_str(yyval.arg_list_));
 			}
 break;
@@ -1056,7 +1040,8 @@ case 43:
 				DBG_YY("arg_list_not_empty 2");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].arg_list_));
 				DBG_YY("$3 = "<<to_str(yyvsp[0].expr_));
-				assert(yyvsp[-2].arg_list_ && yyvsp[0].expr_);
+				assert(yyvsp[-2].arg_list_);
+				assert(yyvsp[0].expr_);
 				yyval.arg_list_ = yyvsp[-2].arg_list_;
 				yyval.arg_list_->Add(yyvsp[0].expr_);
 				DBG_YY("$$ = "<<to_str(yyval.arg_list_));
@@ -1065,22 +1050,21 @@ break;
 case 44:
 	{
 				DBG_YY("array_type_name 1");
-				DBG_YY("$1 = "<<yyvsp[-2].var_);
-				yyval.var_ = New<CType>(LINE_NO);
-				yyval.var_->tp_token_ = yyvsp[-2].var_;
-				yyval.var_->has_sz_ = false;
+				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
+				assert(yyvsp[-2].var_);
+				yyval.var_ = yyvsp[-2].var_;
+				yyval.var_->flag_ = TF_ARRAY;
 				DBG_YY("$$ = "<<to_str(yyval.var_));
 			}
 break;
 case 45:
 	{
 				DBG_YY("array_type_name 2");
-				DBG_YY("$1 = "<<yyvsp[-3].var_);
+				DBG_YY("$1 = "<<to_str(yyvsp[-3].var_));
 				DBG_YY("$3 = "<<to_str(yyvsp[-1].expr_));
+				assert(yyvsp[-3].var_);
 				assert(yyvsp[-1].expr_);
-				yyval.var_ = New<CType>(LINE_NO);
-				yyval.var_->tp_token_ = yyvsp[-3].var_;
-				yyval.var_->has_sz_ = true;
+				yyval.var_->flag_ = TF_ARRAY_SZ;
 				yyval.var_->sz_expr_ = yyvsp[-1].expr_;
 				DBG_YY("$$ = "<<to_str(yyval.var_));
 			}
@@ -1091,15 +1075,8 @@ case 46:
 				DBG_YY("$1 = "<<yyvsp[-1].token_);
 				DBG_YY("$2 = "<<to_str(yyvsp[0].var_));
 				assert(yyvsp[0].var_);
-				yyval.var_ = yyvsp[0].var_;
-				if(yyval.var_->ref_count_ > 0){
-					/*redefinition, but we need the whole declaration*/
-					CSharedPtr<CVariable> t = yyval.var_;
-					yyval.var_ = New<CVariable>(LINE_NO);
-					yyval.var_->shadow_ = t;
-					yyval.var_->varname_ = t->varname_;
-					yyval.var_->host_cmd_ = CUR_CMD;
-				}
+				yyval.var_ = CVariable::CheckRedefine(yyvsp[0].var_,LINE_NO,CUR_CMD);
+				yyval.var_->flag_ = TF_SIMPLE;
 				yyval.var_->tp_token_ = yyvsp[-1].token_;
 				DBG_YY("$$ = "<<to_str(yyval.var_));
 			}
@@ -1110,7 +1087,6 @@ case 47:
 				DBG_YY("$1 = "<<to_str(yyvsp[0].fix_value_));
 				assert(yyvsp[0].fix_value_);
 				yyval.expr_ = New<CExpr>(LINE_NO);
-				yyval.expr_->type_ = 1;
 				yyval.expr_->fix_value_ = yyvsp[0].fix_value_;
 				DBG_YY("$$ = "<<to_str(yyval.expr_));
 			}
@@ -1121,7 +1097,6 @@ case 48:
 				DBG_YY("$1 = "<<to_str(yyvsp[0].func_call_));
 				assert(yyvsp[0].func_call_);
 				yyval.expr_ = New<CExpr>(LINE_NO);
-				yyval.expr_->type_ = 2;
 				yyval.expr_->func_call_ = yyvsp[0].func_call_;
 				DBG_YY("$$ = "<<to_str(yyval.expr_));
 			}
@@ -1132,19 +1107,28 @@ case 49:
 				DBG_YY("$1 = "<<to_str(yyvsp[0].var_));
 				assert(yyvsp[0].var_);
 				yyval.expr_ = New<CExpr>(LINE_NO);
-				yyval.expr_->type_ = 3;
 				yyval.expr_->var_ = yyvsp[0].var_;
 				DBG_YY("$$ = "<<to_str(yyval.expr_));
 			}
 break;
 case 50:
 	{
+				DBG_YY("array_value 1");
+				DBG_YY("$2 = "<<to_str(yyvsp[-1].arg_list_));
+				assert(yyvsp[-1].arg_list_);
+				yyval.array_val_ = New<CArrayValue>(LINE_NO);
+				yyval.array_val_->arglist_ = yyvsp[-1].arg_list_;
+				DBG_YY("$$ = "<<to_str(yyval.array_val_));
 	
 			}
 break;
 case 51:
 	{
-	
+				DBG_YY("array_value 2");
+				DBG_YY("$1 = "<<yyvsp[0].strIdx_);
+				yyval.array_val_ = New<CArrayValue>(LINE_NO);
+				yyval.array_val_->strIdx_ = yyvsp[0].strIdx_;
+				DBG_YY("$$ = "<<to_str(yyval.array_val_));
 			}
 break;
 case 52:

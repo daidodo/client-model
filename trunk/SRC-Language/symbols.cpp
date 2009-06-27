@@ -2,6 +2,174 @@
 #include "dbg.h"
 #include "tokens.h"
 
+//CFixValue
+CFixValue::CFixValue(int ln)
+    : lineno_(ln)
+    , flag_(DT_NONE)
+    , i64_(0)
+{}
+
+std::string CFixValue::ToString() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_
+        <<",flag_="<<flag_;
+    switch(type_){
+        case DT_INT:oss<<",int_="<<int_;break;
+        case DT_LONG:oss<<",long_="<<long_;break;
+        case DT_I64:oss<<",i64_="<<i64_;break;
+        case DT_STR:oss<<",strIdx_="<<strIdx_;break;
+        case DT_PA:oss<<",prog_arg_=$"<<prog_arg_;break;
+        default:oss<<",UNKNOWN FLAG";
+    }
+    oss<<")";
+    return oss.str();
+}
+
+CSharedPtr<CValue> CFixValue::Evaluate(int lineno) const
+{
+    CSharedPtr<CValue> ret = New<CValue>();
+    ret->type_ = type_;
+    switch(type_){
+        case DT_INT:
+            ret->int_ = int_;
+            break;
+        case DT_LONG:
+            ret->long_ = long_;
+            break;
+        case DT_I64:
+            ret->s64_ = i64_;
+            break;
+        case DT_STR:
+            ret->str_ = program().GetQstr(strIdx_);
+            break;
+        case DT_PA:{
+            const char * const pa = PM_ARG(prog_arg_);
+            if(!pa){
+                RUNTIME_ERR(lineno,"expect PROGRAM ARGUMENT '$"<<prog_arg_<<"'");
+                return 0;
+            }
+            ret->str_ = pa;
+            break;}
+        default:
+            GAMMAR_ERR(lineno,"invalid fixed value type="<<type_<<"(internal error)");
+            return 0;
+    }
+    return ret;
+}
+
+//CArrayValue
+CArrayValue::CArrayValue(int ln)
+    : lineno_(ln)
+    , strIdx_(0)
+{}
+
+std::string CArrayValue::ToString() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_
+        <<",strIdx_="<<strIdx_
+        <<",arglist_="<<signa(arglist_)
+        <<")";
+    return oss.str();
+}
+
+std::string CArrayValue::Signature() const
+{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_
+        <<",strIdx_="<<strIdx_
+        <<",arglist_="<<signa(arglist_)
+        <<")";
+    return oss.str();
+}
+
+//CExpr
+CExpr::CExpr(int ln)
+    : lineno_(ln)
+{}
+
+std::string CExpr::ToString() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_
+        <<",fix_value_="<<signa(fix_value_)
+        <<",func_call_="<<signa(func_call_)
+        <<",var_="<<signa(var_)
+        <<")";
+    return oss.str();
+}
+
+std::string CExpr::Signature() const{
+    std::ostringstream oss;
+    oss<<"(LINE:"<<lineno_<<")";
+    return oss.str();
+}
+
+bool CExpr::CheckDefined(int lineno) const
+{
+    if(func_call_)
+        return func_call_->CheckDefined();
+    if(var_ && var_->Is1stDefine()){
+        GAMMAR_ERR(lineno,"undefined symbol '"<<CRuntime::RealVarname(var_->varname_)
+            <<"'");
+        CUR_VTB.erase(var_->varname_);
+        return false;
+    }
+    return true;
+}
+
+bool CExpr::Validate() const
+{
+    if(func_call_ && !func_call_->Validate())
+        return false;
+    return true;
+}
+
+int CExpr::RetType() const
+{
+    switch(type_){
+        case 1:
+            assert(fix_value_);
+            return fix_value_->RetType();
+        case 2:
+            assert(func_call_);
+            return func_call_->RetType();
+        case 3:
+            assert(var_);
+            return var_->RetType();
+    }
+    return -1;
+}
+
+CSharedPtr<CValue> CExpr::Evaluate() const
+{
+    switch(type_){
+        case 1:
+            assert(fix_value_);
+            return fix_value_->Evaluate(lineno_);
+        case 2:
+            assert(func_call_);
+            return func_call_->Evaluate();
+        case 3:
+            assert(var_);
+            return var_->Evaluate(lineno_);
+    }
+    return 0;
+}
+
+std::string CExpr::Depend() const
+{
+    if(func_call_)
+        return func_call_->Depend();
+    else if(var_ && runtime().IsPost(var_->varname_))
+        return var_->varname_;
+    return "";
+}
+
+
+
+
+
+
+
 //CVariable
 CSharedPtr<CVariable> CVariable::CheckRedefine(CSharedPtr<CVariable> var,int lineno,CSharedPtr<CCmd> cur_cmd)
 {
@@ -84,65 +252,6 @@ CSharedPtr<CValue> CVariable::Initial(int lineno) const
     return FunEvaluate(tp_token_,args,lineno);
 }
 
-//CFixValue
-CFixValue::CFixValue(int ln)
-    : lineno_(ln)
-    , type_(DT_NONE)
-    , i64_(0)
-{}
-
-std::string CFixValue::ToString() const{
-    std::ostringstream oss;
-    oss<<"(type_="<<type_;
-    switch(type_){
-        case DT_INT:oss<<",int_="<<int_;break;
-        case DT_LONG:oss<<",long_="<<long_;break;
-        case DT_I64:oss<<",i64_="<<i64_;break;
-        case DT_STR:oss<<",strIdx_="<<strIdx_;break;
-        case DT_PA:oss<<",prog_arg_=@"<<prog_arg_;break;
-    }
-    oss<<")";
-    return oss.str();
-}
-
-std::string CFixValue::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")";
-    return oss.str();
-}
-
-CSharedPtr<CValue> CFixValue::Evaluate(int lineno) const
-{
-    CSharedPtr<CValue> ret = New<CValue>();
-    ret->type_ = type_;
-    switch(type_){
-        case DT_INT:
-            ret->int_ = int_;
-            break;
-        case DT_LONG:
-            ret->long_ = long_;
-            break;
-        case DT_I64:
-            ret->s64_ = i64_;
-            break;
-        case DT_STR:
-            ret->str_ = program().GetQstr(strIdx_);
-            break;
-        case DT_PA:{
-            const char * const pa = PM_ARG(prog_arg_);
-            if(!pa){
-                RUNTIME_ERR(lineno,"expect PROGRAM ARGUMENT '$"<<prog_arg_<<"'");
-                return 0;
-            }
-            ret->str_ = pa;
-            break;}
-        default:
-            GAMMAR_ERR(lineno,"invalid fixed value type="<<type_<<"(internal error)");
-            return 0;
-    }
-    return ret;
-}
-
 //CType
 CType::CType(int ln)
     : lineno_(ln)
@@ -190,89 +299,6 @@ CSharedPtr<CValue> CType::Evaluate() const
 {
     std::vector<CSharedPtr<CValue> > args;
     return FunEvaluate(tp_token_,args,lineno_);
-}
-
-//CExpr
-CExpr::CExpr(int ln)
-    : lineno_(ln)
-    , type_(0)
-{}
-
-std::string CExpr::ToString() const{
-    std::ostringstream oss;
-    oss<<"(type_="<<type_
-        <<",fix_value_="<<signa(fix_value_)
-        <<",func_call_="<<signa(func_call_)
-        <<",var_="<<signa(var_)
-        <<")";
-    return oss.str();
-}
-
-std::string CExpr::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")";
-    return oss.str();
-}
-
-bool CExpr::CheckDefined(int lineno) const
-{
-    if(func_call_)
-        return func_call_->CheckDefined();
-    if(var_ && var_->Is1stDefine()){
-        GAMMAR_ERR(lineno,"undefined symbol '"<<CRuntime::RealVarname(var_->varname_)
-            <<"'");
-        CUR_VTB.erase(var_->varname_);
-        return false;
-    }
-    return true;
-}
-
-bool CExpr::Validate() const
-{
-    if(func_call_ && !func_call_->Validate())
-        return false;
-    return true;
-}
-
-int CExpr::RetType() const
-{
-    switch(type_){
-        case 1:
-            assert(fix_value_);
-            return fix_value_->RetType();
-        case 2:
-            assert(func_call_);
-            return func_call_->RetType();
-        case 3:
-            assert(var_);
-            return var_->RetType();
-    }
-    return -1;
-}
-
-CSharedPtr<CValue> CExpr::Evaluate() const
-{
-    switch(type_){
-        case 1:
-            assert(fix_value_);
-            return fix_value_->Evaluate(lineno_);
-        case 2:
-            assert(func_call_);
-            return func_call_->Evaluate();
-        case 3:
-            assert(var_);
-            return var_->Evaluate(lineno_);
-    }
-    return 0;
-}
-
-std::string CExpr::Depend() const
-{
-    if(func_call_)
-        return func_call_->Depend();
-    else if(var_ && runtime().IsPost(var_->varname_))
-        return var_->varname_;
-    return "";
 }
 
 //CArgList
