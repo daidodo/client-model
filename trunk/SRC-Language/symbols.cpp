@@ -13,13 +13,13 @@ std::string CFixValue::ToString() const{
     std::ostringstream oss;
     oss<<"(LINE="<<lineno_
         <<",flag_="<<flag_;
-    switch(type_){
+    switch(flag_){
         case DT_INT:oss<<",int_="<<int_;break;
         case DT_LONG:oss<<",long_="<<long_;break;
         case DT_I64:oss<<",i64_="<<i64_;break;
         case DT_STR:oss<<",strIdx_="<<strIdx_;break;
         case DT_PA:oss<<",prog_arg_=$"<<prog_arg_;break;
-        default:oss<<",UNKNOWN FLAG";
+        default:{INTERNAL_ERR("invalid fixed value flag = "<<flag_);}
     }
     oss<<")";
     return oss.str();
@@ -75,10 +75,7 @@ std::string CArrayValue::ToString() const{
 std::string CArrayValue::Signature() const
 {
     std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<",strIdx_="<<strIdx_
-        <<",arglist_="<<signa(arglist_)
-        <<")";
+    oss<<"(LINE="<<lineno_<<")";
     return oss.str();
 }
 
@@ -99,7 +96,7 @@ std::string CExpr::ToString() const{
 
 std::string CExpr::Signature() const{
     std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")";
+    oss<<"(LINE="<<lineno_<<")";
     return oss.str();
 }
 
@@ -164,12 +161,6 @@ std::string CExpr::Depend() const
     return "";
 }
 
-
-
-
-
-
-
 //CVariable
 CSharedPtr<CVariable> CVariable::CheckRedefine(CSharedPtr<CVariable> var,int lineno,CSharedPtr<CCmd> cur_cmd)
 {
@@ -186,26 +177,28 @@ CSharedPtr<CVariable> CVariable::CheckRedefine(CSharedPtr<CVariable> var,int lin
 
 CVariable::CVariable(int ln)
     : lineno_(ln)
+    , flag_(TF_SIMPLE)
+    , tp_token_(DT_NONE)
     , ref_count_(0)
-    //, begin_(-1)
 {}
 
 std::string CVariable::ToString() const{
     std::ostringstream oss;
-    oss<<"(varname_="<<varname_
+    oss<<"(LINE="<<lineno_
+        <<",varname_="<<varname_
+        <<",flag_="<<flag_
         <<",tp_token_="<<tp_token_
-        <<",datatype_="<<signa(datatype_)
         <<",ref_count_="<<ref_count_
+        <<",sz_expr_="<<signa(sz_expr_)
         <<",host_cmd_="<<signa(host_cmd_)
         <<",shadow_="<<to_str(shadow_)
-        <<",begin_="<<begin_
         <<")";
     return oss.str();
 }
 
 std::string CVariable::Signature() const{
     std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")"<<varname_;
+    oss<<"(LINE="<<lineno_<<","<<varname_<<")";
     return oss.str();
 }
 
@@ -252,67 +245,33 @@ CSharedPtr<CValue> CVariable::Initial(int lineno) const
     return FunEvaluate(tp_token_,args,lineno);
 }
 
-//CType
-CType::CType(int ln)
-    : lineno_(ln)
-    , type_(0)
-    , tp_token_(0)
-{}
-
-std::string CType::ToString() const{
-    std::ostringstream oss;
-    oss<<"(type_="<<type_
-        <<",tp_token_="<<tp_token_
-        <<",sz_expr_="<<signa(sz_expr_)
-        <<")";
-    return oss.str();
-}
-
-std::string CType::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")";
-    return oss.str();
-}
-
-bool CType::Validate() const
-{
-    if(sz_expr_ && !DT_IsInteger(sz_expr_->RetType())){
-        GAMMAR_ERR(lineno_,"invalid type for array size");
-        return false;
-    }
-    return true;
-}
-
-bool CType::CheckDefined(int lineno) const
-{
-    if(sz_expr_)
-        return sz_expr_->CheckDefined(lineno);
-    return true;
-}
-
-int CType::RetType() const
-{
-    return FunRetType(tp_token_);
-}
-
-CSharedPtr<CValue> CType::Evaluate() const
-{
-    std::vector<CSharedPtr<CValue> > args;
-    return FunEvaluate(tp_token_,args,lineno_);
-}
-
 //CArgList
 CArgList::CArgList(int ln)
     : lineno_(ln)
 {}
 
+std::string CArgList::ToString() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_;
+    for(size_t i = 0;i < args_.size();++i)
+        oss<<",args_["<<i<<"]="<<signa(args_[i]);
+    oss<<")";
+    return oss.str();
+}
+
+std::string CArgList::Signature() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_<<")";
+    return oss.str();
+}
+
+void CArgList::AddArg(CSharedPtr<CExpr> arg){
+    args_.push_back(arg);
+}
+
 CSharedPtr<CExpr> CArgList::operator [](size_t i) const{
     assert(i < args_.size());
     return args_[i];
-}
-
-void CArgList::Add(CSharedPtr<CExpr> arg){
-    args_.push_back(arg);
 }
 
 void CArgList::Erase(CSharedPtr<CExpr> arg)
@@ -321,24 +280,6 @@ void CArgList::Erase(CSharedPtr<CExpr> arg)
         if(args_[i]->var_ == arg->var_)
             args_.erase(args_.begin() + i);         //性能损失的地方
     }
-}
-
-std::string CArgList::ToString() const{
-    std::ostringstream oss;
-    oss<<"(";
-    if(!args_.empty()){
-        oss<<"args_[0]="<<signa(args_[0]);
-        for(size_t i = 1;i < args_.size();++i)
-            oss<<",args_["<<i<<"]="<<signa(args_[i]);
-    }
-    oss<<")";
-    return oss.str();
-}
-
-std::string CArgList::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")";
-    return oss.str();
 }
 
 bool CArgList::CheckDefined(int lineno) const
@@ -392,126 +333,180 @@ std::string CArgList::Depend() const
     return ret;
 }
 
-//CAssertExp
-CAssertExp::CAssertExp(int ln)
+//CConstDecl
+CConstDecl::CConstDecl(int ln)
     : lineno_(ln)
-    , op_token_(0)
 {}
 
-std::string CAssertExp::ToString() const{
+std::string CConstDecl::ToString() const{
     std::ostringstream oss;
-    oss<<"(op_token_="<<op_token_
-        <<",expr1_="<<signa(expr1_)
-        <<",expr2_="<<signa(expr2_)
+    oss<<"(LINE="<<lineno_
+        <<",var_="<<signa(var_)
+        <<",expr_="<<signa(expr_)
         <<")";
     return oss.str();
 }
 
-std::string CAssertExp::Signature() const{
+std::string CConstDecl::Signature() const{
     std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")";
+    oss<<"(LINE="<<lineno_
+        <<","<<signa(var_)
+        <<")";
     return oss.str();
 }
 
-bool CAssertExp::Validate() const
-{
-    assert(expr1_);
-    int type1 = expr1_->RetType();
-    int type2 = DT_VOID;
-    if(IsBinaryPredict(op_token_)){
-        if(!expr2_){
-            GAMMAR_ERR(lineno_,"prediction format error(binary)");
-            return false;
-        }
-        type2 = expr2_->RetType();
-    }else if(IsUnaryPredict(op_token_)){
-        if(expr2_){
-            GAMMAR_ERR(lineno_,"prediction format error(unary)");
-            return false;
-        }
-    }else{
-        GAMMAR_ERR(lineno_,"unknown prediction operator");
-        return false;
+void CConstDecl::SetArgList(CSharedPtr<CArgList> arg_list,int lineno){
+    assert(var_);
+    assert(!expr_);
+    if(arg_list){
+        expr_ = New<CExpr>(lineno);
+        expr_->func_call_ =  New<CFuncCall>(lineno);
+        expr_->func_call_->ft_token_ = var_->tp_token_;
+        expr_->func_call_->arg_list_ = arg_list;
     }
-    size_t i = OpArgTypeCheck(op_token_,type1,type2);
-    if(i){
-        GAMMAR_ERR(lineno_,"invalid argument "<<i<<" for prediction");
-        return false;
-    }
-    if(!expr1_->Validate())
-        return false;
-    if(expr2_ && !expr2_->Validate())
-        return false;
-    return true;
 }
 
-bool CAssertExp::CheckDefined() const
-{
-    bool ret = true;
-    if(expr1_)
-        ret = expr1_->CheckDefined(lineno_);
-    if(expr2_)
-        ret = (expr2_->CheckDefined(lineno_) && ret);
-    return ret;
+//CPostDecl
+CPostDecl::CPostDecl(int ln)
+    : lineno_(ln)
+{}
+
+std::string CPostDecl::ToString() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_
+        <<",var_="<<signa(var_)
+        <<",expr_="<<signa(expr_)
+        <<")";
+    return oss.str();
 }
 
-bool CAssertExp::Assert() const
-{
-    assert(expr1_);
-    CSharedPtr<CValue> v1 = expr1_->Evaluate();
-    if(!v1){
-        RUNTIME_ERR(lineno_,"cannot evaluate left hand expression");
-        return false;
+std::string CPostDecl::Signature() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_
+        <<","<<signa(var_)
+        <<")";
+    return oss.str();
+}
+
+void CPostDecl::SetArgList(CSharedPtr<CArgList> arg_list,int lineno){
+    if(arg_list){
+        expr_ = New<CExpr>(lineno);
+        expr_->func_call_ =  New<CFuncCall>(lineno);
+        expr_->func_call_->ft_token_ = var_->tp_token_;
+        expr_->func_call_->arg_list_ = arg_list;
     }
-    CSharedPtr<CValue> v2;
-    if(expr2_){
-        v2 = expr2_->Evaluate();
-        if(!v2){
-            RUNTIME_ERR(lineno_,"cannot evaluate right hand expression");
-            return false;
-        }
-    }
-    switch(FunAssert(op_token_,v1,v2)){
-        case RET_TRUE:return true;
-        case RET_SIGN_MISMATCH:{
-            RUNTIME_ERR(lineno_,"prediction between signed and unsigned integers");
-            break;}
-        case RET_TYPE_ERROR:{
-            RUNTIME_ERR(lineno_,"invalid argument type for prediction");
-            break;}
-        case RET_OP_ERROR:{
-            RUNTIME_ERR(lineno_,"invalid operator type for prediction");
-            break;}
-    }
-    return false;
+}
+
+//CArrayDecl
+CArrayDecl::CArrayDecl(int ln)
+    : lineno_(ln)
+{}
+
+std::string CArrayDecl::ToString() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_
+        <<",var_="<<signa(var_)
+        <<",arr_val_="<<signa(arr_val_)
+        <<")";
+    return oss.str();
+}
+
+std::string CArrayDecl::Signature() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_
+        <<","<<signa(var_)
+        <<")";
+    return oss.str();
+}
+
+//CAssertDecl
+CAssertDecl::CAssertDecl(int ln)
+    : lineno_(ln)
+{}
+
+std::string CAssertDecl::ToString() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_
+        <<",var_="<<signa(var_)
+        <<",comp_op_="<<comp_op_
+        <<",expr_="<<signa(expr_)
+        <<")";
+    return oss.str();
+}
+
+std::string CAssertDecl::Signature() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_
+        <<","<<signa(var_)
+        <<")";
+    return oss.str();
+}
+
+//CStreamDecl
+CStreamDecl::CStreamDecl(int ln)
+    : lineno_(ln)
+{}
+
+std::string CStreamDecl::ToString() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_
+        <<",var_="<<signa(var_)
+        <<",stream_op_="<<stream_op_
+        <<",expr_="<<signa(expr_)
+        <<")";
+    return oss.str();
+}
+
+std::string CStreamDecl::Signature() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_
+        <<","<<signa(var_)
+        <<")";
+    return oss.str();
+}
+
+//CDefineDecl
+CDefineDecl::CDefineDecl(int ln)
+    : lineno_(ln)
+{}
+
+std::string CDefineDecl::ToString() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_
+        <<",const_decl_="<<signa(const_decl_)
+        <<",post_decl_="<<signa(post_decl_)
+        <<")";
+    return oss.str();
+}
+
+std::string CDefineDecl::Signature() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_<<")";
+    return oss.str();
 }
 
 //CDeclare
 CDeclare::CDeclare(int ln)
     : lineno_(ln)
-    , type_(0)
-    , is_def_(0)
-    , op_token_(0)
-    , eva_priority_(0)
-    , offset_(-1)
-    , post_byte_order_(true)
 {}
 
 std::string CDeclare::ToString() const{
     std::ostringstream oss;
-    oss<<"(type_="<<type_
-        <<",is_def_="<<is_def_
-        <<",var_="<<signa(var_)
-        <<",op_token_="<<op_token_
-        <<",expr_="<<signa(expr_)
-        <<",eva_priority_="<<eva_priority_
-        <<",val_="<<signa(val_)
+    oss<<"(LINE="<<lineno_
+        <<",constDecl_="<<signa(constDecl_)
+        <<",postDecl_="<<signa(postDecl_)
+        <<",arrayDecl_="<<signa(arrayDecl_)
+        <<",assertDecl_="<<signa(assertDecl_)
+        <<",streamDecl_="<<signa(streamDecl_)
+        <<",defDecl_="<<signa(defDecl_)
         <<")";
     return oss.str();
 }
 
 std::string CDeclare::Signature() const{
-    return signa(var_);
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_<<")";
+    return oss.str();
 }
 
 bool CDeclare::IsGlobalOnly() const
@@ -605,7 +600,8 @@ CFuncCall::CFuncCall(int ln)
 
 std::string CFuncCall::ToString() const{
     std::ostringstream oss;
-    oss<<"(ft_token_="<<ft_token_
+    oss<<"(LINE="<<lineno_
+        <<",ft_token_="<<ft_token_
         <<",arg_list_="<<signa(arg_list_)
         <<")";
     return oss.str();
@@ -613,7 +609,9 @@ std::string CFuncCall::ToString() const{
 
 std::string CFuncCall::Signature() const{
     std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")"<<ft_token_;
+    oss<<"(LINE="<<lineno_
+        <<","<<ft_token_
+        <<")";
     return oss.str();
 }
 
@@ -696,6 +694,101 @@ void CFuncCall::Invoke(CSharedPtr<CCmd> cmd) const
     FunInvoke(ft_token_,arg_list_,lineno_,cmd);
 }
 
+//CAssertExp
+CAssertExp::CAssertExp(int ln)
+    : lineno_(ln)
+    , op_token_(0)
+{}
+
+std::string CAssertExp::ToString() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_
+        <<",op_token_="<<op_token_
+        <<",expr1_="<<signa(expr1_)
+        <<",expr2_="<<signa(expr2_)
+        <<")";
+    return oss.str();
+}
+
+std::string CAssertExp::Signature() const{
+    std::ostringstream oss;
+    oss<<"(LINE="<<lineno_<<","<<op_token_<<")";
+    return oss.str();
+}
+
+bool CAssertExp::Validate() const
+{
+    assert(expr1_);
+    int type1 = expr1_->RetType();
+    int type2 = DT_VOID;
+    if(IsBinaryPredict(op_token_)){
+        if(!expr2_){
+            GAMMAR_ERR(lineno_,"prediction format error(binary)");
+            return false;
+        }
+        type2 = expr2_->RetType();
+    }else if(IsUnaryPredict(op_token_)){
+        if(expr2_){
+            GAMMAR_ERR(lineno_,"prediction format error(unary)");
+            return false;
+        }
+    }else{
+        GAMMAR_ERR(lineno_,"unknown prediction operator");
+        return false;
+    }
+    size_t i = OpArgTypeCheck(op_token_,type1,type2);
+    if(i){
+        GAMMAR_ERR(lineno_,"invalid argument "<<i<<" for prediction");
+        return false;
+    }
+    if(!expr1_->Validate())
+        return false;
+    if(expr2_ && !expr2_->Validate())
+        return false;
+    return true;
+}
+
+bool CAssertExp::CheckDefined() const
+{
+    bool ret = true;
+    if(expr1_)
+        ret = expr1_->CheckDefined(lineno_);
+    if(expr2_)
+        ret = (expr2_->CheckDefined(lineno_) && ret);
+    return ret;
+}
+
+bool CAssertExp::Assert() const
+{
+    assert(expr1_);
+    CSharedPtr<CValue> v1 = expr1_->Evaluate();
+    if(!v1){
+        RUNTIME_ERR(lineno_,"cannot evaluate left hand expression");
+        return false;
+    }
+    CSharedPtr<CValue> v2;
+    if(expr2_){
+        v2 = expr2_->Evaluate();
+        if(!v2){
+            RUNTIME_ERR(lineno_,"cannot evaluate right hand expression");
+            return false;
+        }
+    }
+    switch(FunAssert(op_token_,v1,v2)){
+        case RET_TRUE:return true;
+        case RET_SIGN_MISMATCH:{
+            RUNTIME_ERR(lineno_,"prediction between signed and unsigned integers");
+            break;}
+        case RET_TYPE_ERROR:{
+            RUNTIME_ERR(lineno_,"invalid argument type for prediction");
+            break;}
+        case RET_OP_ERROR:{
+            RUNTIME_ERR(lineno_,"invalid operator type for prediction");
+            break;}
+    }
+    return false;
+}
+
 //CStmt
 CStmt::CStmt(int ln)
     : lineno_(ln)
@@ -704,10 +797,10 @@ CStmt::CStmt(int ln)
 
 std::string CStmt::ToString() const{
     std::ostringstream oss;
-    oss<<"(type_="<<type_
-        <<",assert_="<<signa(assert_)
+    oss<<"(LINE="<<lineno_
         <<",declare_="<<signa(declare_)
         <<",func_call_="<<signa(func_call_)
+        <<",assert_="<<signa(assert_)
         <<",cmd_="<<signa(cmd_)
         <<")";
     return oss.str();
@@ -715,7 +808,7 @@ std::string CStmt::ToString() const{
 
 std::string CStmt::Signature() const{
     std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")";
+    oss<<"(LINE="<<lineno_<<")";
     return oss.str();
 }
 
@@ -748,7 +841,7 @@ std::string CCmd::ToString() const{
 
 std::string CCmd::Signature() const{
     std::ostringstream oss;
-    oss<<"(LINE:"<<lineno_<<")"<<cmd_name_;
+    oss<<"(LINE="<<lineno_<<")"<<cmd_name_;
     return oss.str();
 }
 

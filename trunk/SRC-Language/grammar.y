@@ -239,7 +239,7 @@ constant_declare : sim_type_name IEQ expr
 				assert($1);
 				$$ = New<CConstDecl>($1->lineno_);
 				$$->var_ = $1;
-				$$->AddArg($4,LINE_NO);
+				$$->SetArgList($4,LINE_NO);
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
@@ -273,7 +273,7 @@ post_declare : sim_type_name
 				assert($1);
 				$$ = New<CPostDecl>($1->lineno_);
 				$$->var_ = $1;
-				$$->AddArg($3,LINE_NO);
+				$$->SetArgList($3,LINE_NO);
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
@@ -388,7 +388,7 @@ arg_list_not_empty : expr
 				DBG_YY("$1 = "<<to_str($1));
 				assert($1);
 				$$ = New<CArgList>(LINE_NO);
-				$$->Add($1);
+				$$->AddArg($1);
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	| arg_list_not_empty ',' expr
@@ -399,7 +399,7 @@ arg_list_not_empty : expr
 				assert($1);
 				assert($3);
 				$$ = $1;
-				$$->Add($3);
+				$$->AddArg($3);
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
