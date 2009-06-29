@@ -33,8 +33,7 @@ CSharedPtr<CVariable> CProgram::GetVar(const std::string & varname){
 
 CSharedPtr<CVariable> CProgram::NewVar(const std::string & varname,CSharedPtr<CVariable> old)
 {
-    __VarTable & vt = (isGlobal() ? var_table : cur_cmd->var_table);
-    CSharedPtr<CVariable> & ret = vt[varname];
+    CSharedPtr<CVariable> & ret = CurVarTable()[varname];
     assert(!ret);
     ret = New<CVariable>(LINE_NO);
     ret->varname_ = varname;

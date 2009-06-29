@@ -17,11 +17,11 @@ struct CProgram
 //functions:
     CProgram();
     CSharedPtr<CCmd> & CurCmd(){return cur_cmd;}
-    bool isGlobal() const{return !cur_cmd;}
     size_t AddQstr(const std::string & qstr);
+    const std::string & GetQstr(size_t i) const;
+
     CSharedPtr<CVariable> GetVar(const std::string & varname);
     CSharedPtr<CVariable> NewVar(const std::string & varname,CSharedPtr<CVariable> old = 0);
-    const std::string & GetQstr(size_t i) const;
     __VarTable & CurVarTable(){return (cur_cmd ? cur_cmd->var_table : var_table);}
     void AddStmt(CSharedPtr<CAssertExp> stmt);
     void AddStmt(CSharedPtr<CDeclare> stmt);
@@ -29,8 +29,9 @@ struct CProgram
     void CmdBegin(CSharedPtr<CVariable> var);
     void CmdEnd();
 private:
-    CSharedPtr<CCmd> findCmd(const std::string & name) const;
+    bool isGlobal() const{return !cur_cmd;}
     std::vector<CSharedPtr<CStmt> > & curStmtList(){return (cur_cmd ? cur_cmd->stmt_list_ : global_stmts);}
+    CSharedPtr<CCmd> findCmd(const std::string & name) const;
     static CSharedPtr<CVariable> findVar(const __VarTable & vt,const std::string & name);
 };
 
