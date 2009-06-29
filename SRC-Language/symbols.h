@@ -82,7 +82,7 @@ struct CVariable
 {
     const int lineno_;
     int flag_;      //TF_XXX
-    int tp_token_;
+    int tp_token_;  //DT_XXX
     CSharedPtr<CExpr> sz_expr_; //size expression for array type
     std::string varname_;
     //internel
@@ -108,12 +108,12 @@ struct CVariable
 struct CArgList
 {
     const int lineno_;
-    std::list<CSharedPtr<CExpr> > args_;
+    std::vector<CSharedPtr<CExpr> > args_;
     //fuctions:
     explicit CArgList(int ln);
     std::string ToString() const;
     std::string Signature() const;
-    void Add(CSharedPtr<CExpr> arg);
+    void AddArg(CSharedPtr<CExpr> arg);
 
     CSharedPtr<CExpr> operator [](size_t i) const;
     void Erase(CSharedPtr<CExpr> arg);
@@ -133,16 +133,7 @@ struct CConstDecl
     explicit CConstDecl(int ln);
     std::string ToString() const;
     std::string Signature() const;
-    void AddArg(CSharedPtr<CArgList> arg_list,int lineno){
-        assert(var_);
-        assert(!expr_);
-        if(arg_list){
-            expr_ = New<CExpr>(lineno);
-            expr_->func_call_ =  New<CFuncCall>(lineno);
-            expr_->func_call_->ft_token_ = var_->tp_token_;
-            expr_->func_call_->arg_list_ = arg_list;
-        }
-    }
+    void SetArgList(CSharedPtr<CArgList> arg_list,int lineno);
 };
 
 struct CPostDecl
@@ -154,14 +145,7 @@ struct CPostDecl
     explicit CPostDecl(int ln);
     std::string ToString() const;
     std::string Signature() const;
-    void AddArg(CSharedPtr<CArgList> arg_list,int lineno){
-        if(arg_list){
-            expr_ = New<CExpr>(lineno);
-            expr_->func_call_ =  New<CFuncCall>(lineno);
-            expr_->func_call_->ft_token_ = var_->tp_token_;
-            expr_->func_call_->arg_list_ = arg_list;
-        }
-    }
+    void SetArgList(CSharedPtr<CArgList> arg_list,int lineno);
 };
 
 struct CArrayDecl
@@ -310,6 +294,11 @@ struct CStmt
     std::string ToString() const;
     std::string Signature() const;
 };
+
+
+
+
+
 
 typedef std::map<std::string,CSharedPtr<CVariable> >   __VarTable;
 
