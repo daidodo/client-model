@@ -278,7 +278,6 @@ struct CAssertExp
 
     bool Validate() const;
     bool CheckDefined() const;
-    //return: 0-assert false; 1-assert true; -1-runtime error
     bool Assert() const;
 };
 
@@ -295,12 +294,20 @@ struct CStmt
     std::string Signature() const;
 };
 
+class CVarTable
+{
+    typedef std::map<std::string,CSharedPtr<CVariable> > __VarTable;
+    __VarTable vt_;
+public:
+    CSharedPtr<CVariable> FindVar(const std::string & varname) const;
+    CSharedPtr<CVariable> AddVar(const std::string & varname,int lineno);
+    void DelVar(const std::string & varname){vt_.erase(varname);}
+};
 
 
 
 
 
-typedef std::map<std::string,CSharedPtr<CVariable> >   __VarTable;
 
 struct CArrayRange
 {

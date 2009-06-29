@@ -812,6 +812,23 @@ std::string CStmt::Signature() const{
     return oss.str();
 }
 
+//CVarTable
+CSharedPtr<CVariable> CVarTable::FindVar(const std::string & varname) const
+{
+    typedef __VarTable::const_iterator __Iter;
+    __Iter wh = vt_.find(name);
+    return (wh == vt_.end() ? 0 : wh->second);
+}
+
+CSharedPtr<CVariable> CVarTable::AddVar(const std::string & varname,int lineno)
+{
+    CSharedPtr<CVariable> & ret = vt_[varname];
+    assert(!ret);
+    ret = New<CVariable>(lineno);
+    ret->varname_ = varname;
+    return ret;
+}
+
 //CArrayRange
 CArrayRange::CArrayRange(int ln)
     : lineno_(ln)
