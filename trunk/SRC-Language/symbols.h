@@ -208,6 +208,8 @@ struct CDeclare
     explicit CDeclare(int ln);
     std::string ToString() const;
     std::string Signature() const;
+    bool Validate() const;
+    bool checkDefined();
 
 
     int type_;
@@ -222,7 +224,6 @@ struct CDeclare
     ssize_t offset_;
     bool post_byte_order_;  //延后求值的变量记录字节序：true:NBO ; false:HBO
     bool IsGlobalOnly() const;
-    bool Validate() const;
     bool IsArray() const{return type_ == 1;}
     bool IsSimplePost() const{return type_ == 2 || type_ == 3 || type_ == 4;}
     bool IsFixed() const{return type_ == 5 || type_ == 6;}
@@ -235,7 +236,6 @@ struct CDeclare
     bool IsLocalOnly() const{return IsArray() || IsAssert() || IsStream();}
     bool IsRecvOnly() const{return IsAssert() || IsStreamIn();}
     bool IsSendOnly() const{return IsFixed() || IsStreamOut();}
-    bool CheckDefined(CSharedPtr<CCmd> cur_cmd);
     std::string Depend() const{return (expr_ ? expr_->Depend() : "");}
     void FixRaw();
     CSharedPtr<CValue> Evaluate();
@@ -327,7 +327,7 @@ struct CCmd
     int end_lineno_;
     int send_flag_;     //SF_XXX
     std::string cmd_name_;
-    __VarTable var_table;
+    CVarTable var_table_;
     std::vector<CSharedPtr<CStmt> > stmt_list_;
     //functions:
     explicit CCmd(int ln);

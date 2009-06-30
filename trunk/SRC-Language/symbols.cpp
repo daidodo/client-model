@@ -107,7 +107,7 @@ bool CExpr::CheckDefined(int lineno) const
     if(var_ && var_->Is1stDefine()){
         GAMMAR_ERR(lineno,"undefined symbol '"<<CRuntime::RealVarname(var_->varname_)
             <<"'");
-        CUR_VTB.erase(var_->varname_);
+        CUR_VTB.DelVar(var_->varname_);
         return false;
     }
     return true;
@@ -509,13 +509,13 @@ std::string CDeclare::Signature() const{
     return oss.str();
 }
 
-bool CDeclare::IsGlobalOnly() const
-{
-    return IsGlobalOnlyToken(var_->tp_token_);
-}
-
 bool CDeclare::Validate() const
 {
+    if(!checkDefined())
+        return false;
+    
+
+
     if(IsArray()){
         if(!var_->datatype_->Validate())
             return false;
@@ -544,17 +544,7 @@ bool CDeclare::Validate() const
     return true;
 }
 
-bool CDeclare::IsStreamIn() const
-{
-    return (IsStream() && IsStreamInToken(op_token_));
-}
-
-bool CDeclare::IsStreamOut() const
-{
-    return (IsStream() && IsStreamOutToken(op_token_));
-}
-
-bool CDeclare::CheckDefined(CSharedPtr<CCmd> cur_cmd)
+bool CDeclare::checkDefined()
 {
     bool ret = true;
     CSharedPtr<CVariable> & shadow = var_->shadow_;
@@ -571,6 +561,22 @@ bool CDeclare::CheckDefined(CSharedPtr<CCmd> cur_cmd)
     if(expr_)
         ret = (expr_->CheckDefined(lineno_) && ret);
     return ret;
+}
+
+
+bool CDeclare::IsGlobalOnly() const
+{
+    return IsGlobalOnlyToken(var_->tp_token_);
+}
+
+bool CDeclare::IsStreamIn() const
+{
+    return (IsStream() && IsStreamInToken(op_token_));
+}
+
+bool CDeclare::IsStreamOut() const
+{
+    return (IsStream() && IsStreamOutToken(op_token_));
 }
 
 void CDeclare::FixRaw()
