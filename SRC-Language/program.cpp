@@ -8,8 +8,8 @@ CProgram::CProgram()
 
 size_t CProgram::AddQstr(const std::string & qstr)
 {
-    size_t ret = qstr_table.size();
-    qstr_table.push_back(qstr);
+    size_t ret = qstr_table_.size();
+    qstr_table_.push_back(qstr);
     return ret;
 }
 
@@ -22,98 +22,64 @@ CSharedPtr<CVariable> CProgram::findVar(const __VarTable & vt,const std::string 
 CSharedPtr<CVariable> CProgram::GetVar(const std::string & varname){
     CSharedPtr<CVariable> ret = 0;
     if(cur_cmd)
-        ret = findVar(cur_cmd->var_table,varname);
+        ret = cur_cmd->var_table_.FindVar(varname);
     if(!ret)
-        ret = findVar(var_table,varname);
-    if(!ret)
-        return NewVar(varname);
-    ++ret->ref_count_;
-    return ret;
-}
-
-CSharedPtr<CVariable> CProgram::NewVar(const std::string & varname,CSharedPtr<CVariable> old)
-{
-    CSharedPtr<CVariable> & ret = CurVarTable()[varname];
-    assert(!ret);
-    ret = New<CVariable>(LINE_NO);
-    ret->varname_ = varname;
-    ret->host_cmd_ = cur_cmd;
-    if(old)
-        --old->ref_count_;
-    return ret;
-}
-
-const std::string & CProgram::GetQstr(size_t i) const{
-    assert(i < qstr_table.size());
-    return qstr_table[i];
-}
-
-void CProgram::AddStmt(CSharedPtr<CAssertExp> stmt)
-{
-    DBG_YY("add CAssertExp="<<to_str(stmt));
-    DBG_YY("cur_cmd="<<signa(cur_cmd));
-    assert(stmt);
-    bool good = stmt->Validate();
-    good = (stmt->CheckDefined() && good);
-    if(isGlobal()){
-        GAMMAR_ERR(stmt->lineno_,"invalid assertion in global scope");
-        good = false;
+        ret = var_table_.findVar(varname);
+    if(ret){
+        ++ret->ref_count_;
+    }else{
+        ret = CurVarTable().AddVar(varname,LINE_NO);
+        ret->host_cmd_ = cur_cmd;
     }
-    if(!good)
-        return;
-    CSharedPtr<CStmt> st = New<CStmt>(stmt->lineno_);
-    st->type_ = 1;
-    st->assert_ = stmt;
-    curStmtList().push_back(st);
-    DBG_YY("succ add CAssertExp="<<signa(stmt));
+    return ret;
 }
 
-void CProgram::AddStmt(CSharedPtr<CDeclare> stmt)
+void CProgram::AddStmt(CSharedPtr<CDeclare> decl)
 {
-    DBG_YY("add CDeclare="<<to_str(stmt));
+    DBG_YY("CProgram::AddStmt : CDeclare="<<to_str(decl));
     DBG_YY("cur_cmd="<<signa(cur_cmd));
-    assert(stmt);
-    bool good = stmt->Validate();
-    good = (stmt->CheckDefined(cur_cmd) && good);
-    std::string name = stmt->var_->varname_;
+    assert(decl);
+    bool good = decl->Validate();
+    good = (decl->CheckDefined(cur_cmd) && good);
+    std::string name = decl->var_->varname_;
     if(isGlobal()){ //global scope
-        if(stmt->IsLocalOnly()){
-            GAMMAR_ERR(stmt->lineno_,"invalid declaration in global scope");
+        if(decl->IsLocalOnly()){
+            GAMMAR_ERR(decl->lineno_,"invalid declaration in global scope");
             good = false;
-        }else if(stmt->IsConnection())
+        }else if(decl->IsConnection())
             conn_defined_ = true;
     }else{          //local scope
-        if(stmt->IsGlobalOnly()){
-            GAMMAR_ERR(stmt->lineno_,"invalid declaration in local scope");
+        if(decl->IsGlobalOnly()){
+            GAMMAR_ERR(decl->lineno_,"invalid declaration in local scope");
             good = false;
         }else if(cur_cmd->IsSend()){
-            if(stmt->IsRecvOnly()){
-                GAMMAR_ERR(stmt->lineno_,"invalid declaration in SEND command");
+            if(decl->IsRecvOnly()){
+                GAMMAR_ERR(decl->lineno_,"invalid declaration in SEND command");
                 good = false;
             }
         }else if(cur_cmd->IsRecv()){
-            if(stmt->IsSendOnly()){
-                GAMMAR_ERR(stmt->lineno_,"invalid declaration in RECV command");
+            if(decl->IsSendOnly()){
+                GAMMAR_ERR(decl->lineno_,"invalid declaration in RECV command");
                 good = false;
             }
-            if(stmt->IsSimplePost() && stmt->var_->IsRaw()){
-                GAMMAR_ERR(stmt->lineno_,"recv RAW string is endless");
+            if(decl->IsSimplePost() && decl->var_->IsRaw()){
+                GAMMAR_ERR(decl->lineno_,"recv RAW string is endless");
                 good = false;
             }
         }else{
-            GAMMAR_ERR(stmt->lineno_,"invalid declaration before SEND/RECV flag");
+            GAMMAR_ERR(decl->lineno_,"invalid declaration before SEND/RECV flag");
             good = false;
         }
     }
     if(!good)
         return;
-    DBG_YY("add var_="<<to_str(stmt->var_));
-    CurVarTable()[name] = stmt->var_;
-    CSharedPtr<CStmt> st = New<CStmt>(stmt->lineno_);
+    DBG_YY("add var_="<<to_str(decl->var_));
+    CurVarTable()[name] = decl->var_;
+    CSharedPtr<CStmt> st = New<CStmt>(decl->lineno_);
     st->type_ = 2;
-    st->declare_ = stmt;
+    st->declare_ = decl;
     curStmtList().push_back(st);
-    DBG_YY("succ add CDeclare="<<signa(stmt));
+    DBG_YY("succ add CDeclare="<<signa(decl));
 }
 
 void CProgram::AddStmt(CSharedPtr<CFuncCall> stmt)
@@ -172,6 +138,26 @@ void CProgram::AddStmt(CSharedPtr<CFuncCall> stmt)
     DBG_YY("succ add CFuncCall="<<signa(stmt));
 }
 
+void CProgram::AddStmt(CSharedPtr<CAssertExp> stmt)
+{
+    DBG_YY("add CAssertExp="<<to_str(stmt));
+    DBG_YY("cur_cmd="<<signa(cur_cmd));
+    assert(stmt);
+    bool good = stmt->Validate();
+    good = (stmt->CheckDefined() && good);
+    if(isGlobal()){
+        GAMMAR_ERR(stmt->lineno_,"invalid assertion in global scope");
+        good = false;
+    }
+    if(!good)
+        return;
+    CSharedPtr<CStmt> st = New<CStmt>(stmt->lineno_);
+    st->type_ = 1;
+    st->assert_ = stmt;
+    curStmtList().push_back(st);
+    DBG_YY("succ add CAssertExp="<<signa(stmt));
+}
+
 void CProgram::CmdBegin(CSharedPtr<CVariable> var)
 {
     DBG_YY("new command CVariable="<<to_str(var));
@@ -194,7 +180,7 @@ void CProgram::CmdBegin(CSharedPtr<CVariable> var)
                 <<var_lineno);
             good = false;
         }else{
-            var_table.erase(name);
+            var_table_.erase(name);
             var = 0;
         }
     }

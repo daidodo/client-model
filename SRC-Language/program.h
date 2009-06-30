@@ -3,29 +3,29 @@
 
 #include "symbols.h"
 
-struct CProgram
+class CProgram
 {
     //vars and stmts
-    std::vector<std::string> qstr_table;
-    __VarTable var_table;
+    std::vector<std::string> qstr_table_;
+    CVarTable var_table_;
     std::vector<CSharedPtr<CStmt> > global_stmts;
     //commands
     CSharedPtr<CCmd> cur_cmd;
     std::map<std::string,CSharedPtr<CCmd> > cmd_table;
     //connection
     bool conn_defined_; //是否已有默认连接
+public:
 //functions:
     CProgram();
     CSharedPtr<CCmd> & CurCmd(){return cur_cmd;}
     size_t AddQstr(const std::string & qstr);
-    const std::string & GetQstr(size_t i) const;
-
+    const std::string & GetQstr(size_t i) const{return qstr_table_[i];}
+    CVarTable & CurVarTable(){return (cur_cmd ? cur_cmd->var_table_ : var_table_);}
     CSharedPtr<CVariable> GetVar(const std::string & varname);
-    CSharedPtr<CVariable> NewVar(const std::string & varname,CSharedPtr<CVariable> old = 0);
-    __VarTable & CurVarTable(){return (cur_cmd ? cur_cmd->var_table : var_table);}
-    void AddStmt(CSharedPtr<CAssertExp> stmt);
-    void AddStmt(CSharedPtr<CDeclare> stmt);
+
+    void AddStmt(CSharedPtr<CDeclare> decl);
     void AddStmt(CSharedPtr<CFuncCall> stmt);
+    void AddStmt(CSharedPtr<CAssertExp> stmt);
     void CmdBegin(CSharedPtr<CVariable> var);
     void CmdEnd();
 private:
