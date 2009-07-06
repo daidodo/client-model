@@ -100,13 +100,12 @@ std::string CExpr::Signature() const{
     return oss.str();
 }
 
-bool CExpr::CheckDefined(int lineno) const
+bool CExpr::CheckDefined() const
 {
     if(func_call_)
         return func_call_->CheckDefined();
-    if(var_ && var_->Is1stDefine()){
-        GAMMAR_ERR(lineno,"undefined symbol '"<<CRuntime::RealVarname(var_->varname_)
-            <<"'");
+    else if(var_ && var_->Is1stDefine()){
+        GAMMAR_ERR(var_->lineno_,"undefined symbol '"<<var_->varname_<<"'");
         CUR_VTB.DelVar(var_->varname_);
         return false;
     }
@@ -282,11 +281,16 @@ void CArgList::Erase(CSharedPtr<CExpr> arg)
     }
 }
 
-bool CArgList::CheckDefined(int lineno) const
+bool CArgList::CheckDefined(bool isFun) const
 {
     bool ret = true;
-    for(size_t i = 0;i < args_.size();++i)
-        ret = (args_[i]->CheckDefined(lineno) && ret);
+    if(!args_.empty()){
+        size_t i = 0;
+        if(isFun){
+        }
+        for(;i < args_.size();++i)
+            ret = (args_[i]->CheckDefined() && ret);
+    }
     return ret;
 }
 
@@ -511,7 +515,7 @@ std::string CDeclare::Signature() const{
 
 bool CDeclare::Validate() const
 {
-    if(!checkDefined())
+    if(!CheckDefined())
         return false;
     
 
@@ -544,19 +548,24 @@ bool CDeclare::Validate() const
     return true;
 }
 
-bool CDeclare::checkDefined()
+bool CDeclare::CheckDefined()
 {
     bool ret = true;
-    CSharedPtr<CVariable> & shadow = var_->shadow_;
-    if(shadow){
-        --shadow->ref_count_;
-        if(cur_cmd == shadow->host_cmd_){
-            GAMMAR_ERR(lineno_,"redefine symbol '"<<CRuntime::RealVarname(var_->varname_)
-                <<"', see LINE "<<shadow->lineno_);
-            var_ = shadow;
+    CSharedPtr<CVariable> & shadow_ = var_->shadow_;
+    if(shadow_){
+        --shadow_->ref_count_;
+        if(var_->host_cmd_ == shadow_->host_cmd_){
+            GAMMAR_ERR(lineno_,"redefine symbol '"<<var_->varname_
+                <<"', see LINE "<<shadow_->lineno_);
+            var_ = shadow_;
             ret = false;
-        }else
-            shadow = 0;
+        }else{
+            if(!CUR_VTB.AddVar(var_)){
+                INTERNAL_ERR("add variable "<<signa(var_)<<" to cmd "
+                    <<signa(var_->host_cmd_)<<" error");
+            }
+            shadow_ = 0;
+        }
     }
     if(expr_)
         ret = (expr_->CheckDefined(lineno_) && ret);
@@ -623,8 +632,8 @@ std::string CFuncCall::Signature() const{
 
 bool CFuncCall::CheckDefined() const
 {
-    if(!IsFunToken(ft_token_) && arg_list_)
-        return arg_list_->CheckDefined(lineno_);
+    if(arg_list_)
+        return arg_list_->CheckDefined(IsFunToken(ft_token_));
     return true;
 }
 
@@ -835,6 +844,17 @@ CSharedPtr<CVariable> CVarTable::AddVar(const std::string & varname,int lineno)
     return ret;
 }
 
+bool CVarTable::AddVar(CSharedPtr<CVariable> var)
+{
+    assert(var);
+    CSharedPtr<CVariable> & cur = vt_[var->varname_];
+    if(!cur){
+        cur = var;
+        return true;
+    }
+    return false;
+}
+
 //CArrayRange
 CArrayRange::CArrayRange(int ln)
     : lineno_(ln)
@@ -864,7 +884,7 @@ std::string CCmd::ToString() const{
 
 std::string CCmd::Signature() const{
     std::ostringstream oss;
-    oss<<"(LINE="<<lineno_<<")"<<cmd_name_;
+    oss<<"(LINE="<<lineno_<<","<<cmd_name_<<")";
     return oss.str();
 }
 
