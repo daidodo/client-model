@@ -71,7 +71,7 @@ struct CExpr
     std::string Signature() const;
 
     bool IsVar() const{return type_ == 3;}
-    bool CheckDefined(int lineno) const;
+    bool CheckDefined() const;
     bool Validate() const;
     int RetType() const;
     CSharedPtr<CValue> Evaluate() const;
@@ -94,9 +94,9 @@ struct CVariable
     explicit CVariable(int ln);
     std::string ToString() const;
     std::string Signature() const;
+    bool Is1stDefine() const{return ref_count_ == 0;}
 
     bool IsGlobal() const{return !host_cmd_;}
-    bool Is1stDefine() const{return ref_count_ == 0;}
     bool IsArray() const{return datatype_ != 0;}
     bool IsConnection() const;
     bool IsRaw() const;
@@ -117,7 +117,7 @@ struct CArgList
 
     CSharedPtr<CExpr> operator [](size_t i) const;
     void Erase(CSharedPtr<CExpr> arg);
-    bool CheckDefined(int lineno) const;
+    bool CheckDefined(bool isFun) const;
     bool Validate() const;
     void RetType(std::vector<int> & ret) const;
     bool Evaluate(std::vector<CSharedPtr<CValue> > & ret,int lineno) const;
@@ -209,7 +209,7 @@ struct CDeclare
     std::string ToString() const;
     std::string Signature() const;
     bool Validate() const;
-    bool checkDefined();
+    bool CheckDefined();
 
 
     int type_;
@@ -301,6 +301,7 @@ class CVarTable
 public:
     CSharedPtr<CVariable> FindVar(const std::string & varname) const;
     CSharedPtr<CVariable> AddVar(const std::string & varname,int lineno);
+    bool AddVar(CSharedPtr<CVariable> var);
     void DelVar(const std::string & varname){vt_.erase(varname);}
 };
 

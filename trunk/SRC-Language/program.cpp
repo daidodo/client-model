@@ -40,7 +40,7 @@ void CProgram::AddStmt(CSharedPtr<CDeclare> decl)
     DBG_YY("cur_cmd="<<signa(cur_cmd));
     assert(decl);
     bool good = decl->Validate();
-    good = (decl->CheckDefined(cur_cmd) && good);
+    good = (decl->CheckDefined() && good);
     std::string name = decl->var_->varname_;
     if(isGlobal()){ //global scope
         if(decl->IsLocalOnly()){
@@ -74,7 +74,7 @@ void CProgram::AddStmt(CSharedPtr<CDeclare> decl)
     if(!good)
         return;
     DBG_YY("add var_="<<to_str(decl->var_));
-    CurVarTable()[name] = decl->var_;
+    //CurVarTable()[name] = decl->var_;
     CSharedPtr<CStmt> st = New<CStmt>(decl->lineno_);
     st->type_ = 2;
     st->declare_ = decl;
