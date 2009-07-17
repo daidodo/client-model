@@ -54,19 +54,11 @@ inline bool DT_IsRaw(int type){return type == DT_RAW;}
 
 inline bool DT_IsProgArg(int type){return type == DT_PA;}
 
+//extends:
 inline bool DT_IsIntOrPA(int type){return DT_IsInteger(type) || DT_IsProgArg(type);}
 
 inline bool DT_IsStrOrPA(int type){return DT_IsString(type) || DT_IsProgArg(type);}
 
-// type flags
-const int TF_SIMPLE = 0;    //simple type
-const int TF_ARRAY = 1;     //array type without size
-const int TF_ARRAY_SZ = 2;  //array type with size
-
-// cmd send/recv flags
-const int SF_UNKNOWN = 0;   //unknown
-const int SF_SEND = 1;      //send
-const int SF_RECV = 2;      //recv
 
 // return values for assertions
 const int RET_FALSE = 0;             //assert false

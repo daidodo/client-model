@@ -44,21 +44,21 @@ i64_const	({int_const_val}{i64_suf}?)
 <RSTR_S>\\\"		{CUR_TOK += yytext;}
 <QSTR_S,CHAR_S>\\'	{CUR_TOK.push_back('\'');}
 <QSTR_S,CHAR_S>\\[0-7]{1,3}	{
-					int ch = str2num_base8<int>(yytext + 1,yyleng - 1);
+				int ch = str2num_base8<int>(yytext + 1,yyleng - 1);
+				if(ch > 255){
+					CUR_TOK = yytext;
+					SYNTAX_ERR("char value overflow");
+				}
+				CUR_TOK.push_back(ch);
+			}
+<QSTR_S,CHAR_S>\\x[a-fA-F0-9]{1,2}	{
+					int ch = str2num_base16<int>(yytext + 2,yyleng - 2);
 					if(ch > 255){
 						CUR_TOK = yytext;
 						SYNTAX_ERR("char value overflow");
 					}
 					CUR_TOK.push_back(ch);
 				}
-<QSTR_S,CHAR_S>\\x[a-fA-F0-9]{1,2}	{
-						int ch = str2num_base16<int>(yytext + 2,yyleng - 2);
-						if(ch > 255){
-							CUR_TOK = yytext;
-							SYNTAX_ERR("char value overflow");
-						}
-						CUR_TOK.push_back(ch);
-					}
 
 <QSTR_S,CHAR_S>\\{nl}	{++LINE_NO;}
 <RSTR_S>\\{nl}		{

@@ -994,24 +994,24 @@ YY_RULE_SETUP
 case 12:
 YY_RULE_SETUP
 {
-					int ch = str2num_base8<int>(yytext + 1,yyleng - 1);
+				int ch = str2num_base8<int>(yytext + 1,yyleng - 1);
+				if(ch > 255){
+					CUR_TOK = yytext;
+					SYNTAX_ERR("char value overflow");
+				}
+				CUR_TOK.push_back(ch);
+			}
+	YY_BREAK
+case 13:
+YY_RULE_SETUP
+{
+					int ch = str2num_base16<int>(yytext + 2,yyleng - 2);
 					if(ch > 255){
 						CUR_TOK = yytext;
 						SYNTAX_ERR("char value overflow");
 					}
 					CUR_TOK.push_back(ch);
 				}
-	YY_BREAK
-case 13:
-YY_RULE_SETUP
-{
-						int ch = str2num_base16<int>(yytext + 2,yyleng - 2);
-						if(ch > 255){
-							CUR_TOK = yytext;
-							SYNTAX_ERR("char value overflow");
-						}
-						CUR_TOK.push_back(ch);
-					}
 	YY_BREAK
 case 14:
 /* rule 14 can match eol */

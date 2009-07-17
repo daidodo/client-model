@@ -11,26 +11,20 @@
 #include "SRC_language.h"
 
 struct CFixValue;
-struct CArrayValue;
-struct CExpr;
 struct CVariable;
+struct CExpr;
 struct CArgList;
-struct CConstDecl;
-struct CPostDecl;
-struct CArrayDecl;
-struct CAssertDecl;
-struct CStreamDecl;
-struct CDefineDecl;
+struct CArrayType;
+struct CAssertExp;
 struct CDeclare;
 struct CFuncCall;
-struct CAssertExp;
 struct CStmt;
 struct CCmd;
 
 struct CFixValue
 {
     const int lineno_;
-    int flag_;      //DT_XXX
+    int type_;
     union{
         int int_;
         long long_;
@@ -41,27 +35,39 @@ struct CFixValue
     //functions:
     explicit CFixValue(int ln);
     std::string ToString() const;
-    std::string Signature() const{return ToString();}
+    std::string Signature() const;
     int RetType() const{return type_;}
-
     CSharedPtr<CValue> Evaluate(int lineno) const;
 };
 
-struct CArrayValue
+struct CVariable
 {
     const int lineno_;
-    size_t strIdx_;
-    CSharedPtr<CArgList> arglist_;
+    std::string varname_;
+    int tp_token_;
+    int ref_count_;     //记录是否有重复定义
+    ssize_t begin_;     //for BEGIN(var), END(var)
+    CSharedPtr<CArrayType> array_type_;
+    CSharedPtr<CCmd> host_cmd_;
+    CSharedPtr<CVariable> shadow_;  //当出现重复定义时，记录前一个定义
     //functions:
-    explicit CArrayValue(int ln);
+    explicit CVariable(int ln);
     std::string ToString() const;
     std::string Signature() const;
-
+    bool IsGlobal() const{return !host_cmd_;}
+    bool Is1stDefine() const{return ref_count_ == 0;}
+    bool IsArray() const{return array_type_ != 0;}
+    bool IsConnection() const;
+    bool IsRaw() const;
+    int RetType() const;
+    CSharedPtr<CValue> Evaluate(int lineno) const;
+    CSharedPtr<CValue> Initial(int lineno) const;
 };
 
 struct CExpr
 {
     const int lineno_;
+    int type_;
     CSharedPtr<CFixValue> fix_value_;
     CSharedPtr<CFuncCall> func_call_;
     CSharedPtr<CVariable> var_;
@@ -69,40 +75,12 @@ struct CExpr
     explicit CExpr(int ln);
     std::string ToString() const;
     std::string Signature() const;
-
     bool IsVar() const{return type_ == 3;}
-    bool CheckDefined() const;
+    bool CheckDefined(int lineno) const;
     bool Validate() const;
     int RetType() const;
     CSharedPtr<CValue> Evaluate() const;
     std::string Depend() const;
-};
-
-struct CVariable
-{
-    const int lineno_;
-    int flag_;      //TF_XXX
-    int tp_token_;  //DT_XXX
-    CSharedPtr<CExpr> sz_expr_; //size expression for array type
-    std::string varname_;
-    //internel
-    int ref_count_;         //记录是否有重复定义
-    CSharedPtr<CCmd> host_cmd_;
-    CSharedPtr<CVariable> shadow_;  //当出现重复定义时，记录前一个定义
-    //functions:
-    static CSharedPtr<CVariable> CheckRedefine(CSharedPtr<CVariable> var,int lineno,CSharedPtr<CCmd> cur_cmd);
-    explicit CVariable(int ln);
-    std::string ToString() const;
-    std::string Signature() const;
-    bool Is1stDefine() const{return ref_count_ == 0;}
-
-    bool IsGlobal() const{return !host_cmd_;}
-    bool IsArray() const{return datatype_ != 0;}
-    bool IsConnection() const;
-    bool IsRaw() const;
-    int RetType() const;
-    CSharedPtr<CValue> Evaluate(int lineno) const;
-    CSharedPtr<CValue> Initial(int lineno) const;
 };
 
 struct CArgList
@@ -111,107 +89,56 @@ struct CArgList
     std::vector<CSharedPtr<CExpr> > args_;
     //fuctions:
     explicit CArgList(int ln);
+    CSharedPtr<CExpr> operator [](size_t i) const;
+    void Add(CSharedPtr<CExpr> arg);
+    void Erase(CSharedPtr<CExpr> arg);
     std::string ToString() const;
     std::string Signature() const;
-    void AddArg(CSharedPtr<CExpr> arg);
-
-    CSharedPtr<CExpr> operator [](size_t i) const;
-    void Erase(CSharedPtr<CExpr> arg);
-    bool CheckDefined(bool isFun) const;
+    bool CheckDefined(int lineno) const;
     bool Validate() const;
     void RetType(std::vector<int> & ret) const;
     bool Evaluate(std::vector<CSharedPtr<CValue> > & ret,int lineno) const;
     std::string Depend() const;
 };
 
-struct CConstDecl
+struct CArrayType
 {
     const int lineno_;
-    CSharedPtr<CVariable> var_;
-    CSharedPtr<CExpr> expr_;
-    //functions:
-    explicit CConstDecl(int ln);
-    std::string ToString() const;
-    std::string Signature() const;
-    void SetArgList(CSharedPtr<CArgList> arg_list,int lineno);
-};
-
-struct CPostDecl
-{
-    const int lineno_;
-    CSharedPtr<CVariable> var_;
-    CSharedPtr<CExpr> expr_;
-    //functions:
-    explicit CPostDecl(int ln);
-    std::string ToString() const;
-    std::string Signature() const;
-    void SetArgList(CSharedPtr<CArgList> arg_list,int lineno);
-};
-
-struct CArrayDecl
-{
-    const int lineno_;
-    CSharedPtr<CVariable> var_;
-    CSharedPtr<CArrayValue> arr_val_;
-    //functions:
-    explicit CArrayDecl(int ln);
-    std::string ToString() const;
-    std::string Signature() const;
-};
-
-struct CAssertDecl
-{
-    const int lineno_;
-    CSharedPtr<CVariable> var_;
-    int comp_op_;
-    CSharedPtr<CExpr> expr_;
-    //functions:
-    explicit CAssertDecl(int ln);
-    std::string ToString() const;
-    std::string Signature() const;
-};
-
-struct CStreamDecl
-{
-    const int lineno_;
-    CSharedPtr<CVariable> var_;
-    int stream_op_;
-    CSharedPtr<CExpr> expr_;
     int tp_token_;
+    bool has_sz_;               //是否明确指定了数组大小
+    int sz_;                    //数组大小
+    CSharedPtr<CExpr> sz_expr_; //数组大小的计算式
     //functions:
-    explicit CStreamDecl(int ln);
+    explicit CArrayType(int ln);
     std::string ToString() const;
     std::string Signature() const;
+    bool Validate() const;
+    bool CheckDefined(int lineno) const;
+    int RetType() const;
+    bool HasSize() const{return has_sz_;}
+    int Size() const{return sz_;}
+    CSharedPtr<CValue> Evaluate() const;
 };
 
-struct CDefineDecl
+struct CAssertExp
 {
     const int lineno_;
-    CSharedPtr<CConstDecl> const_decl_;
-    CSharedPtr<CPostDecl> post_decl_;
+    int op_token_;
+    CSharedPtr<CExpr> expr1_;
+    CSharedPtr<CExpr> expr2_;
     //functions:
-    explicit CDefineDecl(int ln);
+    explicit CAssertExp(int ln);
     std::string ToString() const;
     std::string Signature() const;
+    bool Validate() const;
+    bool CheckDefined() const;
+    //return: 0-assert false; 1-assert true; -1-runtime error
+    bool Assert() const;
 };
 
 struct CDeclare
 {
     const int lineno_;
-    CSharedPtr<CConstDecl>  constDecl_;
-    CSharedPtr<CPostDecl>   postDecl_;
-    CSharedPtr<CArrayDecl>  arrayDecl_;
-    CSharedPtr<CAssertDecl> assertDecl_;
-    CSharedPtr<CStreamDecl> streamDecl_;
-    CSharedPtr<CDefineDecl> defDecl_;
-    //functions:
-    explicit CDeclare(int ln);
-    std::string ToString() const;
-    std::string Signature() const;
-    bool Validate() const;
-    bool CheckDefined();
-
-
     int type_;
     int is_def_;
     int op_token_;
@@ -223,7 +150,12 @@ struct CDeclare
     double eva_priority_;
     ssize_t offset_;
     bool post_byte_order_;  //延后求值的变量记录字节序：true:NBO ; false:HBO
+    //functions:
+    explicit CDeclare(int ln);
+    std::string ToString() const;
+    std::string Signature() const;
     bool IsGlobalOnly() const;
+    bool Validate() const;
     bool IsArray() const{return type_ == 1;}
     bool IsSimplePost() const{return type_ == 2 || type_ == 3 || type_ == 4;}
     bool IsFixed() const{return type_ == 5 || type_ == 6;}
@@ -236,6 +168,7 @@ struct CDeclare
     bool IsLocalOnly() const{return IsArray() || IsAssert() || IsStream();}
     bool IsRecvOnly() const{return IsAssert() || IsStreamIn();}
     bool IsSendOnly() const{return IsFixed() || IsStreamOut();}
+    bool CheckDefined(CSharedPtr<CCmd> cur_cmd);
     std::string Depend() const{return (expr_ ? expr_->Depend() : "");}
     void FixRaw();
     CSharedPtr<CValue> Evaluate();
@@ -250,7 +183,6 @@ struct CFuncCall
     explicit CFuncCall(int ln);
     std::string ToString() const;
     std::string Signature() const;
-
     bool CheckDefined() const;
     bool Validate() const;
     bool IsConnection() const;
@@ -260,55 +192,26 @@ struct CFuncCall
     bool HasSideEffect() const{return (RetType() == 0 || IsConnection());}
     std::string Depend() const;
     int IsArrayBeginEnd() const;    //0:false ; 1:begin ; 2:end
-    int IsSendRecv() const;         //0:false ; 1:send ; 2:recv
+    int IsSendRecv() const; //0:false ; 1:send ; 2:recv
     CSharedPtr<CValue> Evaluate() const;
     void Invoke(CSharedPtr<CCmd> cmd) const;
-};
-
-struct CAssertExp
-{
-    const int lineno_;
-    int op_token_;
-    CSharedPtr<CExpr> expr1_;
-    CSharedPtr<CExpr> expr2_;
-    //functions:
-    explicit CAssertExp(int ln);
-    std::string ToString() const;
-    std::string Signature() const;
-
-    bool Validate() const;
-    bool CheckDefined() const;
-    bool Assert() const;
 };
 
 struct CStmt
 {
     const int lineno_;
-    CSharedPtr<CDeclare>    declare_;
-    CSharedPtr<CFuncCall>   func_call_;
-    CSharedPtr<CAssertExp>  assert_;
-    CSharedPtr<CCmd>        cmd_;
+    int type_;
+    CSharedPtr<CAssertExp> assert_;
+    CSharedPtr<CDeclare> declare_;
+    CSharedPtr<CFuncCall> func_call_;
+    CSharedPtr<CCmd> cmd_;
     //functions:
     explicit CStmt(int ln);
     std::string ToString() const;
     std::string Signature() const;
 };
 
-class CVarTable
-{
-    typedef std::map<std::string,CSharedPtr<CVariable> > __VarTable;
-    __VarTable vt_;
-public:
-    CSharedPtr<CVariable> FindVar(const std::string & varname) const;
-    CSharedPtr<CVariable> AddVar(const std::string & varname,int lineno);
-    bool AddVar(CSharedPtr<CVariable> var);
-    void DelVar(const std::string & varname){vt_.erase(varname);}
-};
-
-
-
-
-
+typedef std::map<std::string,CSharedPtr<CVariable> >   __VarTable;
 
 struct CArrayRange
 {
@@ -325,17 +228,12 @@ struct CCmd
 {
     static const U32 MAX_ARRAY_SIZE = 65535;
     const int lineno_;
-    int end_lineno_;
-    int send_flag_;     //SF_XXX
+    int endlineno_;
+    int send_flag_; //0:unknown ; 1:send ; 2:recv
     std::string cmd_name_;
-    CVarTable var_table_;
-    std::vector<CSharedPtr<CStmt> > stmt_list_;
-    //functions:
-    explicit CCmd(int ln);
-    std::string ToString() const;
-    std::string Signature() const;
-
+    __VarTable var_table;
     size_t cur_stmt_index_;
+    std::vector<CSharedPtr<CStmt> > stmt_list_;
     std::vector<CSharedPtr<CValue> > conn_list_;
     CSharedPtr<CArgList> begin_list_;   //BEGIN的变量名堆栈
     size_t array_index_;                //当前数组索引，只在编译的时候使用
@@ -346,7 +244,10 @@ struct CCmd
     //recv cmd
     std::vector<char> recv_data_;
     CInByteStream inds_;
-
+    //functions:
+    explicit CCmd(int ln);
+    std::string ToString() const;
+    std::string Signature() const;
     bool IsSend() const{return send_flag_ == 1;}
     bool IsRecv() const{return send_flag_ == 2;}
     void SetByteOrder(bool net_bo);

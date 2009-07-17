@@ -5,23 +5,27 @@
 //CFixValue
 CFixValue::CFixValue(int ln)
     : lineno_(ln)
-    , flag_(DT_NONE)
+    , type_(DT_NONE)
     , i64_(0)
 {}
 
 std::string CFixValue::ToString() const{
     std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<",flag_="<<flag_;
-    switch(flag_){
+    oss<<"(type_="<<type_;
+    switch(type_){
         case DT_INT:oss<<",int_="<<int_;break;
         case DT_LONG:oss<<",long_="<<long_;break;
         case DT_I64:oss<<",i64_="<<i64_;break;
         case DT_STR:oss<<",strIdx_="<<strIdx_;break;
-        case DT_PA:oss<<",prog_arg_=$"<<prog_arg_;break;
-        default:{INTERNAL_ERR("invalid fixed value flag = "<<flag_);}
+        case DT_PA:oss<<",prog_arg_=@"<<prog_arg_;break;
     }
     oss<<")";
+    return oss.str();
+}
+
+std::string CFixValue::Signature() const{
+    std::ostringstream oss;
+    oss<<"(LINE:"<<lineno_<<")";
     return oss.str();
 }
 
@@ -57,36 +61,85 @@ CSharedPtr<CValue> CFixValue::Evaluate(int lineno) const
     return ret;
 }
 
-//CArrayValue
-CArrayValue::CArrayValue(int ln)
+//CVariable
+CVariable::CVariable(int ln)
     : lineno_(ln)
-    , strIdx_(0)
+    , tp_token_(0)
+    , ref_count_(0)
+    , begin_(-1)
 {}
 
-std::string CArrayValue::ToString() const{
+std::string CVariable::ToString() const{
     std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<",strIdx_="<<strIdx_
-        <<",arglist_="<<signa(arglist_)
+    oss<<"(varname_="<<varname_
+        <<",tp_token_="<<tp_token_
+        <<",array_type_="<<signa(array_type_)
+        <<",ref_count_="<<ref_count_
+        <<",host_cmd_="<<signa(host_cmd_)
+        <<",shadow_="<<to_str(shadow_)
+        <<",begin_="<<begin_
         <<")";
     return oss.str();
 }
 
-std::string CArrayValue::Signature() const
-{
+std::string CVariable::Signature() const{
     std::ostringstream oss;
-    oss<<"(LINE="<<lineno_<<")";
+    oss<<"(LINE:"<<lineno_<<")"<<varname_;
     return oss.str();
+}
+
+bool CVariable::IsConnection() const
+{
+    return IsConnectionToken(tp_token_);
+}
+
+bool CVariable::IsRaw() const
+{
+    return IsRawToken(tp_token_);
+}
+
+int CVariable::RetType() const
+{
+    return (array_type_ ? array_type_->RetType() : FunRetType(tp_token_));
+}
+
+CSharedPtr<CValue> CVariable::Evaluate(int lineno) const
+{
+    if(array_type_){
+        GAMMAR_ERR(lineno,"cannot evaluate array, see LINE "<<lineno_);
+        return 0;
+    }
+    CSharedPtr<CDeclare> decl = runtime().FindVar(varname_);
+    if(!decl){
+        GAMMAR_ERR(lineno,"variable '"<<CRuntime::RealVarname(varname_)
+            <<"' not found(internal error)");
+        return 0;
+    }
+    if(!decl->val_){
+        GAMMAR_ERR(lineno,"variable '"<<CRuntime::RealVarname(varname_)
+            <<"' not initialized yet");
+        return 0;
+    }
+    return decl->val_;
+}
+
+CSharedPtr<CValue> CVariable::Initial(int lineno) const
+{
+    if(array_type_)
+        return array_type_->Evaluate();
+    std::vector<CSharedPtr<CValue> > args;
+    return FunEvaluate(tp_token_,args,lineno);
 }
 
 //CExpr
 CExpr::CExpr(int ln)
     : lineno_(ln)
+    , type_(0)
 {}
 
 std::string CExpr::ToString() const{
     std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
+    oss<<"(type_="<<type_
         <<",fix_value_="<<signa(fix_value_)
         <<",func_call_="<<signa(func_call_)
         <<",var_="<<signa(var_)
@@ -96,17 +149,18 @@ std::string CExpr::ToString() const{
 
 std::string CExpr::Signature() const{
     std::ostringstream oss;
-    oss<<"(LINE="<<lineno_<<")";
+    oss<<"(LINE:"<<lineno_<<")";
     return oss.str();
 }
 
-bool CExpr::CheckDefined() const
+bool CExpr::CheckDefined(int lineno) const
 {
     if(func_call_)
         return func_call_->CheckDefined();
-    else if(var_ && var_->Is1stDefine()){
-        GAMMAR_ERR(var_->lineno_,"undefined symbol '"<<var_->varname_<<"'");
-        CUR_VTB.DelVar(var_->varname_);
+    if(var_ && var_->Is1stDefine()){
+        GAMMAR_ERR(lineno,"undefined symbol '"<<CRuntime::RealVarname(var_->varname_)
+            <<"'");
+        CUR_VTB.erase(var_->varname_);
         return false;
     }
     return true;
@@ -160,117 +214,18 @@ std::string CExpr::Depend() const
     return "";
 }
 
-//CVariable
-CSharedPtr<CVariable> CVariable::CheckRedefine(CSharedPtr<CVariable> var,int lineno,CSharedPtr<CCmd> cur_cmd)
-{
-    if(var->ref_count_ > 0){
-        //redefinition, but we need the whole declaration
-        CSharedPtr<CVariable> ret = New<CVariable>(lineno);
-        ret->shadow_ = var;
-        ret->varname_ = var->varname_;
-        ret->host_cmd_ = cur_cmd;
-        return ret;
-    }
-    return var;
-}
-
-CVariable::CVariable(int ln)
-    : lineno_(ln)
-    , flag_(TF_SIMPLE)
-    , tp_token_(DT_NONE)
-    , ref_count_(0)
-{}
-
-std::string CVariable::ToString() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<",varname_="<<varname_
-        <<",flag_="<<flag_
-        <<",tp_token_="<<tp_token_
-        <<",ref_count_="<<ref_count_
-        <<",sz_expr_="<<signa(sz_expr_)
-        <<",host_cmd_="<<signa(host_cmd_)
-        <<",shadow_="<<to_str(shadow_)
-        <<")";
-    return oss.str();
-}
-
-std::string CVariable::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_<<","<<varname_<<")";
-    return oss.str();
-}
-
-bool CVariable::IsConnection() const
-{
-    return IsConnectionToken(tp_token_);
-}
-
-bool CVariable::IsRaw() const
-{
-    return IsRawToken(tp_token_);
-}
-
-int CVariable::RetType() const
-{
-    return (datatype_ ? datatype_->RetType() : FunRetType(tp_token_));
-}
-
-CSharedPtr<CValue> CVariable::Evaluate(int lineno) const
-{
-    if(datatype_){
-        GAMMAR_ERR(lineno,"cannot evaluate array, see LINE "<<lineno_);
-        return 0;
-    }
-    CSharedPtr<CDeclare> decl = runtime().FindVar(varname_);
-    if(!decl){
-        GAMMAR_ERR(lineno,"variable '"<<CRuntime::RealVarname(varname_)
-            <<"' not found(internal error)");
-        return 0;
-    }
-    if(!decl->val_){
-        GAMMAR_ERR(lineno,"variable '"<<CRuntime::RealVarname(varname_)
-            <<"' not initialized yet");
-        return 0;
-    }
-    return decl->val_;
-}
-
-CSharedPtr<CValue> CVariable::Initial(int lineno) const
-{
-    if(datatype_)
-        return datatype_->Evaluate();
-    std::vector<CSharedPtr<CValue> > args;
-    return FunEvaluate(tp_token_,args,lineno);
-}
-
 //CArgList
 CArgList::CArgList(int ln)
     : lineno_(ln)
 {}
 
-std::string CArgList::ToString() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_;
-    for(size_t i = 0;i < args_.size();++i)
-        oss<<",args_["<<i<<"]="<<signa(args_[i]);
-    oss<<")";
-    return oss.str();
-}
-
-std::string CArgList::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_<<")";
-    return oss.str();
-}
-
-void CArgList::AddArg(CSharedPtr<CExpr> arg){
-    args_.push_back(arg);
-}
-
 CSharedPtr<CExpr> CArgList::operator [](size_t i) const{
     assert(i < args_.size());
     return args_[i];
+}
+
+void CArgList::Add(CSharedPtr<CExpr> arg){
+    args_.push_back(arg);
 }
 
 void CArgList::Erase(CSharedPtr<CExpr> arg)
@@ -281,16 +236,29 @@ void CArgList::Erase(CSharedPtr<CExpr> arg)
     }
 }
 
-bool CArgList::CheckDefined(bool isFun) const
+std::string CArgList::ToString() const{
+    std::ostringstream oss;
+    oss<<"(";
+    if(!args_.empty()){
+        oss<<"args_[0]="<<signa(args_[0]);
+        for(size_t i = 1;i < args_.size();++i)
+            oss<<",args_["<<i<<"]="<<signa(args_[i]);
+    }
+    oss<<")";
+    return oss.str();
+}
+
+std::string CArgList::Signature() const{
+    std::ostringstream oss;
+    oss<<"(LINE:"<<lineno_<<")";
+    return oss.str();
+}
+
+bool CArgList::CheckDefined(int lineno) const
 {
     bool ret = true;
-    if(!args_.empty()){
-        size_t i = 0;
-        if(isFun){
-        }
-        for(;i < args_.size();++i)
-            ret = (args_[i]->CheckDefined() && ret);
-    }
+    for(size_t i = 0;i < args_.size();++i)
+        ret = (args_[i]->CheckDefined(lineno) && ret);
     return ret;
 }
 
@@ -337,376 +305,55 @@ std::string CArgList::Depend() const
     return ret;
 }
 
-//CConstDecl
-CConstDecl::CConstDecl(int ln)
+//CArrayType
+CArrayType::CArrayType(int ln)
     : lineno_(ln)
+    , tp_token_(0)
+    , has_sz_(false)
+    , sz_(-1)
 {}
 
-std::string CConstDecl::ToString() const{
+std::string CArrayType::ToString() const{
     std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<",var_="<<signa(var_)
-        <<",expr_="<<signa(expr_)
+    oss<<"(tp_token_="<<tp_token_
+        <<",has_sz_="<<has_sz_
+        <<",sz_="<<sz_
+        <<",sz_expr_="<<signa(sz_expr_)
         <<")";
     return oss.str();
 }
 
-std::string CConstDecl::Signature() const{
+std::string CArrayType::Signature() const{
     std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<","<<signa(var_)
-        <<")";
+    oss<<"(LINE:"<<lineno_<<")";
     return oss.str();
 }
 
-void CConstDecl::SetArgList(CSharedPtr<CArgList> arg_list,int lineno){
-    assert(var_);
-    assert(!expr_);
-    if(arg_list){
-        expr_ = New<CExpr>(lineno);
-        expr_->func_call_ =  New<CFuncCall>(lineno);
-        expr_->func_call_->ft_token_ = var_->tp_token_;
-        expr_->func_call_->arg_list_ = arg_list;
-    }
-}
-
-//CPostDecl
-CPostDecl::CPostDecl(int ln)
-    : lineno_(ln)
-{}
-
-std::string CPostDecl::ToString() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<",var_="<<signa(var_)
-        <<",expr_="<<signa(expr_)
-        <<")";
-    return oss.str();
-}
-
-std::string CPostDecl::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<","<<signa(var_)
-        <<")";
-    return oss.str();
-}
-
-void CPostDecl::SetArgList(CSharedPtr<CArgList> arg_list,int lineno){
-    if(arg_list){
-        expr_ = New<CExpr>(lineno);
-        expr_->func_call_ =  New<CFuncCall>(lineno);
-        expr_->func_call_->ft_token_ = var_->tp_token_;
-        expr_->func_call_->arg_list_ = arg_list;
-    }
-}
-
-//CArrayDecl
-CArrayDecl::CArrayDecl(int ln)
-    : lineno_(ln)
-{}
-
-std::string CArrayDecl::ToString() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<",var_="<<signa(var_)
-        <<",arr_val_="<<signa(arr_val_)
-        <<")";
-    return oss.str();
-}
-
-std::string CArrayDecl::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<","<<signa(var_)
-        <<")";
-    return oss.str();
-}
-
-//CAssertDecl
-CAssertDecl::CAssertDecl(int ln)
-    : lineno_(ln)
-{}
-
-std::string CAssertDecl::ToString() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<",var_="<<signa(var_)
-        <<",comp_op_="<<comp_op_
-        <<",expr_="<<signa(expr_)
-        <<")";
-    return oss.str();
-}
-
-std::string CAssertDecl::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<","<<signa(var_)
-        <<")";
-    return oss.str();
-}
-
-//CStreamDecl
-CStreamDecl::CStreamDecl(int ln)
-    : lineno_(ln)
-{}
-
-std::string CStreamDecl::ToString() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<",var_="<<signa(var_)
-        <<",stream_op_="<<stream_op_
-        <<",expr_="<<signa(expr_)
-        <<")";
-    return oss.str();
-}
-
-std::string CStreamDecl::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<","<<signa(var_)
-        <<")";
-    return oss.str();
-}
-
-//CDefineDecl
-CDefineDecl::CDefineDecl(int ln)
-    : lineno_(ln)
-{}
-
-std::string CDefineDecl::ToString() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<",const_decl_="<<signa(const_decl_)
-        <<",post_decl_="<<signa(post_decl_)
-        <<")";
-    return oss.str();
-}
-
-std::string CDefineDecl::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_<<")";
-    return oss.str();
-}
-
-//CDeclare
-CDeclare::CDeclare(int ln)
-    : lineno_(ln)
-{}
-
-std::string CDeclare::ToString() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<",constDecl_="<<signa(constDecl_)
-        <<",postDecl_="<<signa(postDecl_)
-        <<",arrayDecl_="<<signa(arrayDecl_)
-        <<",assertDecl_="<<signa(assertDecl_)
-        <<",streamDecl_="<<signa(streamDecl_)
-        <<",defDecl_="<<signa(defDecl_)
-        <<")";
-    return oss.str();
-}
-
-std::string CDeclare::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_<<")";
-    return oss.str();
-}
-
-bool CDeclare::Validate() const
+bool CArrayType::Validate() const
 {
-    if(!CheckDefined())
-        return false;
-    
-
-
-    if(IsArray()){
-        if(!var_->datatype_->Validate())
-            return false;
-        if(CannotBeArray(var_->datatype_->tp_token_)){
-            GAMMAR_ERR(lineno_,"invaid array type");
-            return false;
-        }
-        if(is_def_){
-            GAMMAR_ERR(lineno_,"invalid DEF for array type");
-            return false;
-        }
-    }else if(IsAssert()){
-        assert(expr_);
-        if(!IsBinaryPredict(op_token_)){
-            GAMMAR_ERR(lineno_,"prediction format error");
-            return false;
-        }
-        size_t i = OpArgTypeCheck(op_token_,var_->RetType(),expr_->RetType());
-        if(i){
-            GAMMAR_ERR(lineno_,"argument "<<i<<" type error for prediction");
-            return false;
-        }
-    }
-    if(expr_ && !expr_->Validate())
-        return false;
-    return true;
-}
-
-bool CDeclare::CheckDefined()
-{
-    bool ret = true;
-    CSharedPtr<CVariable> & shadow_ = var_->shadow_;
-    if(shadow_){
-        --shadow_->ref_count_;
-        if(var_->host_cmd_ == shadow_->host_cmd_){
-            GAMMAR_ERR(lineno_,"redefine symbol '"<<var_->varname_
-                <<"', see LINE "<<shadow_->lineno_);
-            var_ = shadow_;
-            ret = false;
-        }else{
-            if(!CUR_VTB.AddVar(var_)){
-                INTERNAL_ERR("add variable "<<signa(var_)<<" to cmd "
-                    <<signa(var_->host_cmd_)<<" error");
-            }
-            shadow_ = 0;
-        }
-    }
-    if(expr_)
-        ret = (expr_->CheckDefined(lineno_) && ret);
-    return ret;
-}
-
-
-bool CDeclare::IsGlobalOnly() const
-{
-    return IsGlobalOnlyToken(var_->tp_token_);
-}
-
-bool CDeclare::IsStreamIn() const
-{
-    return (IsStream() && IsStreamInToken(op_token_));
-}
-
-bool CDeclare::IsStreamOut() const
-{
-    return (IsStream() && IsStreamOutToken(op_token_));
-}
-
-void CDeclare::FixRaw()
-{
-    assert(val_ && var_);
-    if(var_->IsRaw())
-        val_->FixRaw();
-}
-
-CSharedPtr<CValue> CDeclare::Evaluate()
-{
-    if(expr_)
-        val_ = expr_->Evaluate();
-    if(!val_){
-        RUNTIME_ERR(lineno_,"cannot evaluate '"<<CRuntime::RealVarname(var_->varname_)
-            <<"'");
-    }else
-        FixRaw();   //区分STR和RAW类型
-    return val_;
-}
-
-//CFuncCall
-CFuncCall::CFuncCall(int ln)
-    : lineno_(ln)
-    , ft_token_(0)
-{}
-
-std::string CFuncCall::ToString() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<",ft_token_="<<ft_token_
-        <<",arg_list_="<<signa(arg_list_)
-        <<")";
-    return oss.str();
-}
-
-std::string CFuncCall::Signature() const{
-    std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<","<<ft_token_
-        <<")";
-    return oss.str();
-}
-
-bool CFuncCall::CheckDefined() const
-{
-    if(arg_list_)
-        return arg_list_->CheckDefined(IsFunToken(ft_token_));
-    return true;
-}
-
-bool CFuncCall::Validate() const
-{
-    if(arg_list_ && !arg_list_->Validate())
-        return false;
-    std::vector<int> retTypes;
-    if(arg_list_)
-        arg_list_->RetType(retTypes);
-    size_t i = FunArgCheck(ft_token_,retTypes,arg_list_);
-    if(i){
-        GAMMAR_ERR(lineno_,"argument "<<i<<" type mismatch or missing");
+    if(sz_expr_ && !DT_IsInteger(sz_expr_->RetType())){
+        GAMMAR_ERR(lineno_,"invalid type for array size");
         return false;
     }
     return true;
 }
 
-bool CFuncCall::IsConnection() const
+bool CArrayType::CheckDefined(int lineno) const
 {
-    return IsConnectionToken(ft_token_);
+    if(sz_expr_)
+        return sz_expr_->CheckDefined(lineno);
+    return true;
 }
 
-bool CFuncCall::IsGlobalOnly() const
+int CArrayType::RetType() const
 {
-    return IsGlobalOnlyToken(ft_token_);
+    return FunRetType(tp_token_);
 }
 
-bool CFuncCall::IsLocalOnly() const
-{
-    return IsLocalOnlyToken(ft_token_);
-}
-
-int CFuncCall::RetType() const
-{
-    std::vector<int> retTypes;
-    if(arg_list_)
-        arg_list_->RetType(retTypes);
-    return FunRetType(ft_token_,&retTypes);
-}
-
-std::string CFuncCall::Depend() const
-{
-    if(arg_list_)
-        return arg_list_->Depend();
-    return "";
-}
-
-int CFuncCall::IsArrayBeginEnd() const
-{
-    return IsArrayBeginEndToken(ft_token_);
-}
-
-int CFuncCall::IsSendRecv() const
-{
-    return IsSendRecvToken(ft_token_);
-}
-
-CSharedPtr<CValue> CFuncCall::Evaluate() const
+CSharedPtr<CValue> CArrayType::Evaluate() const
 {
     std::vector<CSharedPtr<CValue> > args;
-    if(arg_list_){
-        if(!arg_list_->Evaluate(args,lineno_))
-            return 0;
-    }
-    return FunEvaluate(ft_token_,args,lineno_);
-}
-
-void CFuncCall::Invoke(CSharedPtr<CCmd> cmd) const
-{
-    if(global().err_count_)
-        throw 0;
-    FunInvoke(ft_token_,arg_list_,lineno_,cmd);
+    return FunEvaluate(tp_token_,args,lineno_);
 }
 
 //CAssertExp
@@ -717,8 +364,7 @@ CAssertExp::CAssertExp(int ln)
 
 std::string CAssertExp::ToString() const{
     std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
-        <<",op_token_="<<op_token_
+    oss<<"(op_token_="<<op_token_
         <<",expr1_="<<signa(expr1_)
         <<",expr2_="<<signa(expr2_)
         <<")";
@@ -727,7 +373,7 @@ std::string CAssertExp::ToString() const{
 
 std::string CAssertExp::Signature() const{
     std::ostringstream oss;
-    oss<<"(LINE="<<lineno_<<","<<op_token_<<")";
+    oss<<"(LINE:"<<lineno_<<")";
     return oss.str();
 }
 
@@ -804,6 +450,216 @@ bool CAssertExp::Assert() const
     return false;
 }
 
+//CDeclare
+CDeclare::CDeclare(int ln)
+    : lineno_(ln)
+    , type_(0)
+    , is_def_(0)
+    , op_token_(0)
+    , eva_priority_(0)
+    , offset_(-1)
+    , post_byte_order_(true)
+{}
+
+std::string CDeclare::ToString() const{
+    std::ostringstream oss;
+    oss<<"(type_="<<type_
+        <<",is_def_="<<is_def_
+        <<",var_="<<signa(var_)
+        <<",op_token_="<<op_token_
+        <<",expr_="<<signa(expr_)
+        <<",eva_priority_="<<eva_priority_
+        <<",val_="<<signa(val_)
+        <<")";
+    return oss.str();
+}
+
+std::string CDeclare::Signature() const{
+    return signa(var_);
+}
+
+bool CDeclare::IsGlobalOnly() const
+{
+    return IsGlobalOnlyToken(var_->tp_token_);
+}
+
+bool CDeclare::Validate() const
+{
+    if(IsArray()){
+        if(!var_->array_type_->Validate())
+            return false;
+        if(CannotBeArray(var_->array_type_->tp_token_)){
+            GAMMAR_ERR(lineno_,"invaid array type");
+            return false;
+        }
+        if(is_def_){
+            GAMMAR_ERR(lineno_,"invalid DEF for array type");
+            return false;
+        }
+    }else if(IsAssert()){
+        assert(expr_);
+        if(!IsBinaryPredict(op_token_)){
+            GAMMAR_ERR(lineno_,"prediction format error");
+            return false;
+        }
+        size_t i = OpArgTypeCheck(op_token_,var_->RetType(),expr_->RetType());
+        if(i){
+            GAMMAR_ERR(lineno_,"argument "<<i<<" type error for prediction");
+            return false;
+        }
+    }
+    if(expr_ && !expr_->Validate())
+        return false;
+    return true;
+}
+
+bool CDeclare::IsStreamIn() const
+{
+    return (IsStream() && IsStreamInToken(op_token_));
+}
+
+bool CDeclare::IsStreamOut() const
+{
+    return (IsStream() && IsStreamOutToken(op_token_));
+}
+
+bool CDeclare::CheckDefined(CSharedPtr<CCmd> cur_cmd)
+{
+    bool ret = true;
+    CSharedPtr<CVariable> & shadow = var_->shadow_;
+    if(shadow){
+        --shadow->ref_count_;
+        if(cur_cmd == shadow->host_cmd_){
+            GAMMAR_ERR(lineno_,"redefine symbol '"<<CRuntime::RealVarname(var_->varname_)
+                <<"', see LINE "<<shadow->lineno_);
+            var_ = shadow;
+            ret = false;
+        }else
+            shadow = 0;
+    }
+    if(expr_)
+        ret = (expr_->CheckDefined(lineno_) && ret);
+    return ret;
+}
+
+void CDeclare::FixRaw()
+{
+    assert(val_ && var_);
+    if(var_->IsRaw())
+        val_->FixRaw();
+}
+
+CSharedPtr<CValue> CDeclare::Evaluate()
+{
+    if(expr_)
+        val_ = expr_->Evaluate();
+    if(!val_){
+        RUNTIME_ERR(lineno_,"cannot evaluate '"<<CRuntime::RealVarname(var_->varname_)
+            <<"'");
+    }else
+        FixRaw();   //区分STR和RAW类型
+    return val_;
+}
+
+//CFuncCall
+CFuncCall::CFuncCall(int ln)
+    : lineno_(ln)
+    , ft_token_(0)
+{}
+
+std::string CFuncCall::ToString() const{
+    std::ostringstream oss;
+    oss<<"(ft_token_="<<ft_token_
+        <<",arg_list_="<<signa(arg_list_)
+        <<")";
+    return oss.str();
+}
+
+std::string CFuncCall::Signature() const{
+    std::ostringstream oss;
+    oss<<"(LINE:"<<lineno_<<")"<<ft_token_;
+    return oss.str();
+}
+
+bool CFuncCall::CheckDefined() const
+{
+    if(!IsFunToken(ft_token_) && arg_list_)
+        return arg_list_->CheckDefined(lineno_);
+    return true;
+}
+
+bool CFuncCall::Validate() const
+{
+    if(arg_list_ && !arg_list_->Validate())
+        return false;
+    std::vector<int> retTypes;
+    if(arg_list_)
+        arg_list_->RetType(retTypes);
+    size_t i = FunArgCheck(ft_token_,retTypes,arg_list_);
+    if(i){
+        GAMMAR_ERR(lineno_,"argument "<<i<<" type mismatch or missing");
+        return false;
+    }
+    return true;
+}
+
+bool CFuncCall::IsConnection() const
+{
+    return IsConnectionToken(ft_token_);
+}
+
+bool CFuncCall::IsGlobalOnly() const
+{
+    return IsGlobalOnlyToken(ft_token_);
+}
+
+bool CFuncCall::IsLocalOnly() const
+{
+    return IsLocalOnlyToken(ft_token_);
+}
+
+int CFuncCall::RetType() const
+{
+    std::vector<int> retTypes;
+    if(arg_list_)
+        arg_list_->RetType(retTypes);
+    return FunRetType(ft_token_,&retTypes);
+}
+
+std::string CFuncCall::Depend() const
+{
+    if(arg_list_)
+        return arg_list_->Depend();
+    return "";
+}
+
+int CFuncCall::IsArrayBeginEnd() const
+{
+    return IsArrayBeginEndToken(ft_token_);
+}
+
+int CFuncCall::IsSendRecv() const
+{
+    return IsSendRecvToken(ft_token_);
+}
+
+CSharedPtr<CValue> CFuncCall::Evaluate() const
+{
+    std::vector<CSharedPtr<CValue> > args;
+    if(arg_list_){
+        if(!arg_list_->Evaluate(args,lineno_))
+            return 0;
+    }
+    return FunEvaluate(ft_token_,args,lineno_);
+}
+
+void CFuncCall::Invoke(CSharedPtr<CCmd> cmd) const
+{
+    if(global().err_count_)
+        throw 0;
+    FunInvoke(ft_token_,arg_list_,lineno_,cmd);
+}
+
 //CStmt
 CStmt::CStmt(int ln)
     : lineno_(ln)
@@ -812,10 +668,10 @@ CStmt::CStmt(int ln)
 
 std::string CStmt::ToString() const{
     std::ostringstream oss;
-    oss<<"(LINE="<<lineno_
+    oss<<"(type_="<<type_
+        <<",assert_="<<signa(assert_)
         <<",declare_="<<signa(declare_)
         <<",func_call_="<<signa(func_call_)
-        <<",assert_="<<signa(assert_)
         <<",cmd_="<<signa(cmd_)
         <<")";
     return oss.str();
@@ -823,36 +679,8 @@ std::string CStmt::ToString() const{
 
 std::string CStmt::Signature() const{
     std::ostringstream oss;
-    oss<<"(LINE="<<lineno_<<")";
+    oss<<"(LINE:"<<lineno_<<")";
     return oss.str();
-}
-
-//CVarTable
-CSharedPtr<CVariable> CVarTable::FindVar(const std::string & varname) const
-{
-    typedef __VarTable::const_iterator __Iter;
-    __Iter wh = vt_.find(name);
-    return (wh == vt_.end() ? 0 : wh->second);
-}
-
-CSharedPtr<CVariable> CVarTable::AddVar(const std::string & varname,int lineno)
-{
-    CSharedPtr<CVariable> & ret = vt_[varname];
-    assert(!ret);
-    ret = New<CVariable>(lineno);
-    ret->varname_ = varname;
-    return ret;
-}
-
-bool CVarTable::AddVar(CSharedPtr<CVariable> var)
-{
-    assert(var);
-    CSharedPtr<CVariable> & cur = vt_[var->varname_];
-    if(!cur){
-        cur = var;
-        return true;
-    }
-    return false;
 }
 
 //CArrayRange
@@ -884,7 +712,7 @@ std::string CCmd::ToString() const{
 
 std::string CCmd::Signature() const{
     std::ostringstream oss;
-    oss<<"(LINE="<<lineno_<<","<<cmd_name_<<")";
+    oss<<"(LINE:"<<lineno_<<")"<<cmd_name_;
     return oss.str();
 }
 
@@ -916,8 +744,8 @@ bool CCmd::PutValue(CSharedPtr<CValue> v)
 
 bool CCmd::PutArray(CSharedPtr<CDeclare> d)
 {
-    assert(d && d->val_ && d->var_->datatype_->sz_ >= 0);
-    for(int i = 0;i < d->var_->datatype_->sz_;++i)
+    assert(d && d->val_ && d->var_->array_type_->sz_ >= 0);
+    for(int i = 0;i < d->var_->array_type_->sz_;++i)
         if(!(outds_<<*d->val_))
             return false;
     return true;
@@ -1008,7 +836,7 @@ bool CCmd::GetRaw(std::string & res,const std::string & v,int lineno)
 bool CCmd::GetArray(CSharedPtr<CDeclare> d)
 {
     assert(d && d->IsArray());
-    if(!d->var_->datatype_->HasSize()){
+    if(!d->var_->array_type_->HasSize()){
         U32 sz = 0;
         if(!GetVal(sz,d->lineno_)){
             RUNTIME_ERR(d->lineno_,"recv array size error");
@@ -1016,18 +844,18 @@ bool CCmd::GetArray(CSharedPtr<CDeclare> d)
         }else if(sz > MAX_ARRAY_SIZE){
             ASSERT_FAIL(this,d->lineno_,"array size is larger than "<<MAX_ARRAY_SIZE);
         }else
-            d->var_->datatype_->sz_ = int(sz);
+            d->var_->array_type_->sz_ = int(sz);
     }
     assert(d->val_);
     SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()
-        <<".size() = "<<d->var_->datatype_->sz_);
-    for(int i = 0;i < d->var_->datatype_->sz_;++i){
+        <<".size() = "<<d->var_->array_type_->sz_);
+    for(int i = 0;i < d->var_->array_type_->sz_;++i){
         if(GetVal(*d->val_,d->lineno_)){
             SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()<<"["<<i<<"] = "
                 <<d->val_->ShowValue());
         }else{
             RUNTIME_ERR(d->lineno_,"recv '"<<CRuntime::RealVarname(d->var_->varname_)<<"["<<i
-                <<"/"<<d->var_->datatype_->sz_<<"]' error");
+                <<"/"<<d->var_->array_type_->sz_<<"]' error");
             return false;
         }
     }

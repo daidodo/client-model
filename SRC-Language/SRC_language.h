@@ -15,7 +15,7 @@
 //src : Input buffer(输入缓冲)
 //src_len : Length of src(输入缓冲的长度)
 //dst : Output buffer(输出缓冲)
-//dst_len : Init and return length of dst(输出缓冲的初始长度参数，和结果长度的返回值)
+//src_len : Init and return length of dst(输出缓冲的初始长度参数，和结果长度的返回值)
 typedef bool (*__SRC_UserFunc)(const char * src,unsigned int src_len,char * dst,unsigned int & dst_len);
 
 //version info(版本信息)
