@@ -15,9 +15,8 @@ int yylex();
 %token <int_> INT
 %token <long_> LONG
 %token <i64_> I64
-%token <strIdx_> QSTRING
+%token <strIdx_> QSTRING VAR_NAME
 %token <prog_arg_> PROG_ARG
-%token <var_> VAR_NAME
 
 %type <token_> simple_type func_name comp_op stream_op
 %type <fix_value_> fix_value
@@ -47,6 +46,30 @@ program_item : stmt	{DBG_YY("program_item 1");}
 	;
 
 	/* level 1 */
+cmd_define : cmd_begin stmt_assert_list cmd_end stmt_sep
+			{DBG_YY("cmd_define 1");}
+	;
+
+cmd_begin : CMD		{DBG_YY("cmd_begin 1");program().CmdBegin(-1);}
+	| CMD VAR_NAME	{DBG_YY("cmd_begin 2");program().CmdBegin($2);}
+	;
+
+cmd_end : END CMD	{
+				DBG_YY("cmd_end");
+				assert(CUR_CMD);
+				CUR_CMD->endlineno_ = LINE_NO;
+				program().CmdEnd();
+			}
+	;
+
+stmt_assert_list : stmt_assert
+	| stmt_assert_list stmt_assert
+	;
+
+stmt_assert : stmt
+	| assert_exp
+	;
+
 stmt :  stmt_sep
 			{DBG_YY("stmt 1");}
 	| func_call_list stmt_sep
@@ -73,35 +96,6 @@ func_call_list : func_call
 				DBG_YY("$2 = "<<to_str($2));
 				assert($2);
 				program().AddStmt($2);
-			}
-	;
-
-cmd_define : cmd_begin stmt_assert_list cmd_end stmt_sep
-			{DBG_YY("cmd_define 1");}
-	;
-
-cmd_begin : CMD		{DBG_YY("cmd_begin 1");program().CmdBegin(0);}
-	| CMD VAR_NAME	{DBG_YY("cmd_begin 2");program().CmdBegin($2);}
-	;
-
-stmt_assert_list : stmt
-			{DBG_YY("stmt_list 1");}
-	| stmt_assert_list stmt
-			{DBG_YY("stmt_list 2");}
-	| stmt_assert_list assert_exp
-			{
-				DBG_YY("stmt_list 3");
-				DBG_YY("$2 = "<<to_str($2));
-				assert($2);
-				program().AddStmt($2);
-			}
-	;
-
-cmd_end : END CMD	{
-				DBG_YY("cmd_end");
-				assert(CUR_CMD);
-				CUR_CMD->endlineno_ = LINE_NO;
-				program().CmdEnd();
 			}
 	;
 
@@ -367,6 +361,38 @@ define_declare : DEF constant_declare
 	;
 
 	/* level 4 */
+array_type_name : array_type VAR_NAME
+	| sim_type_name '[' ']'
+	| sim_type_name '[' expr ']'
+	;
+
+sim_type_name : simple_type VAR_NAME
+	;
+
+array_type : simple_type '[' ']'
+	| simple_type '[' expr ']'
+	;
+
+
+array_value : '{' arg_list_not_empty '}'
+			{
+				DBG_YY("array_value 1");
+				DBG_YY("$2 = "<<to_str($2));
+				assert($2);
+				$$ = New<CArrayValue>(LINE_NO);
+				$$->arglist_ = $2;
+				DBG_YY("$$ = "<<to_str($$));
+	
+			}
+	| QSTRING	{
+				DBG_YY("array_value 2");
+				DBG_YY("$1 = "<<$1);
+				$$ = New<CArrayValue>(LINE_NO);
+				$$->strIdx_ = $1;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	;
+
 arg_list : /* empty */
 			{
 				DBG_YY("arg_list 1");
@@ -404,41 +430,6 @@ arg_list_not_empty : expr
 			}
 	;
 
-array_type_name : sim_type_name '[' ']'
-			{
-				DBG_YY("array_type_name 1");
-				DBG_YY("$1 = "<<to_str($1));
-				assert($1);
-				$$ = $1;
-				$$->flag_ = TF_ARRAY;
-				DBG_YY("$$ = "<<to_str($$));
-			}
-	| sim_type_name '[' expr ']'
-			{
-				DBG_YY("array_type_name 2");
-				DBG_YY("$1 = "<<to_str($1));
-				DBG_YY("$3 = "<<to_str($3));
-				assert($1);
-				assert($3);
-				$$->flag_ = TF_ARRAY_SZ;
-				$$->sz_expr_ = $3;
-				DBG_YY("$$ = "<<to_str($$));
-			}
-	;
-
-sim_type_name : simple_type VAR_NAME
-			{
-				DBG_YY("sim_type_name 1");
-				DBG_YY("$1 = "<<$1);
-				DBG_YY("$2 = "<<to_str($2));
-				assert($2);
-				$$ = CVariable::CheckRedefine($2,LINE_NO,CUR_CMD);
-				$$->flag_ = TF_SIMPLE;
-				$$->tp_token_ = $1;
-				DBG_YY("$$ = "<<to_str($$));
-			}
-	;
-
 expr : fix_value	{
 				DBG_YY("expr 1");
 				DBG_YY("$1 = "<<to_str($1));
@@ -457,29 +448,10 @@ expr : fix_value	{
 			}
 	| VAR_NAME	{
 				DBG_YY("expr 3");
-				DBG_YY("$1 = "<<to_str($1));
+				DBG_YY("$1 = "<<$1);
 				assert($1);
 				$$ = New<CExpr>(LINE_NO);
-				$$->var_ = $1;
-				DBG_YY("$$ = "<<to_str($$));
-			}
-	;
-
-array_value : '{' arg_list '}'
-			{
-				DBG_YY("array_value 1");
-				DBG_YY("$2 = "<<to_str($2));
-				assert($2);
-				$$ = New<CArrayValue>(LINE_NO);
-				$$->arglist_ = $2;
-				DBG_YY("$$ = "<<to_str($$));
-	
-			}
-	| QSTRING	{
-				DBG_YY("array_value 2");
-				DBG_YY("$1 = "<<$1);
-				$$ = New<CArrayValue>(LINE_NO);
-				$$->strIdx_ = $1;
+				$$->varIndex_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
 	;
@@ -554,7 +526,7 @@ simple_type : TP_U8	{DBG_YY("simple_type = U8("<<TP_U8<<")");$$ = TP_U8;}
 	| TP_U64	{DBG_YY("simple_type = U64("<<TP_U64<<")");$$ = TP_U64;}
 	| TP_S64	{DBG_YY("simple_type = S64("<<TP_S64<<")");$$ = TP_S64;}
 	| STR		{DBG_YY("simple_type = STR("<<STR<<")");$$ = STR;}
-	| RAW		{DBG_YY("simple_type = RAW("<<STR<<")");$$ = RAW;}
+	| RAW		{DBG_YY("simple_type = RAW("<<RAW<<")");$$ = RAW;}
 	| TCP		{DBG_YY("simple_type = TCP("<<TCP<<")");$$ = TCP;}
 	| UDP		{DBG_YY("simple_type = UDP("<<UDP<<")");$$ = UDP;}
 	;

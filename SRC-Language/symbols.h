@@ -42,7 +42,7 @@ struct CFixValue
     explicit CFixValue(int ln);
     std::string ToString() const;
     std::string Signature() const{return ToString();}
-    int RetType() const{return type_;}
+    int RetType() const{return flag_;}
 
     CSharedPtr<CValue> Evaluate(int lineno) const;
 };
@@ -62,9 +62,9 @@ struct CArrayValue
 struct CExpr
 {
     const int lineno_;
+    int varIndex_;
     CSharedPtr<CFixValue> fix_value_;
     CSharedPtr<CFuncCall> func_call_;
-    CSharedPtr<CVariable> var_;
     //functions:
     explicit CExpr(int ln);
     std::string ToString() const;

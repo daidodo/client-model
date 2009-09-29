@@ -60,7 +60,7 @@ CSharedPtr<CValue> CFixValue::Evaluate(int lineno) const
 //CArrayValue
 CArrayValue::CArrayValue(int ln)
     : lineno_(ln)
-    , strIdx_(0)
+    , strIdx_(-1)
 {}
 
 std::string CArrayValue::ToString() const{
@@ -82,6 +82,7 @@ std::string CArrayValue::Signature() const
 //CExpr
 CExpr::CExpr(int ln)
     : lineno_(ln)
+    , varIndex_(-1)
 {}
 
 std::string CExpr::ToString() const{
@@ -89,7 +90,7 @@ std::string CExpr::ToString() const{
     oss<<"(LINE="<<lineno_
         <<",fix_value_="<<signa(fix_value_)
         <<",func_call_="<<signa(func_call_)
-        <<",var_="<<signa(var_)
+        <<",varIndex_="<<varIndex_
         <<")";
     return oss.str();
 }

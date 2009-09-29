@@ -26,7 +26,7 @@ template<typename T>struct __NumUnit<T,4>{
             case 'k':case 'K':  //kilo
                 v <<= 10;
                 break;
-            case 'm':case 'M':  //maga
+            case 'm':case 'M':  //mega
                 v <<= 20;
                 break;
             case 'g':case 'G':  //giga
@@ -44,7 +44,7 @@ template<typename T>struct __NumUnit<T,8>{
             case 'k':case 'K':  //kilo
                 v <<= 10;
                 break;
-            case 'm':case 'M':  //maga
+            case 'm':case 'M':  //mega
                 v <<= 20;
                 break;
             case 'g':case 'G':  //giga
@@ -74,11 +74,11 @@ inline int __number_unit(T v,int u)
 int str2int(const char * str,size_t len)
 {
     assert(str && len);
-    int ret = 0;
     if(*str == '+')
         return str2int(str + 1,len - 1);
     if(*str == '-')
         return -str2int(str + 1,len - 1);
+    int ret = 0;
     if(*str == '0'){
         if(len > 1)
             ret = str2num_base8<int>(str + 1,len - 1);

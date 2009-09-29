@@ -45,5 +45,5 @@
 #define LONG 301
 #define I64 302
 #define QSTRING 303
-#define PROG_ARG 304
-#define VAR_NAME 305
+#define VAR_NAME 304
+#define PROG_ARG 305
