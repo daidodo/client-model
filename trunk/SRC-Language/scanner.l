@@ -16,17 +16,17 @@ digit		([0-9])
 nz_digit	([1-9])
 oct_digit	([0-7])
 hex_digit	([0-9a-fA-F])
-int_suf		([uU])
-long_suf	(({int_suf}[lL])|([lL]{int_suf}?))
-i64_suf		(i64|ll|LL)
+sig_suf		([uU])
+long_suf	([lL]{sig_suf}?|{sig_suf}[lL])
+i64_suf		({sig_suf}?([iI]64|ll|LL))
 
 hex_const	((0x|0X){hex_digit}+)
 oct_const	(0{oct_digit}+)
 dec_const	(0|({nz_digit}{digit}*))
-int_const_val	([+-]?({hex_const}|{oct_const}|{dec_const}))
-int_const	({int_const_val}{int_suf}?)
-long_const	({int_const_val}{long_suf}?)
-i64_const	({int_const_val}{i64_suf}?)
+val_const	([+-]?({hex_const}|{oct_const}|{dec_const}))
+int_const	({val_const}{sig_suf}?)
+long_const	({val_const}{long_suf}?)
+i64_const	({val_const}{i64_suf}?)
 
 %%
 
@@ -41,17 +41,17 @@ i64_const	({int_const_val}{i64_suf}?)
 <QSTR_S,CHAR_S>\\t	{CUR_TOK.push_back('\t');}
 <QSTR_S,CHAR_S>\\v	{CUR_TOK.push_back('\v');}
 <QSTR_S,CHAR_S>\\\"	{CUR_TOK.push_back('\"');}
-<RSTR_S>\\\"		{CUR_TOK += yytext;}
 <QSTR_S,CHAR_S>\\'	{CUR_TOK.push_back('\'');}
-<QSTR_S,CHAR_S>\\[0-7]{1,3}	{
-					int ch = str2num_base8<int>(yytext + 1,yyleng - 1);
-					if(ch > 255){
-						CUR_TOK = yytext;
-						SYNTAX_ERR("char value overflow");
+<RSTR_S>\\\"		{CUR_TOK += yytext;}
+<QSTR_S,CHAR_S>\\{oct_digit}{1,3}	{
+						int ch = str2num_base8<int>(yytext + 1,yyleng - 1);
+						if(ch > 255){
+							CUR_TOK = yytext;
+							SYNTAX_ERR("char value overflow");
+						}
+						CUR_TOK.push_back(ch);
 					}
-					CUR_TOK.push_back(ch);
-				}
-<QSTR_S,CHAR_S>\\x[a-fA-F0-9]{1,2}	{
+<QSTR_S,CHAR_S>\\x{hex_digit}{1,2}	{
 						int ch = str2num_base16<int>(yytext + 2,yyleng - 2);
 						if(ch > 255){
 							CUR_TOK = yytext;
@@ -146,7 +146,7 @@ DEF	{CUR_TOK = yytext;DBG_LEX1("DEF",CUR_TOK);return DEF;}
 [_a-zA-Z][_a-zA-Z0-9]*	{
 				CUR_TOK = yytext;
 				DBG_LEX1("VAR_NAME",CUR_TOK);
-				yylval.var_ = program().GetVar(CUR_TOK);
+				yylval.strIdx_ = program().AddQstr(CUR_TOK);
 				return VAR_NAME;
 			}
 {int_const}[kKmMgG]?	{
@@ -165,7 +165,7 @@ DEF	{CUR_TOK = yytext;DBG_LEX1("DEF",CUR_TOK);return DEF;}
 				CUR_TOK = yytext;
 				DBG_LEX1("LONG",CUR_TOK);
 				if(sizeof(long) < 8){
-					SYNTAX_ERR(yytext[yyleng - 1]<<"is invalid for long(4 bytes)");
+					SYNTAX_ERR(yytext[yyleng - 1]<<" is invalid for long(4 bytes)");
 				}
 				yylval.long_ = str2long(yytext,yyleng);
 				return LONG;

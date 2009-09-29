@@ -85,186 +85,200 @@ int yylex();
 #define LONG 301
 #define I64 302
 #define QSTRING 303
-#define PROG_ARG 304
-#define VAR_NAME 305
+#define VAR_NAME 304
+#define PROG_ARG 305
 #define YYERRCODE 256
 static const short yylhs[] = {                           -1,
-    0,    0,   21,   21,   22,   22,   22,   25,   25,   23,
-   26,   26,   27,   27,   27,   28,   18,   18,   18,   18,
-   18,   18,   19,   19,   19,   20,   20,   12,   12,   13,
-   13,   13,   14,   14,   15,   16,   16,   17,   17,   11,
-   11,   10,   10,    9,    9,    8,    7,    7,    7,    6,
-    6,    5,    5,    5,    5,    5,    2,    2,    2,    2,
+    0,    0,   21,   21,   23,   24,   24,   26,   25,   25,
+   28,   28,   22,   22,   22,   29,   29,   18,   18,   18,
+   18,   18,   18,   19,   19,   19,   20,   20,   12,   12,
+   13,   13,   13,   14,   14,   15,   16,   16,   17,   17,
+    9,    9,    9,    8,   30,   30,    6,    6,   11,   11,
+   10,   10,    7,    7,    7,    5,    5,    5,    5,    5,
     2,    2,    2,    2,    2,    2,    2,    2,    2,    2,
-    2,    2,    1,    1,    1,    1,    1,    1,    1,    1,
-    1,    1,    1,    1,    3,    3,    3,    3,    3,    3,
-    3,    4,    4,   24,   24,   24,
+    2,    2,    2,    2,    2,    2,    1,    1,    1,    1,
+    1,    1,    1,    1,    1,    1,    1,    1,    3,    3,
+    3,    3,    3,    3,    3,    4,    4,   27,   27,   27,
 };
 static const short yylen[] = {                            2,
-    0,    2,    1,    1,    1,    2,    2,    1,    2,    4,
-    1,    2,    1,    2,    2,    2,    1,    1,    1,    1,
-    1,    1,    1,    4,    4,    3,    2,    3,    5,    1,
-    3,    4,    1,    3,    3,    3,    3,    2,    2,    0,
-    1,    1,    3,    3,    4,    2,    1,    1,    1,    3,
+    0,    2,    1,    1,    4,    1,    2,    2,    1,    2,
+    1,    1,    1,    2,    2,    1,    2,    1,    1,    1,
+    1,    1,    1,    1,    4,    4,    3,    2,    3,    5,
+    1,    3,    4,    1,    3,    3,    3,    3,    2,    2,
+    2,    3,    4,    2,    3,    4,    3,    1,    0,    1,
+    1,    3,    1,    1,    1,    1,    1,    1,    1,    1,
     1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-    1,    1,    1,    1,    1,    1,    2,    2,    2,    2,
+    2,    2,    2,    2,    1,    1,    1,    1,    1,    1,
     1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
     1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-    1,    1,    1,    1,    1,    1,
 };
 static const short yydefred[] = {                         1,
-    0,   95,   96,    0,    0,   73,   74,   75,   76,   77,
-   78,   79,   80,   81,   82,   83,   84,   57,    0,    0,
-   60,   61,   62,   63,   64,   65,   66,    0,   71,   72,
-   94,    0,    0,    0,    0,   17,   18,   19,   20,   21,
-   22,    0,    8,    2,    3,    4,    5,    0,    0,   12,
-    0,    0,   38,   39,   69,   70,   68,   67,   46,    0,
-    0,    0,   85,   86,   87,   88,   89,   90,   91,   92,
-   93,    0,    0,    0,    0,    0,    0,    0,    7,    0,
-    9,    6,   13,    0,   52,   53,   54,   55,   56,   49,
-   47,   42,    0,    0,   48,    0,   28,    0,    0,   31,
-   44,    0,   35,    0,   36,   51,    0,   34,    0,    0,
-    0,    0,   15,   14,    0,    0,   25,   24,   32,    0,
-   45,    0,   16,   27,    0,   10,   43,   29,   50,   26,
+    0,   99,  100,    0,    0,   77,   78,   79,   80,   81,
+   82,   83,   84,   85,   86,   87,   88,   61,    0,    0,
+   64,   65,   66,   67,   68,   69,   70,    0,   75,   76,
+   98,    0,    0,    0,    0,   18,   19,   20,   21,   22,
+   23,    0,   16,    2,    3,    4,    0,   13,    0,    0,
+    7,    0,    0,   39,   40,   73,   74,   72,   71,   44,
+    0,    0,    0,    0,   89,   90,   91,   92,   93,   94,
+   95,   96,   97,    0,    0,    0,    0,    0,    0,    0,
+   15,   56,   57,   58,   59,   55,   60,    0,   53,    0,
+    0,   12,   11,    0,    9,    0,   17,   14,   41,   51,
+    0,    0,   54,   45,    0,    0,   29,    0,    0,   32,
+   42,    0,   36,    0,   37,   48,    0,   35,   28,    0,
+    0,    0,   10,    0,   26,   46,   25,   33,    0,   43,
+    0,   27,    8,    5,   52,   30,   47,
 };
 static const short yydgoto[] = {                          1,
-   80,   33,   76,   77,   91,  108,   92,   34,   35,   93,
-   94,   36,   37,   38,   39,   40,   41,   42,   95,  113,
-   44,   45,   46,   47,   48,   49,   84,  115,
+   96,   33,   88,   79,   89,  118,  100,   34,   35,  101,
+  102,   36,   37,   38,   39,   40,   41,   42,  103,   92,
+   44,   93,   46,   47,   94,  122,   48,   95,   49,   50,
 };
 static const short yysindex[] = {                         0,
-  287,    0,    0, -292, -157,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0, -264, -262,
-    0,    0,    0,    0,    0,    0,    0, -256,    0,    0,
-    0,  -35,  -14,   86,  -33,    0,    0,    0,    0,    0,
-    0,  -57,    0,    0,    0,    0,    0,  412,  317,    0,
- -276,  -13,    0,    0,    0,    0,    0,    0,    0,  485,
-  485,  485,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,  485,   -6,  485,  441,  485,  485, -120,    0,   -4,
-    0,    0,    0,  186,    0,    0,    0,    0,    0,    0,
-    0,    0,   -7,   -3,    0,   -2,    0,    2,  485,    0,
-    0,  -47,    0,   -4,    0,    0,  485,    0, -246,  485,
- -218,    0,    0,    0,  -57,  485,    0,    0,    0,    3,
-    0,  -78,    0,    0,  485,    0,    0,    0,    0,    0,
+  412,    0,    0, -287, -234,    0,    0,    0,    0,    0,
+    0,    0,    0,    0,    0,    0,    0,    0, -265, -264,
+    0,    0,    0,    0,    0,    0,    0, -257,    0,    0,
+    0,  -35,  -16,   86,  -36,    0,    0,    0,    0,    0,
+    0,  -57,    0,    0,    0,    0,  186,    0,  462, -263,
+    0, -262,  -13,    0,    0,    0,    0,    0,    0,    0,
+  591,  492,  591,  591,    0,    0,    0,    0,    0,    0,
+    0,    0,    0,  591,    4,  591,  547,  591,  591, -120,
+    0,    0,    0,    0,    0,    0,    0,  591,    0, -220,
+    0,    0,    0,  236,    0,    6,    0,    0,    0,    0,
+   -4,   16,    0,    0,  -46,   21,    0,   22,  591,    0,
+    0,  -44,    0,    6,    0,    0,  591,    0,    0,  591,
+ -244,  -57,    0,  591,    0,    0,    0,    0,   23,    0,
+  -37,    0,    0,    0,    0,    0,    0,
 };
 static const short yyrindex[] = {                         0,
-    0,    0,    0,  355,    0,    0,    0,    0,    0,    0,
+    0,    0,    0,  287,    0,    0,    0,    0,    0,    0,
     0,    0,    0,    0,    0,    0,    0,    0,  -40,   10,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
     0,    0,   60,  -53,  -51,    0,    0,    0,    0,    0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,  -53,    0,    0,    0,    0,    0,    0,    0,   17,
-   17,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,   17,    0,    0,    0,    0,    0,    0,    0,    0,
+    0,    0,  -53,    0,    0,    0,    0,    0,    0,    0,
+   25,    0,   25,    0,    0,    0,    0,    0,    0,    0,
+    0,    0,    0,   25,    0,    0,    0,    0,    0,    0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,  -34,    0,    0,    0,    0,    0,   17,    0,
-    0,    0,    0,  -49,    0,    0,  -76,    0,  129,    0,
-    0,  236,    0,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+  355,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+   26,    0,    0,    0,    0,    0,    0,    0,   25,    0,
+    0,    0,    0,  -49,    0,    0,    0,    0,    0,    0,
+  129,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+    0,    0,    0,    0,    0,    0,    0,
 };
 static const short yygindex[] = {                         0,
-   11,    0,  -69,    0,    0,    0,  -44,   47,    0,    0,
-  -37,   54,   56,    0,    0,    0,    0,    0,    8,    0,
-    0,  -29,    0,  -31,    0,    0,    0,    0,
+    8,    0,  -20,    0,    0,    0,   18,   47,    0,  -58,
+  -48,   63,   73,    0,    0,    0,    0,    0,   11,    0,
+    0,   78,    0,    0,    0,    0,  -31,  -11,    0,    0,
 };
-#define YYTABLESIZE 790
-static const short yytable[] = {                         58,
-   58,   31,  107,   58,   60,   30,   41,   33,   43,   37,
-   79,   32,   50,  123,  110,   51,   82,   97,   58,   83,
-   57,   58,   55,   96,   56,   61,   72,   78,   59,  100,
-  102,  103,  105,   99,   98,   60,  116,  117,  118,  111,
-   56,  125,  119,  128,   73,  121,  129,   74,   40,   59,
-   59,   52,   58,   59,  114,   81,   43,   40,   53,   32,
-   54,  120,    0,    0,    0,  124,    0,    0,   59,  122,
-    0,  127,   63,   64,   65,   66,   67,   68,   69,    0,
-  130,    0,    0,  126,   58,    0,    0,  104,    0,    0,
-   41,  112,    0,    0,   32,    0,    0,    0,    0,    0,
-   23,    0,   59,   23,    6,    7,    8,    9,   10,   11,
-   12,   13,   14,   15,   16,   17,    0,    0,   23,    0,
-    0,    0,    0,    0,    0,   72,    0,    0,    0,    0,
-    0,    0,    0,    0,   59,    0,    0,    0,    0,    0,
-    0,    0,    0,   73,    0,    0,   74,    0,    0,    0,
-    0,    0,   23,    0,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,    0,    0,    0,   59,    0,
-    0,    0,    0,    0,    0,    0,   75,    0,    0,    0,
-    0,    0,  106,    0,   23,    0,    0,   59,    0,    0,
+#define YYTABLESIZE 896
+static const short yytable[] = {                         62,
+   62,   31,  117,   62,   61,   31,  124,   34,   32,   38,
+   81,   43,   52,   78,  106,  133,   51,   98,   62,   58,
+   59,   56,   57,   63,   80,  108,   74,    6,    7,    8,
+    9,   10,   11,   12,   13,   14,   15,   16,   17,  124,
+   99,   60,   57,  109,   75,   61,  126,   76,  130,   63,
+   63,   53,   62,   63,   32,   62,  125,   91,  131,   97,
+  129,  127,  128,  136,   90,   49,   50,   54,   63,  120,
+   65,   66,   67,   68,   69,   70,   71,   55,   45,  105,
+    0,  107,  123,    0,   62,    0,  114,  137,    0,    0,
+  134,    0,    0,  110,  112,  113,  115,    0,    0,    0,
+   24,   32,   63,   24,   91,  119,    0,    0,    0,    0,
+    0,   90,    0,    0,    0,    0,    0,    0,   24,    0,
+    0,    0,    0,    0,    0,   74,    0,    0,    0,    0,
+    0,    0,    0,    0,   63,    0,    0,  132,    0,    0,
+    0,  135,    0,   75,    0,    0,   76,    0,    0,    0,
+    0,    0,   24,    0,    0,    0,    0,    0,    0,    0,
+    0,    0,    0,    0,    0,    0,    0,    0,   63,    0,
+    0,    0,    0,    0,    0,    0,   77,    0,    0,    0,
+    0,    0,  116,    0,   24,    0,    0,   63,    0,    0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    2,
-    3,    0,    0,   30,   30,   33,   33,   37,   37,    0,
-    0,    0,    0,    0,    0,    0,   58,   58,    0,    0,
-   58,   58,   58,   58,   58,   58,   58,   58,   58,   58,
-   58,   58,   58,   58,   58,   58,   58,   58,   58,   58,
-   58,   58,   58,   58,   31,   62,    0,    0,   58,   58,
-   58,   58,   58,   58,   58,   58,   58,    0,    0,   58,
-   58,   58,   58,   58,   58,    0,   59,   59,    0,   59,
-   59,   59,   59,   59,   59,   59,   59,   59,   59,   59,
-   59,   59,   59,   59,   59,   59,   59,   59,   59,   59,
-   59,   59,   59,   59,    8,    0,    0,    0,   59,   59,
-   59,   59,   59,   59,   59,   59,   59,    0,    0,   59,
-   59,   59,   59,   59,   59,    0,   23,   23,    0,    0,
-   23,   23,   23,   23,   23,   23,   23,   23,   23,   23,
-   23,   23,   23,   23,   23,   23,   23,   23,   23,   23,
-   23,   23,   23,   23,   62,   31,    0,    0,   23,   23,
-   23,   23,   23,   23,   23,   23,   23,    0,    0,   23,
-   23,   23,   23,   23,   23,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,    0,   31,   63,   64,   65,   66,
-   67,   68,   69,   70,   71,   59,   59,    0,    0,    0,
-   59,   59,   59,   59,   59,   59,   59,   59,   59,   59,
-   59,   59,   59,   59,   59,   59,   59,   59,   59,   59,
-   59,   59,   59,   11,    0,    0,    0,   59,   59,   59,
-   59,   59,   59,   59,   59,   59,    0,    0,    0,    0,
+    3,    0,    0,   31,   31,   34,   34,   38,   38,    0,
+    0,    0,    0,    0,    0,    0,   62,   62,    0,    0,
+   62,   62,   62,   62,   62,   62,   62,   62,   62,   62,
+   62,   62,   62,   62,   62,   62,   62,   62,   62,   62,
+   62,   62,   62,   62,   31,   64,    0,    0,   62,   62,
+   62,   62,   62,   62,   62,   62,   62,    0,    0,   62,
+   62,   62,   62,   62,   62,    0,   63,   63,   60,    0,
+   63,   63,   63,   63,   63,   63,   63,   63,   63,   63,
+   63,   63,   63,   63,   63,   63,   63,   63,   63,   63,
+   63,   63,   63,   63,   31,    0,    0,    0,   63,   63,
+   63,   63,   63,   63,   63,   63,   63,    0,    0,   63,
+   63,   63,   63,   63,   63,    0,   24,   24,    0,    0,
+   24,   24,   24,   24,   24,   24,   24,   24,   24,   24,
+   24,   24,   24,   24,   24,   24,   24,   24,   24,   24,
+   24,   24,   24,   24,   64,    6,    0,    0,   24,   24,
+   24,   24,   24,   24,   24,   24,   24,    0,    0,   24,
+   24,   24,   24,   24,   24,    0,    0,    0,    0,    0,
+    0,    0,    0,    0,    0,    0,   65,   66,   67,   68,
+   69,   70,   71,   72,   73,   63,   63,    0,    0,    0,
+   63,   63,   63,   63,   63,   63,   63,   63,   63,   63,
+   63,   63,   63,   63,   63,   63,   63,   63,   63,   63,
+   63,   63,   63,   16,    0,    0,    0,   63,   63,   63,
+   63,   63,   63,   63,   63,   63,    0,    0,    0,    0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
     0,    0,    2,    3,    0,    0,    5,    6,    7,    8,
     9,   10,   11,   12,   13,   14,   15,   16,   17,   18,
-   19,  109,   21,   22,   23,   24,   25,   26,   27,   28,
-   31,    0,    0,    0,   29,   30,   63,   64,   65,   66,
-   67,   68,   69,    0,    0,   85,   86,   87,   88,   89,
-   90,    0,    8,    8,    0,    0,    0,    8,    8,    8,
-    8,    8,    8,    8,    8,    8,    8,    8,    8,    8,
-    8,    8,    8,    8,    8,    8,    8,    8,    8,    8,
-    0,    0,    0,    0,    8,    8,   48,   48,   48,   48,
-   48,   48,   48,  101,    0,    0,    0,    0,    0,    0,
-    0,    0,    0,    2,    3,    0,    4,    5,    6,    7,
-    8,    9,   10,   11,   12,   13,   14,   15,   16,   17,
-   18,   19,   20,   21,   22,   23,   24,   25,   26,   27,
-   28,    0,    0,    2,    3,   29,   30,    5,    6,    7,
-    8,    9,   10,   11,   12,   13,   14,   15,   16,   17,
-   18,   19,   20,   21,   22,   23,   24,   25,   26,   27,
-   28,    0,    0,    0,    0,   29,   30,    0,    0,    0,
-    0,   11,   11,    0,    0,   11,   11,   11,   11,   11,
-   11,   11,   11,   11,   11,   11,   11,   11,   11,   11,
-   11,   11,   11,   11,   11,   11,   11,   11,   11,    0,
-    0,    0,    0,   11,   11,    0,    0,    0,    0,    0,
+   19,   20,   21,   22,   23,   24,   25,   26,   27,   28,
+   31,    0,    0,    0,   29,   30,   65,   66,   67,   68,
+   69,   70,   71,    0,    0,   82,   83,   84,   85,   86,
+   87,    0,    2,    3,    0,    0,    5,    6,    7,    8,
+    9,   10,   11,   12,   13,   14,   15,   16,   17,   18,
+   19,  121,   21,   22,   23,   24,   25,   26,   27,   28,
+   31,    0,    0,    0,   29,   30,   65,   66,   67,   68,
+   69,   70,   71,    0,    0,   82,   83,   84,   85,   86,
+   87,    0,    0,    6,    6,    0,    0,    6,    6,    6,
+    6,    6,    6,    6,    6,    6,    6,    6,    6,    6,
+    6,    6,    6,    6,    6,    6,    6,    6,    6,    6,
+    6,    0,    0,    0,    0,    6,    6,    6,    6,    6,
+    6,    6,    6,    6,  104,    0,    6,    6,    6,    6,
+    0,    6,    0,    0,    0,    0,    0,    0,    0,    0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+    0,   16,   16,    0,    0,    0,   16,   16,   16,   16,
+   16,   16,   16,   16,   16,   16,   16,   16,   16,   16,
+   16,   16,   16,   16,   16,   16,   16,   16,   16,  111,
+    0,    0,    0,   16,   16,   54,   54,   54,   54,   54,
+   54,   54,    0,    0,    0,    0,    0,    0,    0,    0,
+    0,    0,    0,    0,    0,    0,    0,    0,    2,    3,
+    0,    4,    5,    6,    7,    8,    9,   10,   11,   12,
+   13,   14,   15,   16,   17,   18,   19,   20,   21,   22,
+   23,   24,   25,   26,   27,   28,    0,    0,    0,    0,
+   29,   30,    0,    0,    0,    0,    0,    0,    0,    0,
     0,    0,    0,    0,    0,    0,    0,    0,    2,    3,
     0,    0,    0,    6,    7,    8,    9,   10,   11,   12,
    13,   14,   15,   16,   17,   18,   19,   20,   21,   22,
    23,   24,   25,   26,   27,   28,    0,    0,    0,    0,
-   29,   30,    6,    7,    8,    9,   10,   11,   12,   13,
+   29,   30,    0,    6,    7,    8,    9,   10,   11,   12,
+   13,   14,   15,   16,   17,   18,   19,   20,   21,   22,
+   23,   24,   25,   26,   27,   28,    0,    0,    0,    0,
+   29,   30,    0,    0,    0,    0,    0,    0,    0,    0,
+    0,   82,   83,   84,   85,   86,   87,    0,    0,    0,
+    0,    0,    0,    0,    0,    0,    0,    0,    6,    7,
+    8,    9,   10,   11,   12,   13,   14,   15,   16,   17,
+   18,   19,   20,   21,   22,   23,   24,   25,   26,   27,
+   28,    0,    0,    0,    0,   29,   30,    0,    0,    0,
+    0,    0,    0,    0,    0,    0,   82,   83,   84,   85,
+   86,   87,    6,    7,    8,    9,   10,   11,   12,   13,
    14,   15,   16,   17,   18,   19,   20,   21,   22,   23,
    24,   25,   26,   27,   28,    0,    0,    0,    0,   29,
    30,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-   85,   86,   87,   88,   89,   90,    6,    7,    8,    9,
-   10,   11,   12,   13,   14,   15,   16,   17,   18,   19,
-   20,   21,   22,   23,   24,   25,   26,   27,   28,    0,
-    0,    0,    0,   29,   30,    0,    0,    0,    0,    0,
-    0,    0,    0,    0,   85,   86,   87,   88,   89,   90,
+   82,   83,   84,   85,   86,   87,
 };
 static const short yycheck[] = {                         40,
-   41,   59,  123,   44,   40,   59,   41,   59,    1,   59,
-   42,    1,  305,  260,   84,    5,   48,   62,   59,   49,
-  277,  278,  287,   61,  287,   40,   40,   61,  305,   74,
-   75,   76,   77,   40,   72,   40,   44,   41,   41,   84,
-  287,  111,   41,   41,   58,   93,  125,   61,  125,   40,
-   41,    5,   93,   44,   84,   48,   49,   41,    5,   49,
-    5,   99,   -1,   -1,   -1,  110,   -1,   -1,   59,  107,
-   -1,  116,  291,  292,  293,  294,  295,  296,  297,   -1,
-  125,   -1,   -1,  115,  125,   -1,   -1,   77,   -1,   -1,
-  125,   84,   -1,   -1,   84,   -1,   -1,   -1,   -1,   -1,
-   41,   -1,   93,   44,  262,  263,  264,  265,  266,  267,
-  268,  269,  270,  271,  272,  273,   -1,   -1,   59,   -1,
+   41,   59,  123,   44,   40,   59,   44,   59,    1,   59,
+   42,    1,    5,   34,   63,  260,  304,   49,   59,  277,
+  278,  287,  287,   40,   61,   74,   40,  262,  263,  264,
+  265,  266,  267,  268,  269,  270,  271,  272,  273,   44,
+  304,  304,  287,   40,   58,   40,   93,   61,   93,   40,
+   41,    5,   93,   44,   47,   91,   41,   47,  117,   49,
+  109,   41,   41,   41,   47,   41,   41,    5,   59,   90,
+  291,  292,  293,  294,  295,  296,  297,    5,    1,   62,
+   -1,   64,   94,   -1,  125,   -1,   79,  125,   -1,   -1,
+  122,   -1,   -1,   76,   77,   78,   79,   -1,   -1,   -1,
+   41,   94,   93,   44,   94,   88,   -1,   -1,   -1,   -1,
+   -1,   94,   -1,   -1,   -1,   -1,   -1,   -1,   59,   -1,
    -1,   -1,   -1,   -1,   -1,   40,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,  125,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   58,   -1,   -1,   61,   -1,   -1,   -1,
+   -1,   -1,   -1,   -1,  125,   -1,   -1,  120,   -1,   -1,
+   -1,  124,   -1,   58,   -1,   -1,   61,   -1,   -1,   -1,
    -1,   -1,   93,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
    -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   40,   -1,
    -1,   -1,   -1,   -1,   -1,   -1,   91,   -1,   -1,   -1,
@@ -276,7 +290,7 @@ static const short yycheck[] = {                         40,
   271,  272,  273,  274,  275,  276,  277,  278,  279,  280,
   281,  282,  283,  284,   59,  259,   -1,   -1,  289,  290,
   291,  292,  293,  294,  295,  296,  297,   -1,   -1,  300,
-  301,  302,  303,  304,  305,   -1,  257,  258,   -1,  305,
+  301,  302,  303,  304,  305,   -1,  257,  258,  304,   -1,
   261,  262,  263,  264,  265,  266,  267,  268,  269,  270,
   271,  272,  273,  274,  275,  276,  277,  278,  279,  280,
   281,  282,  283,  284,   59,   -1,   -1,   -1,  289,  290,
@@ -287,7 +301,7 @@ static const short yycheck[] = {                         40,
   281,  282,  283,  284,  259,   59,   -1,   -1,  289,  290,
   291,  292,  293,  294,  295,  296,  297,   -1,   -1,  300,
   301,  302,  303,  304,  305,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,   -1,   59,  291,  292,  293,  294,
+   -1,   -1,   -1,   -1,   -1,   -1,  291,  292,  293,  294,
   295,  296,  297,  298,  299,  257,  258,   -1,   -1,   -1,
   262,  263,  264,  265,  266,  267,  268,  269,  270,  271,
   272,  273,  274,  275,  276,  277,  278,  279,  280,  281,
@@ -299,36 +313,47 @@ static const short yycheck[] = {                         40,
   275,  276,  277,  278,  279,  280,  281,  282,  283,  284,
    59,   -1,   -1,   -1,  289,  290,  291,  292,  293,  294,
   295,  296,  297,   -1,   -1,  300,  301,  302,  303,  304,
-  305,   -1,  257,  258,   -1,   -1,   -1,  262,  263,  264,
+  305,   -1,  257,  258,   -1,   -1,  261,  262,  263,  264,
   265,  266,  267,  268,  269,  270,  271,  272,  273,  274,
   275,  276,  277,  278,  279,  280,  281,  282,  283,  284,
-   -1,   -1,   -1,   -1,  289,  290,  291,  292,  293,  294,
-  295,  296,  297,   93,   -1,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,  257,  258,   -1,  260,  261,  262,  263,
+   59,   -1,   -1,   -1,  289,  290,  291,  292,  293,  294,
+  295,  296,  297,   -1,   -1,  300,  301,  302,  303,  304,
+  305,   -1,   -1,  257,  258,   -1,   -1,  261,  262,  263,
   264,  265,  266,  267,  268,  269,  270,  271,  272,  273,
   274,  275,  276,  277,  278,  279,  280,  281,  282,  283,
-  284,   -1,   -1,  257,  258,  289,  290,  261,  262,  263,
-  264,  265,  266,  267,  268,  269,  270,  271,  272,  273,
-  274,  275,  276,  277,  278,  279,  280,  281,  282,  283,
-  284,   -1,   -1,   -1,   -1,  289,  290,   -1,   -1,   -1,
-   -1,  257,  258,   -1,   -1,  261,  262,  263,  264,  265,
-  266,  267,  268,  269,  270,  271,  272,  273,  274,  275,
-  276,  277,  278,  279,  280,  281,  282,  283,  284,   -1,
-   -1,   -1,   -1,  289,  290,   -1,   -1,   -1,   -1,   -1,
+  284,   -1,   -1,   -1,   -1,  289,  290,  291,  292,  293,
+  294,  295,  296,  297,   93,   -1,  300,  301,  302,  303,
+   -1,  305,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
    -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
+   -1,  257,  258,   -1,   -1,   -1,  262,  263,  264,  265,
+  266,  267,  268,  269,  270,  271,  272,  273,  274,  275,
+  276,  277,  278,  279,  280,  281,  282,  283,  284,   93,
+   -1,   -1,   -1,  289,  290,  291,  292,  293,  294,  295,
+  296,  297,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
+   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,  257,  258,
+   -1,  260,  261,  262,  263,  264,  265,  266,  267,  268,
+  269,  270,  271,  272,  273,  274,  275,  276,  277,  278,
+  279,  280,  281,  282,  283,  284,   -1,   -1,   -1,   -1,
+  289,  290,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
    -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,  257,  258,
    -1,   -1,   -1,  262,  263,  264,  265,  266,  267,  268,
   269,  270,  271,  272,  273,  274,  275,  276,  277,  278,
   279,  280,  281,  282,  283,  284,   -1,   -1,   -1,   -1,
-  289,  290,  262,  263,  264,  265,  266,  267,  268,  269,
+  289,  290,   -1,  262,  263,  264,  265,  266,  267,  268,
+  269,  270,  271,  272,  273,  274,  275,  276,  277,  278,
+  279,  280,  281,  282,  283,  284,   -1,   -1,   -1,   -1,
+  289,  290,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
+   -1,  300,  301,  302,  303,  304,  305,   -1,   -1,   -1,
+   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,  262,  263,
+  264,  265,  266,  267,  268,  269,  270,  271,  272,  273,
+  274,  275,  276,  277,  278,  279,  280,  281,  282,  283,
+  284,   -1,   -1,   -1,   -1,  289,  290,   -1,   -1,   -1,
+   -1,   -1,   -1,   -1,   -1,   -1,  300,  301,  302,  303,
+  304,  305,  262,  263,  264,  265,  266,  267,  268,  269,
   270,  271,  272,  273,  274,  275,  276,  277,  278,  279,
   280,  281,  282,  283,  284,   -1,   -1,   -1,   -1,  289,
   290,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,   -1,
-  300,  301,  302,  303,  304,  305,  262,  263,  264,  265,
-  266,  267,  268,  269,  270,  271,  272,  273,  274,  275,
-  276,  277,  278,  279,  280,  281,  282,  283,  284,   -1,
-   -1,   -1,   -1,  289,  290,   -1,   -1,   -1,   -1,   -1,
-   -1,   -1,   -1,   -1,  300,  301,  302,  303,  304,  305,
+  300,  301,  302,  303,  304,  305,
 };
 #define YYFINAL 1
 #ifndef YYDEBUG
@@ -349,8 +374,8 @@ static const char *yyname[] = {
 "TP_S32","TP_U64","TP_S64","STR","RAW","TCP","UDP","FUN","BEGIN_","END","HBO",
 "NBO","SEND","RECV","HEX","UNHEX","PRINT","IP","__IPN","__IPH","ARRAY",
 "__END_ARRAY","SLEEP","__DEBUG","OP_LG","OP_SM","OP_LEQ","OP_SEQ","OP_EQ",
-"OP_NEQ","OP_NOT","OP_IN","OP_OUT","INT","LONG","I64","QSTRING","PROG_ARG",
-"VAR_NAME",
+"OP_NEQ","OP_NOT","OP_IN","OP_OUT","INT","LONG","I64","QSTRING","VAR_NAME",
+"PROG_ARG",
 };
 static const char *yyrule[] = {
 "$accept : program",
@@ -358,18 +383,19 @@ static const char *yyrule[] = {
 "program : program program_item",
 "program_item : stmt",
 "program_item : cmd_define",
+"cmd_define : cmd_begin stmt_assert_list cmd_end stmt_sep",
+"cmd_begin : CMD",
+"cmd_begin : CMD VAR_NAME",
+"cmd_end : END CMD",
+"stmt_assert_list : stmt_assert",
+"stmt_assert_list : stmt_assert_list stmt_assert",
+"stmt_assert : stmt",
+"stmt_assert : assert_exp",
 "stmt : stmt_sep",
 "stmt : func_call_list stmt_sep",
 "stmt : declare stmt_sep",
 "func_call_list : func_call",
 "func_call_list : func_call_list func_call",
-"cmd_define : cmd_begin stmt_assert_list cmd_end stmt_sep",
-"cmd_begin : CMD",
-"cmd_begin : CMD VAR_NAME",
-"stmt_assert_list : stmt",
-"stmt_assert_list : stmt_assert_list stmt",
-"stmt_assert_list : stmt_assert_list assert_exp",
-"cmd_end : END CMD",
 "declare : constant_declare",
 "declare : post_declare",
 "declare : array_declare",
@@ -393,18 +419,21 @@ static const char *yyrule[] = {
 "stream_declare : sim_type_name stream_op simple_type",
 "define_declare : DEF constant_declare",
 "define_declare : DEF post_declare",
+"array_type_name : array_type VAR_NAME",
+"array_type_name : sim_type_name '[' ']'",
+"array_type_name : sim_type_name '[' expr ']'",
+"sim_type_name : simple_type VAR_NAME",
+"array_type : simple_type '[' ']'",
+"array_type : simple_type '[' expr ']'",
+"array_value : '{' arg_list_not_empty '}'",
+"array_value : QSTRING",
 "arg_list :",
 "arg_list : arg_list_not_empty",
 "arg_list_not_empty : expr",
 "arg_list_not_empty : arg_list_not_empty ',' expr",
-"array_type_name : sim_type_name '[' ']'",
-"array_type_name : sim_type_name '[' expr ']'",
-"sim_type_name : simple_type VAR_NAME",
 "expr : fix_value",
 "expr : func_call",
 "expr : VAR_NAME",
-"array_value : '{' arg_list '}'",
-"array_value : QSTRING",
 "fix_value : INT",
 "fix_value : LONG",
 "fix_value : I64",
@@ -685,59 +714,15 @@ case 4:
 	{DBG_YY("program_item 2");}
 break;
 case 5:
-	{DBG_YY("stmt 1");}
-break;
-case 6:
-	{DBG_YY("stmt 2");}
-break;
-case 7:
-	{
-				DBG_YY("stmt 3");
-				DBG_YY("$1 = "<<to_str(yyvsp[-1].declare_));
-				assert(yyvsp[-1].declare_);
-				program().AddStmt(yyvsp[-1].declare_);
-			}
-break;
-case 8:
-	{
-				DBG_YY("func_call_list 1 ");
-				DBG_YY("$1 = "<<to_str(yyvsp[0].func_call_));
-				assert(yyvsp[0].func_call_);
-				program().AddStmt(yyvsp[0].func_call_);
-			}
-break;
-case 9:
-	{
-				DBG_YY("func_call_list 2");
-				DBG_YY("$2 = "<<to_str(yyvsp[0].func_call_));
-				assert(yyvsp[0].func_call_);
-				program().AddStmt(yyvsp[0].func_call_);
-			}
-break;
-case 10:
 	{DBG_YY("cmd_define 1");}
 break;
-case 11:
-	{DBG_YY("cmd_begin 1");program().CmdBegin(0);}
+case 6:
+	{DBG_YY("cmd_begin 1");program().CmdBegin(-1);}
 break;
-case 12:
-	{DBG_YY("cmd_begin 2");program().CmdBegin(yyvsp[0].var_);}
+case 7:
+	{DBG_YY("cmd_begin 2");program().CmdBegin(yyvsp[0].strIdx_);}
 break;
-case 13:
-	{DBG_YY("stmt_list 1");}
-break;
-case 14:
-	{DBG_YY("stmt_list 2");}
-break;
-case 15:
-	{
-				DBG_YY("stmt_list 3");
-				DBG_YY("$2 = "<<to_str(yyvsp[0].assert_exp_));
-				assert(yyvsp[0].assert_exp_);
-				program().AddStmt(yyvsp[0].assert_exp_);
-			}
-break;
-case 16:
+case 8:
 	{
 				DBG_YY("cmd_end");
 				assert(CUR_CMD);
@@ -745,7 +730,37 @@ case 16:
 				program().CmdEnd();
 			}
 break;
+case 13:
+	{DBG_YY("stmt 1");}
+break;
+case 14:
+	{DBG_YY("stmt 2");}
+break;
+case 15:
+	{
+				DBG_YY("stmt 3");
+				DBG_YY("$1 = "<<to_str(yyvsp[-1].declare_));
+				assert(yyvsp[-1].declare_);
+				program().AddStmt(yyvsp[-1].declare_);
+			}
+break;
+case 16:
+	{
+				DBG_YY("func_call_list 1 ");
+				DBG_YY("$1 = "<<to_str(yyvsp[0].func_call_));
+				assert(yyvsp[0].func_call_);
+				program().AddStmt(yyvsp[0].func_call_);
+			}
+break;
 case 17:
+	{
+				DBG_YY("func_call_list 2");
+				DBG_YY("$2 = "<<to_str(yyvsp[0].func_call_));
+				assert(yyvsp[0].func_call_);
+				program().AddStmt(yyvsp[0].func_call_);
+			}
+break;
+case 18:
 	{
 				DBG_YY("declare 1");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].constDecl_));
@@ -755,7 +770,7 @@ case 17:
 				DBG_YY("$$ = "<<to_str(yyval.declare_));
 			}
 break;
-case 18:
+case 19:
 	{
 				DBG_YY("declare 2");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].postDecl_));
@@ -765,7 +780,7 @@ case 18:
 				DBG_YY("$$ = "<<to_str(yyval.declare_));
 			}
 break;
-case 19:
+case 20:
 	{
 				DBG_YY("declare 3");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].arrayDecl_));
@@ -775,7 +790,7 @@ case 19:
 				DBG_YY("$$ = "<<to_str(yyval.declare_));
 			}
 break;
-case 20:
+case 21:
 	{
 				DBG_YY("declare 4");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].assertDecl_));
@@ -785,7 +800,7 @@ case 20:
 				DBG_YY("$$ = "<<to_str(yyval.declare_));
 			}
 break;
-case 21:
+case 22:
 	{
 				DBG_YY("declare 5");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].streamDecl_));
@@ -795,7 +810,7 @@ case 21:
 				DBG_YY("$$ = "<<to_str(yyval.declare_));
 			}
 break;
-case 22:
+case 23:
 	{
 				DBG_YY("declare 6");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].defDecl_));
@@ -805,7 +820,7 @@ case 22:
 				DBG_YY("$$ = "<<to_str(yyval.declare_));
 			}
 break;
-case 23:
+case 24:
 	{
 				DBG_YY("func_call 1");
 				DBG_YY("$1 = "<<yyvsp[0].token_);
@@ -814,7 +829,7 @@ case 23:
 				DBG_YY("$$ = "<<to_str(yyval.func_call_));
 			}
 break;
-case 24:
+case 25:
 	{
 				DBG_YY("func_call 2");
 				DBG_YY("$1 = "<<yyvsp[-3].token_);
@@ -825,7 +840,7 @@ case 24:
 				DBG_YY("$$ = "<<to_str(yyval.func_call_));
 			}
 break;
-case 25:
+case 26:
 	{
 				DBG_YY("func_call 3");
 				DBG_YY("$1 = "<<yyvsp[-3].token_);
@@ -836,7 +851,7 @@ case 25:
 				DBG_YY("$$ = "<<to_str(yyval.func_call_));
 			}
 break;
-case 26:
+case 27:
 	{
 				DBG_YY("assert_exp 1");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].expr_));
@@ -851,7 +866,7 @@ case 26:
 				DBG_YY("$$ = "<<to_str(yyval.assert_exp_));
 			}
 break;
-case 27:
+case 28:
 	{
 				DBG_YY("assert_exp 2");
 				DBG_YY("$1 = "<<yyvsp[-1].token_);
@@ -863,7 +878,7 @@ case 27:
 				DBG_YY("$$ = "<<to_str(yyval.assert_exp_));
 			}
 break;
-case 28:
+case 29:
 	{
 				DBG_YY("constant_declare 1");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
@@ -876,7 +891,7 @@ case 28:
 				DBG_YY("$$ = "<<to_str(yyval.constDecl_));
 			}
 break;
-case 29:
+case 30:
 	{
 				DBG_YY("constant_declare 2");
 				DBG_YY("$1 = "<<to_str(yyvsp[-4].var_));
@@ -884,11 +899,11 @@ case 29:
 				assert(yyvsp[-4].var_);
 				yyval.constDecl_ = New<CConstDecl>(yyvsp[-4].var_->lineno_);
 				yyval.constDecl_->var_ = yyvsp[-4].var_;
-				yyval.constDecl_->AddArg(yyvsp[-1].arg_list_,LINE_NO);
+				yyval.constDecl_->SetArgList(yyvsp[-1].arg_list_,LINE_NO);
 				DBG_YY("$$ = "<<to_str(yyval.constDecl_));
 			}
 break;
-case 30:
+case 31:
 	{
 				DBG_YY("post_declare 1");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].var_));
@@ -898,7 +913,7 @@ case 30:
 				DBG_YY("$$ = "<<to_str(yyval.postDecl_));
 			}
 break;
-case 31:
+case 32:
 	{
 				DBG_YY("post_declare 2");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
@@ -911,7 +926,7 @@ case 31:
 				DBG_YY("$$ = "<<to_str(yyval.postDecl_));
 			}
 break;
-case 32:
+case 33:
 	{
 				DBG_YY("post_declare 3");
 				DBG_YY("$1 = "<<to_str(yyvsp[-3].var_));
@@ -919,11 +934,11 @@ case 32:
 				assert(yyvsp[-3].var_);
 				yyval.postDecl_ = New<CPostDecl>(yyvsp[-3].var_->lineno_);
 				yyval.postDecl_->var_ = yyvsp[-3].var_;
-				yyval.postDecl_->AddArg(yyvsp[-1].arg_list_,LINE_NO);
+				yyval.postDecl_->SetArgList(yyvsp[-1].arg_list_,LINE_NO);
 				DBG_YY("$$ = "<<to_str(yyval.postDecl_));
 			}
 break;
-case 33:
+case 34:
 	{
 				DBG_YY("array_declare 1");
 				DBG_YY("$1 = "<<to_str(yyvsp[0].var_));
@@ -933,7 +948,7 @@ case 33:
 				DBG_YY("$$ = "<<to_str(yyval.arrayDecl_));
 			}
 break;
-case 34:
+case 35:
 	{
 				DBG_YY("array_declare 2");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
@@ -946,7 +961,7 @@ case 34:
 				DBG_YY("$$ = "<<to_str(yyval.arrayDecl_));
 			}
 break;
-case 35:
+case 36:
 	{
 				DBG_YY("assert_declare 1");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
@@ -961,7 +976,7 @@ case 35:
 				DBG_YY("$$ = "<<to_str(yyval.assertDecl_));
 			}
 break;
-case 36:
+case 37:
 	{
 				DBG_YY("stream_declare 1");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
@@ -976,7 +991,7 @@ case 36:
 				DBG_YY("$$ = "<<to_str(yyval.streamDecl_));
 			}
 break;
-case 37:
+case 38:
 	{
 				DBG_YY("stream_declare 2");
 				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
@@ -990,7 +1005,7 @@ case 37:
 				DBG_YY("$$ = "<<to_str(yyval.streamDecl_));
 			}
 break;
-case 38:
+case 39:
 	{
 				DBG_YY("define_declare 1");
 				DBG_YY("$2 = "<<to_str(yyvsp[0].constDecl_));
@@ -1000,7 +1015,7 @@ case 38:
 				DBG_YY("$$ = "<<to_str(yyval.defDecl_));
 			}
 break;
-case 39:
+case 40:
 	{
 				DBG_YY("define_declare 2");
 				DBG_YY("$2 = "<<to_str(yyvsp[0].postDecl_));
@@ -1010,108 +1025,7 @@ case 39:
 				DBG_YY("$$ = "<<to_str(yyval.defDecl_));
 			}
 break;
-case 40:
-	{
-				DBG_YY("arg_list 1");
-				DBG_YY("$$ = "<<to_str(yyval.arg_list_));
-			}
-break;
-case 41:
-	{
-				DBG_YY("arg_list 2");
-				DBG_YY("$1 = "<<to_str(yyvsp[0].arg_list_));
-				assert(yyvsp[0].arg_list_);
-				yyval.arg_list_ = yyvsp[0].arg_list_;
-				DBG_YY("$$ = "<<to_str(yyval.arg_list_));
-			}
-break;
-case 42:
-	{
-				DBG_YY("arg_list_not_empty 1");
-				DBG_YY("$1 = "<<to_str(yyvsp[0].expr_));
-				assert(yyvsp[0].expr_);
-				yyval.arg_list_ = New<CArgList>(LINE_NO);
-				yyval.arg_list_->Add(yyvsp[0].expr_);
-				DBG_YY("$$ = "<<to_str(yyval.arg_list_));
-			}
-break;
-case 43:
-	{
-				DBG_YY("arg_list_not_empty 2");
-				DBG_YY("$1 = "<<to_str(yyvsp[-2].arg_list_));
-				DBG_YY("$3 = "<<to_str(yyvsp[0].expr_));
-				assert(yyvsp[-2].arg_list_);
-				assert(yyvsp[0].expr_);
-				yyval.arg_list_ = yyvsp[-2].arg_list_;
-				yyval.arg_list_->Add(yyvsp[0].expr_);
-				DBG_YY("$$ = "<<to_str(yyval.arg_list_));
-			}
-break;
-case 44:
-	{
-				DBG_YY("array_type_name 1");
-				DBG_YY("$1 = "<<to_str(yyvsp[-2].var_));
-				assert(yyvsp[-2].var_);
-				yyval.var_ = yyvsp[-2].var_;
-				yyval.var_->flag_ = TF_ARRAY;
-				DBG_YY("$$ = "<<to_str(yyval.var_));
-			}
-break;
-case 45:
-	{
-				DBG_YY("array_type_name 2");
-				DBG_YY("$1 = "<<to_str(yyvsp[-3].var_));
-				DBG_YY("$3 = "<<to_str(yyvsp[-1].expr_));
-				assert(yyvsp[-3].var_);
-				assert(yyvsp[-1].expr_);
-				yyval.var_->flag_ = TF_ARRAY_SZ;
-				yyval.var_->sz_expr_ = yyvsp[-1].expr_;
-				DBG_YY("$$ = "<<to_str(yyval.var_));
-			}
-break;
-case 46:
-	{
-				DBG_YY("sim_type_name 1");
-				DBG_YY("$1 = "<<yyvsp[-1].token_);
-				DBG_YY("$2 = "<<to_str(yyvsp[0].var_));
-				assert(yyvsp[0].var_);
-				yyval.var_ = CVariable::CheckRedefine(yyvsp[0].var_,LINE_NO,CUR_CMD);
-				yyval.var_->flag_ = TF_SIMPLE;
-				yyval.var_->tp_token_ = yyvsp[-1].token_;
-				DBG_YY("$$ = "<<to_str(yyval.var_));
-			}
-break;
 case 47:
-	{
-				DBG_YY("expr 1");
-				DBG_YY("$1 = "<<to_str(yyvsp[0].fix_value_));
-				assert(yyvsp[0].fix_value_);
-				yyval.expr_ = New<CExpr>(LINE_NO);
-				yyval.expr_->fix_value_ = yyvsp[0].fix_value_;
-				DBG_YY("$$ = "<<to_str(yyval.expr_));
-			}
-break;
-case 48:
-	{
-				DBG_YY("expr 2");
-				DBG_YY("$1 = "<<to_str(yyvsp[0].func_call_));
-				assert(yyvsp[0].func_call_);
-				yyval.expr_ = New<CExpr>(LINE_NO);
-				yyval.expr_->func_call_ = yyvsp[0].func_call_;
-				DBG_YY("$$ = "<<to_str(yyval.expr_));
-			}
-break;
-case 49:
-	{
-				DBG_YY("expr 3");
-				DBG_YY("$1 = "<<to_str(yyvsp[0].var_));
-				assert(yyvsp[0].var_);
-				yyval.expr_ = New<CExpr>(LINE_NO);
-				yyval.expr_->var_ = yyvsp[0].var_;
-				DBG_YY("$$ = "<<to_str(yyval.expr_));
-			}
-break;
-case 50:
 	{
 				DBG_YY("array_value 1");
 				DBG_YY("$2 = "<<to_str(yyvsp[-1].arg_list_));
@@ -1122,7 +1036,7 @@ case 50:
 	
 			}
 break;
-case 51:
+case 48:
 	{
 				DBG_YY("array_value 2");
 				DBG_YY("$1 = "<<yyvsp[0].strIdx_);
@@ -1131,7 +1045,74 @@ case 51:
 				DBG_YY("$$ = "<<to_str(yyval.array_val_));
 			}
 break;
+case 49:
+	{
+				DBG_YY("arg_list 1");
+				DBG_YY("$$ = "<<to_str(yyval.arg_list_));
+			}
+break;
+case 50:
+	{
+				DBG_YY("arg_list 2");
+				DBG_YY("$1 = "<<to_str(yyvsp[0].arg_list_));
+				assert(yyvsp[0].arg_list_);
+				yyval.arg_list_ = yyvsp[0].arg_list_;
+				DBG_YY("$$ = "<<to_str(yyval.arg_list_));
+			}
+break;
+case 51:
+	{
+				DBG_YY("arg_list_not_empty 1");
+				DBG_YY("$1 = "<<to_str(yyvsp[0].expr_));
+				assert(yyvsp[0].expr_);
+				yyval.arg_list_ = New<CArgList>(LINE_NO);
+				yyval.arg_list_->AddArg(yyvsp[0].expr_);
+				DBG_YY("$$ = "<<to_str(yyval.arg_list_));
+			}
+break;
 case 52:
+	{
+				DBG_YY("arg_list_not_empty 2");
+				DBG_YY("$1 = "<<to_str(yyvsp[-2].arg_list_));
+				DBG_YY("$3 = "<<to_str(yyvsp[0].expr_));
+				assert(yyvsp[-2].arg_list_);
+				assert(yyvsp[0].expr_);
+				yyval.arg_list_ = yyvsp[-2].arg_list_;
+				yyval.arg_list_->AddArg(yyvsp[0].expr_);
+				DBG_YY("$$ = "<<to_str(yyval.arg_list_));
+			}
+break;
+case 53:
+	{
+				DBG_YY("expr 1");
+				DBG_YY("$1 = "<<to_str(yyvsp[0].fix_value_));
+				assert(yyvsp[0].fix_value_);
+				yyval.expr_ = New<CExpr>(LINE_NO);
+				yyval.expr_->fix_value_ = yyvsp[0].fix_value_;
+				DBG_YY("$$ = "<<to_str(yyval.expr_));
+			}
+break;
+case 54:
+	{
+				DBG_YY("expr 2");
+				DBG_YY("$1 = "<<to_str(yyvsp[0].func_call_));
+				assert(yyvsp[0].func_call_);
+				yyval.expr_ = New<CExpr>(LINE_NO);
+				yyval.expr_->func_call_ = yyvsp[0].func_call_;
+				DBG_YY("$$ = "<<to_str(yyval.expr_));
+			}
+break;
+case 55:
+	{
+				DBG_YY("expr 3");
+				DBG_YY("$1 = "<<yyvsp[0].strIdx_);
+				assert(yyvsp[0].strIdx_);
+				yyval.expr_ = New<CExpr>(LINE_NO);
+				yyval.expr_->varIndex_ = yyvsp[0].strIdx_;
+				DBG_YY("$$ = "<<to_str(yyval.expr_));
+			}
+break;
+case 56:
 	{
 				DBG_YY("fix_value 1");
 				DBG_YY("$1 = "<<yyvsp[0].int_);
@@ -1141,7 +1122,7 @@ case 52:
 				DBG_YY("$$ = "<<to_str(yyval.fix_value_));
 			}
 break;
-case 53:
+case 57:
 	{
 				DBG_YY("fix_value 2");
 				DBG_YY("$1 = "<<yyvsp[0].long_);
@@ -1151,7 +1132,7 @@ case 53:
 				DBG_YY("$$ = "<<to_str(yyval.fix_value_));
 			}
 break;
-case 54:
+case 58:
 	{
 				DBG_YY("fix_value 3");
 				DBG_YY("$1 = "<<yyvsp[0].i64_);
@@ -1161,7 +1142,7 @@ case 54:
 				DBG_YY("$$ = "<<to_str(yyval.fix_value_));
 			}
 break;
-case 55:
+case 59:
 	{
 				DBG_YY("fix_value 4");
 				DBG_YY("$1 = "<<yyvsp[0].strIdx_);
@@ -1171,7 +1152,7 @@ case 55:
 				DBG_YY("$$ = "<<to_str(yyval.fix_value_));
 			}
 break;
-case 56:
+case 60:
 	{
 				DBG_YY("fix_value 5");
 				DBG_YY("$1 = "<<yyvsp[0].prog_arg_);
@@ -1181,124 +1162,124 @@ case 56:
 				DBG_YY("$$ = "<<to_str(yyval.fix_value_));
 			}
 break;
-case 57:
+case 61:
 	{DBG_YY("func_name = FUN("<<FUN<<")");yyval.token_ = FUN;}
 break;
-case 58:
+case 62:
 	{DBG_YY("func_name = BEGIN("<<BEGIN_<<")");yyval.token_ = BEGIN_;}
 break;
-case 59:
+case 63:
 	{DBG_YY("func_name = END("<<END<<")");yyval.token_ = END;}
 break;
-case 60:
+case 64:
 	{DBG_YY("func_name = HBO("<<HBO<<")");yyval.token_ = HBO;}
 break;
-case 61:
+case 65:
 	{DBG_YY("func_name = NBO("<<NBO<<")");yyval.token_ = NBO;}
 break;
-case 62:
+case 66:
 	{DBG_YY("func_name = SEND("<<SEND<<")");yyval.token_ = SEND;}
 break;
-case 63:
+case 67:
 	{DBG_YY("func_name = RECV("<<RECV<<")");yyval.token_ = RECV;}
 break;
-case 64:
+case 68:
 	{DBG_YY("func_name = HEX("<<HEX<<")");yyval.token_ = HEX;}
 break;
-case 65:
+case 69:
 	{DBG_YY("func_name = UNHEX("<<UNHEX<<")");yyval.token_ = UNHEX;}
 break;
-case 66:
+case 70:
 	{DBG_YY("func_name = PRINT("<<PRINT<<")");yyval.token_ = PRINT;}
 break;
-case 67:
+case 71:
 	{DBG_YY("func_name = IP NBO("<<__IPN<<")");yyval.token_ = __IPN;}
 break;
-case 68:
+case 72:
 	{DBG_YY("func_name = IP HBO("<<__IPH<<")");yyval.token_ = __IPH;}
 break;
-case 69:
+case 73:
 	{DBG_YY("func_name = ARRAY("<<ARRAY<<")");yyval.token_ = ARRAY;}
 break;
-case 70:
+case 74:
 	{DBG_YY("func_name = END ARRAY("<<__END_ARRAY<<")");yyval.token_ = __END_ARRAY;}
 break;
-case 71:
+case 75:
 	{DBG_YY("func_name = SLEEP("<<SLEEP<<")");yyval.token_ = SLEEP;}
 break;
-case 72:
+case 76:
 	{DBG_YY("func_name = DEBUG("<<__DEBUG<<")");yyval.token_ = __DEBUG;}
 break;
-case 73:
+case 77:
 	{DBG_YY("simple_type = U8("<<TP_U8<<")");yyval.token_ = TP_U8;}
 break;
-case 74:
+case 78:
 	{DBG_YY("simple_type = S8("<<TP_S8<<")");yyval.token_ = TP_S8;}
 break;
-case 75:
+case 79:
 	{DBG_YY("simple_type = U16("<<TP_U16<<")");yyval.token_ =  TP_U16;}
 break;
-case 76:
+case 80:
 	{DBG_YY("simple_type = S16("<<TP_S16<<")");yyval.token_ = TP_S16;}
 break;
-case 77:
+case 81:
 	{DBG_YY("simple_type = U32("<<TP_U32<<")");yyval.token_ = TP_U32;}
 break;
-case 78:
+case 82:
 	{DBG_YY("simple_type = S32("<<TP_S32<<")");yyval.token_ = TP_S32;}
 break;
-case 79:
+case 83:
 	{DBG_YY("simple_type = U64("<<TP_U64<<")");yyval.token_ = TP_U64;}
 break;
-case 80:
+case 84:
 	{DBG_YY("simple_type = S64("<<TP_S64<<")");yyval.token_ = TP_S64;}
 break;
-case 81:
+case 85:
 	{DBG_YY("simple_type = STR("<<STR<<")");yyval.token_ = STR;}
 break;
-case 82:
-	{DBG_YY("simple_type = RAW("<<STR<<")");yyval.token_ = RAW;}
-break;
-case 83:
-	{DBG_YY("simple_type = TCP("<<TCP<<")");yyval.token_ = TCP;}
-break;
-case 84:
-	{DBG_YY("simple_type = UDP("<<UDP<<")");yyval.token_ = UDP;}
-break;
-case 85:
-	{DBG_YY("comp_op = OP_LG("<<OP_LG<<")");yyval.token_ = OP_LG;}
-break;
 case 86:
-	{DBG_YY("comp_op = OP_SM("<<OP_SM<<")");yyval.token_ = OP_SM;}
+	{DBG_YY("simple_type = RAW("<<RAW<<")");yyval.token_ = RAW;}
 break;
 case 87:
-	{DBG_YY("comp_op = OP_LEQ("<<OP_LEQ<<")");yyval.token_ = OP_LEQ;}
+	{DBG_YY("simple_type = TCP("<<TCP<<")");yyval.token_ = TCP;}
 break;
 case 88:
-	{DBG_YY("comp_op = OP_SEQ("<<OP_SEQ<<")");yyval.token_ = OP_SEQ;}
+	{DBG_YY("simple_type = UDP("<<UDP<<")");yyval.token_ = UDP;}
 break;
 case 89:
-	{DBG_YY("comp_op = OP_EQ("<<OP_EQ<<")");yyval.token_ = OP_EQ;}
+	{DBG_YY("comp_op = OP_LG("<<OP_LG<<")");yyval.token_ = OP_LG;}
 break;
 case 90:
-	{DBG_YY("comp_op = OP_NEQ("<<OP_NEQ<<")");yyval.token_ = OP_NEQ;}
+	{DBG_YY("comp_op = OP_SM("<<OP_SM<<")");yyval.token_ = OP_SM;}
 break;
 case 91:
-	{DBG_YY("comp_op = OP_NOT("<<OP_NOT<<")");yyval.token_ = OP_NOT;}
+	{DBG_YY("comp_op = OP_LEQ("<<OP_LEQ<<")");yyval.token_ = OP_LEQ;}
 break;
 case 92:
-	{DBG_YY("stream_op = OP_IN("<<OP_IN<<")");yyval.token_ = OP_IN;}
+	{DBG_YY("comp_op = OP_SEQ("<<OP_SEQ<<")");yyval.token_ = OP_SEQ;}
 break;
 case 93:
-	{DBG_YY("stream_op = OP_OUT("<<OP_OUT<<")");yyval.token_ = OP_OUT;}
+	{DBG_YY("comp_op = OP_EQ("<<OP_EQ<<")");yyval.token_ = OP_EQ;}
 break;
 case 94:
-	{DBG_YY("stmt_sep = ;");}
+	{DBG_YY("comp_op = OP_NEQ("<<OP_NEQ<<")");yyval.token_ = OP_NEQ;}
 break;
 case 95:
-	{DBG_YY("stmt_sep = NL");}
+	{DBG_YY("comp_op = OP_NOT("<<OP_NOT<<")");yyval.token_ = OP_NOT;}
 break;
 case 96:
+	{DBG_YY("stream_op = OP_IN("<<OP_IN<<")");yyval.token_ = OP_IN;}
+break;
+case 97:
+	{DBG_YY("stream_op = OP_OUT("<<OP_OUT<<")");yyval.token_ = OP_OUT;}
+break;
+case 98:
+	{DBG_YY("stmt_sep = ;");}
+break;
+case 99:
+	{DBG_YY("stmt_sep = NL");}
+break;
+case 100:
 	{DBG_YY("stmt_sep = EOF");}
 break;
     }

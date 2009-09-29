@@ -26,7 +26,7 @@ struct CUdp : public CUdpSocket
 
 struct CValue
 {
-    int type_;
+    int type_;  //DT_XXX
     union{
         int int_;
         long long_;

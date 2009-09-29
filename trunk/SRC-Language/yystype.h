@@ -15,7 +15,7 @@ struct yystype{
     CSharedPtr<CFixValue>   fix_value_;
     CSharedPtr<CArrayValue> array_val_;
     CSharedPtr<CExpr>       expr_;
-    CSharedPtr<CVariable>   var_;
+    //CSharedPtr<CVariable>   var_;
     CSharedPtr<CArgList>    arg_list_;
     CSharedPtr<CConstDecl>  constDecl_;
     CSharedPtr<CPostDecl>   postDecl_;
