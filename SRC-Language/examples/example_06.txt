@@ -1,7 +1,7 @@
 # This is an example of SRC Language
 //Post Evaluation example
 
-STR server_ip = "192.168.13.120";
+STR server_ip = "192.168.123.105";
 U16 server_port = 9531;
 STR server_ip2 = server_ip
 U16 server_port2 = server_port;
@@ -9,6 +9,8 @@ U16 server_port2 = server_port;
 TCP(server_ip2,server_port)
 
 NET_BYTE_ORDER
+
+DEBUG
 
 CMD QueryCommand SEND
 //http wrap

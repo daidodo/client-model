@@ -1,9 +1,9 @@
-#define TEST 1
+#define TEST 0
 
 #include <iostream>
 #include "SRC_language.h"
 
-#ifdef TEST
+#if TEST
 #   include "test.h"
 #endif
 

@@ -312,7 +312,11 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         return;
     }
     decl->val_ = decl->var_->Initial(decl->lineno_);
-    assert(!decl->val_);
+    if(!decl->val_){
+        RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<RealVarname(vname)
+            <<"'");
+        return;
+    }
     if(cmd->IsSend() && !cmd->PutArray(decl)){
         RUNTIME_ERR(decl->lineno_,"cannot pack array '"<<RealVarname(vname)
             <<"'");
