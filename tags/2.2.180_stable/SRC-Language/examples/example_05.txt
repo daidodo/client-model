@@ -1,8 +1,9 @@
 # This is an example of SRC Language
 //HTTP Encrypted Send Recv Commands example
 
-TCP("192.168.13.120",9531)
+TCP("192.168.123.105",9531)
 NET_BYTE_ORDER
+DEBUG
 
 CMD QueryCommand SEND
 //http wrap

@@ -28,9 +28,9 @@ SRCDLL_API void SRC_init();
 SRCDLL_API bool SRC_compile(const char * filename);
 
 //interpret and run(解释执行)
-SRCDLL_API bool SRC_run(int argc,const char * const * argv);
+SRCDLL_API bool SRC_run(int argc = 0,const char * const * argv = 0);
 
-//register user-defined function(注册自定义函数)
+//register user-defined function(注册用户自定义函数)
 SRCDLL_API bool SRC_register_function(const char * func_name
     , __SRC_UserFunc func_ptr
     , unsigned int dst_len_max = 65536);
