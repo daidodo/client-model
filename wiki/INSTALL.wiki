@@ -1,6 +1,7 @@
                 SRC编译器 安装指南：
 
 For Linux
+
 1. 获取SRC编译器在Linux下的发布版本“src_xxx.tar.gz”
 2. 解压文件：
 	tar -xzvf src_xxx.tar.gz
@@ -24,6 +25,7 @@ For Linux
     所有复制到/usr/local目录下的SRC编译器文件都会被删除。
 
 For Windows
+
 1. 获取SRC编译器在Windows下的发布版本“SRC Compiler xxx for win32.rar”
 2. 解压至任意目录
 
