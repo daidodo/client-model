@@ -38,7 +38,7 @@ uninstall :
 	$(RM) $(INSTALL_INC_DIR)/$(INC_TARGET)
 
 gen :
-	@./gen_gram.sh
+	./gen_gram.sh
 
 out : $(OUT_TARGET)
 
