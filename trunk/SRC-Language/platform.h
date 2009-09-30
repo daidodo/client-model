@@ -32,13 +32,7 @@ typedef unsigned __int32    U32;
 typedef __int64             S64;
 typedef unsigned __int64    U64;
 
-#if sizeof(size_t) == 2
-typedef S16 ssize_t;
-#elif sizeof(size_t) == 4
 typedef S32 ssize_t;
-#elif sizeof(size_t) == 8
-typedef S64 ssize_t;
-#endif
 
 template<typename T>
 T bswap_16(T a){

@@ -293,16 +293,16 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processArray decl="<<to_str(decl));
     DBG_RT("processArray cmd="<<to_str(cmd));
     assert(cmd);
-    assert(decl->var_->datatype_);
+    assert(decl->var_->array_type_);
     const std::string & vname = decl->var_->varname_;
-    if(decl->var_->datatype_->sz_expr_){
-        CSharedPtr<CValue> sv = decl->var_->datatype_->sz_expr_->Evaluate();
+    if(decl->var_->array_type_->sz_expr_){
+        CSharedPtr<CValue> sv = decl->var_->array_type_->sz_expr_->Evaluate();
         if(!sv){
             RUNTIME_ERR(decl->lineno_,"cannot evaluate size of array '"
                 <<RealVarname(vname)<<"'");
             return;
         }
-        if(!sv->ToInteger(decl->var_->datatype_->sz_)){
+        if(!sv->ToInteger(decl->var_->array_type_->sz_)){
             RUNTIME_ERR(decl->lineno_,"type mismatch for size of array '"
                 <<RealVarname(vname)<<"'");
             return;
@@ -312,7 +312,11 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         return;
     }
     decl->val_ = decl->var_->Initial(decl->lineno_);
-    assert(!decl->val_);
+    if(!decl->val_){
+        RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<RealVarname(vname)
+            <<"'");
+        return;
+    }
     if(cmd->IsSend() && !cmd->PutArray(decl)){
         RUNTIME_ERR(decl->lineno_,"cannot pack array '"<<RealVarname(vname)
             <<"'");
