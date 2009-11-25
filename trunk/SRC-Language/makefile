@@ -49,11 +49,6 @@ lib : $(LIB_TARGET)
 
 so : $(SO_TARGET)
 
-deps : $(DEPS)
-
-%.d : %.cpp $(YACC_OBJ)
-	@$(CXX) -MM $(INCLUDE) -o $*.d $<
-
 $(OUT_TARGET) : $(OBJS)
 	$(CXX) -o $@ $^
 
@@ -83,6 +78,7 @@ ifneq (${MAKECMDGOALS},clean)
 ifneq (${MAKECMDGOALS},cleandist)
 ifneq (${MAKECMDGOALS},cleanall)
 ifneq (${MAKECMDGOALS},gen)
+ifneq (${MAKECMDGOALS},love)
 sinclude $(DEPS)
 endif
 endif
@@ -90,4 +86,4 @@ endif
 endif
 endif
 endif
-
+endif
