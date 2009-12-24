@@ -23,8 +23,8 @@ OBJS := $(CPP_SRC:.cpp=.o)
 
 DEPS := $(CPP_SRC:.cpp=.d)
 
-CXXFLAGS += MD
-CFLAGS += MD
+CXXFLAGS += -MD
+CFLAGS += -MD
 
 all : out lib so
 	@$(CP) $(INC_TARGET) $(BIN_DIR)
