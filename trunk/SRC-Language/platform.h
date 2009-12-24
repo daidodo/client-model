@@ -21,7 +21,9 @@
 #   endif
 
 #   define MSG_NOSIGNAL 0
-#   define EWOULDBLOCK  WSAEWOULDBLOCK
+#	ifndef EWOULDBLOCK
+#   	define EWOULDBLOCK  WSAEWOULDBLOCK
+#	endif
 
 typedef __int8              S8;
 typedef unsigned __int8     U8;
