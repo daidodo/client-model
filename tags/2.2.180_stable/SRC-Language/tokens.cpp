@@ -270,6 +270,8 @@ CSharedPtr<CValue> FunEvaluate(int fun_token,const std::vector<CSharedPtr<CValue
             return EvaluateSTR(DT_STR2,args,lineno);
         case STR4:
             return EvaluateSTR(DT_STR4,args,lineno);
+        case STR:
+            return EvaluateSTR(DT_STR,args,lineno);
         case RAW:
             return EvaluateRAW(args,lineno);
         case TCP:
