@@ -72,7 +72,4 @@ const int RET_SIGN_MISMATCH = -1;    //signed, unsigned mismatch
 const int RET_TYPE_ERROR = -2;       //argument type error
 const int RET_OP_ERROR = -3;         //operator error
 
-// string length encoding size
-const int STR_LEN_SZ = 4;
-
 #endif
