@@ -80,6 +80,12 @@ int FunRetType(int fun_token,const std::vector<int> * types)
         case STR:
         case HEX:case UNHEX:
             return DT_STR;
+        case STR1:
+            return DT_STR1;
+        case STR2:
+            return DT_STR2;
+        case STR4:
+            return DT_STR4;
         case RAW:
             return DT_RAW;
         case TCP:
@@ -111,6 +117,7 @@ size_t FunArgCheck(int fun_token,const std::vector<int> & types,CSharedPtr<CArgL
             else if(types.size() > 1)
                 return 2;
             break;}
+        case STR1:case STR2:case STR4:
         case STR:case RAW:{         //string
             if(types.size() == 1 && !DT_IsStrOrPA(types[0]))
                 return 1;
@@ -257,8 +264,12 @@ CSharedPtr<CValue> FunEvaluate(int fun_token,const std::vector<CSharedPtr<CValue
             return EvaluateU64(args,lineno);
         case TP_S64:
             return EvaluateS64(args,lineno);
-        case STR:
-            return EvaluateSTR(args,lineno);
+        case STR1:
+            return EvaluateSTR(DT_STR1,args,lineno);
+        case STR2:
+            return EvaluateSTR(DT_STR2,args,lineno);
+        case STR4:
+            return EvaluateSTR(DT_STR4,args,lineno);
         case RAW:
             return EvaluateRAW(args,lineno);
         case TCP:
