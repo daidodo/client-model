@@ -468,8 +468,11 @@ std::string CDeclare::ToString() const{
         <<",var_="<<signa(var_)
         <<",op_token_="<<op_token_
         <<",expr_="<<signa(expr_)
+        <<",arglist_="<<signa(arglist_)
         <<",eva_priority_="<<eva_priority_
         <<",val_="<<signa(val_)
+        <<",vals_.size()="<<vals_.size()
+        <<",offset_="<<offset_
         <<")";
     return oss.str();
 }
@@ -744,10 +747,29 @@ bool CCmd::PutValue(CSharedPtr<CValue> v)
 
 bool CCmd::PutArray(CSharedPtr<CDeclare> d)
 {
-    assert(d && d->val_ && d->var_->array_type_->sz_ >= 0);
-    for(int i = 0;i < d->var_->array_type_->sz_;++i)
-        if(!(outds_<<*d->val_))
+    assert(d && d->var_->array_type_->sz_ >= 0);
+    if(!d->var_->array_type_->has_sz_)
+        outds_<<d->var_->array_type_->sz_;
+    DBG_RT("d->vals_.size()="<<d->vals_.size());
+    if(!d->vals_.empty()){
+        for(size_t i = 0;i < d->vals_.size();++i){
+            DBG_RT("d->vals_["<<i<<"]="<<to_str(d->vals_[i]));
+            if(!(outds_<<*d->vals_[i])){
+                DBG_RT("outds_.Status()="<<outds_.Status());
+                return false;
+            }
+        }
+    }else if(d->val_){  // char array
+        assert(d->val_->IsStrOrPA());
+        outds_<<Manip::raw(d->val_->str_.c_str(),d->val_->str_.length());
+    }else{
+        CSharedPtr<CValue> v = d->var_->Initial(d->lineno_);
+        if(!v)
             return false;
+        for(int i = 0;i < d->var_->array_type_->sz_;++i)
+            if(!(outds_<<*v))
+                return false;
+    }
     return true;
 }
 

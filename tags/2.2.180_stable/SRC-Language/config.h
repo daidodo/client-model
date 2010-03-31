@@ -5,6 +5,7 @@
 #   define __LEXICAL_DEBUG 0
 #   define __SYNTAX_DEBUG  0
 #   define __RUNTIME_DEBUG 0
+const int MAX_ERRORS = 3;
 #else
 //print lexical debug info
 #   define __LEXICAL_DEBUG 0
@@ -19,4 +20,5 @@
 //show results
 #define __SHOW_RESULTS  1
 
+const int MAX_ERRORS = 0;
 #endif

@@ -34,7 +34,9 @@ std::string CValue::ToString() const
         case DT_S32:oss<<",s32_="<<s32_;break;
         case DT_U64:oss<<",u64_="<<u64_;break;
         case DT_S64:oss<<",s64_="<<s64_;break;
-        case DT_STR:oss<<",str_="<<str_;break;
+        case DT_STR1:
+        case DT_STR2:
+        case DT_STR4:oss<<",str_="<<str_;break;
         case DT_RAW:oss<<",raw_="<<str_;break;
         case DT_TCP:oss<<",tcp_="<<to_str(tcp_);break;
         case DT_UDP:oss<<",udp_="<<to_str(udp_);break;
@@ -58,7 +60,10 @@ std::string CValue::ShowValue(bool hasLen) const
         case DT_S32:oss<<s32_;break;
         case DT_U64:oss<<u64_;break;
         case DT_S64:oss<<s64_;break;
-        case DT_STR:case DT_RAW:oss<<Dump(str_,size_t(-1),hasLen);break;
+        case DT_STR1:
+        case DT_STR2:
+        case DT_STR4:
+        case DT_RAW:oss<<Dump(str_,size_t(-1),hasLen);break;
         case DT_TCP:oss<<tcp_->ToString();break;
         case DT_UDP:oss<<udp_->ToString();break;
         case DT_PA:return str_;
@@ -215,6 +220,24 @@ bool CValue::StreamOut(const CValue & v,int lineno)
     return true;
 }
 
+bool CValue::CastType(int type)
+{
+    if(DT_IsInteger(type)){
+        U64 v;
+        if(!ToInteger(v))
+            return false;
+        type_ = type;
+        if(!FromInteger(v))
+            return false;
+    }else if(DT_IsString(type)){
+        if(!IsStrOrPA())
+            return false;
+        type_ = type;
+    }else
+        return false;
+    return true;
+}
+
 COutByteStream & operator <<(COutByteStream & ds,const CValue & v)
 {
     switch(v.type_){
@@ -226,7 +249,23 @@ COutByteStream & operator <<(COutByteStream & ds,const CValue & v)
         case DT_S32:ds<<v.s32_;break;
         case DT_U64:ds<<v.u64_;break;
         case DT_S64:ds<<v.s64_;break;
-        case DT_STR:ds<<v.str_;break;
+        case DT_STR1:
+            if(v.str_.length() > U8(-1))
+                ds.Status(2);
+            else{
+                ds<<U8(v.str_.length());
+                ds<<Manip::raw(v.str_.c_str(),v.str_.length());
+            }
+            break;
+        case DT_STR2:
+            if(v.str_.length() > U16(-1))
+                ds.Status(2);
+            else{
+                ds<<U16(v.str_.length());
+                ds<<Manip::raw(v.str_.c_str(),v.str_.length());
+            }
+            break;
+        case DT_STR4:ds<<v.str_;break;
         case DT_RAW:ds<<Manip::raw(v.str_.c_str(),v.str_.length());break;
         default:ds.Status(2);
     }
@@ -244,7 +283,21 @@ CInByteStream & operator >>(CInByteStream & ds,CValue & v)
         case DT_S32:ds>>v.s32_;break;
         case DT_U64:ds>>v.u64_;break;
         case DT_S64:ds>>v.s64_;break;
-        case DT_STR:ds>>v.str_;break;
+        case DT_STR1:{
+            U8 len = 0;
+            ds>>len;
+            v.str_.resize(len);
+            ds>>Manip::raw(&v.str_[0],v.str_.size());
+            break;
+        }
+        case DT_STR2:{
+            U16 len = 0;
+            ds>>len;
+            v.str_.resize(len);
+            ds>>Manip::raw(&v.str_[0],v.str_.size());
+            break;
+        }
+        case DT_STR4:ds>>v.str_;break;
         default:ds.Status(2);
     }
     return ds;
