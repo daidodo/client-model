@@ -369,8 +369,12 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     if(cmd->IsSend() && !cmd->PutArray(decl)){
         RUNTIME_ERR(decl->lineno_,"cannot pack array '"<<RealVarname(vname)
             <<"'");
-    }else if(cmd->IsRecv() && !cmd->GetArray(decl)){
-        ASSERT_FAIL(cmd,decl->lineno_,"recv '"<<RealVarname(vname)<<"' failed");
+    }else if(cmd->IsRecv()){
+        if(!decl->val_)
+            decl->val_ = decl->var_->Initial(decl->lineno_);
+        if(!cmd->GetArray(decl)){
+            ASSERT_FAIL(cmd,decl->lineno_,"recv '"<<RealVarname(vname)<<"' failed");
+        }
     }
 }
 

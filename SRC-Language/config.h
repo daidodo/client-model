@@ -13,6 +13,8 @@ const int MAX_ERRORS = 3;
 #   define __SYNTAX_DEBUG  0
 //print runtime debug info
 #   define __RUNTIME_DEBUG 0
+
+const int MAX_ERRORS = 0;
 #endif
 
 //establish real connection
@@ -20,5 +22,4 @@ const int MAX_ERRORS = 3;
 //show results
 #define __SHOW_RESULTS  1
 
-const int MAX_ERRORS = 0;
 #endif
