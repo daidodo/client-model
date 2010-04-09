@@ -74,16 +74,19 @@ inline int __number_unit(T v,int u)
 int str2int(const char * str,size_t len)
 {
     assert(str && len);
-    int ret = 0;
     if(*str == '+')
         return str2int(str + 1,len - 1);
     if(*str == '-')
         return -str2int(str + 1,len - 1);
+    unsigned int ret = 0;
     if(*str == '0'){
         if(len > 1)
             ret = str2num_base8<int>(str + 1,len - 1);
-    }else
-        ret = atoi(str);
+    }else{
+        ret = 0;
+        std::istringstream iss(str);
+        iss>>ret;
+    }
     return __number_unit(ret,str[len - 1]);
 }
 
@@ -94,12 +97,15 @@ long str2long(const char * str,size_t len)
         return str2long(str + 1,len - 1);
     if(*str == '-')
         return -str2long(str + 1,len - 1);
-    long ret = 0;
+    unsigned long ret = 0;
     if(*str == '0'){
         if(len > 1)
             ret = str2num_base8<long>(str + 1,len - 1);
-    }else
-        ret = atol(str);
+    }else{
+        ret = 0;
+        std::istringstream iss(str);
+        iss>>ret;
+    }
     return __number_unit(ret,str[len - 1]);
 }
 
@@ -110,7 +116,7 @@ long long str2i64(const char * str,size_t len)
         return str2i64(str + 1,len - 1);
     if(*str == '-')
         return -str2i64(str + 1,len - 1);
-    long long ret = 0;
+    unsigned long long ret = 0;
     if(*str == '0'){
         if(len > 1)
             ret = str2num_base8<long>(str + 1,len - 1);
