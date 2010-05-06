@@ -18,7 +18,7 @@ __ValuePtr EvaluateS32(const std::vector<__ValuePtr> & args,int lineno);
 __ValuePtr EvaluateU64(const std::vector<__ValuePtr> & args,int lineno);
 __ValuePtr EvaluateS64(const std::vector<__ValuePtr> & args,int lineno);
 
-__ValuePtr EvaluateSTR(const std::vector<__ValuePtr> & args,int lineno);
+__ValuePtr EvaluateSTR(int type,const std::vector<__ValuePtr> & args,int lineno);
 __ValuePtr EvaluateRAW(const std::vector<__ValuePtr> & args,int lineno);
 
 __ValuePtr EvaluateTCP(const std::vector<__ValuePtr> & args,int lineno);

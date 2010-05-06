@@ -144,8 +144,10 @@ struct CDeclare
     int op_token_;
     CSharedPtr<CVariable> var_;
     CSharedPtr<CExpr> expr_;
+    CSharedPtr<CArgList> arglist_;  // only for array
     //value
     CSharedPtr<CValue> val_;
+    std::vector<CSharedPtr<CValue> > vals_; // only for array
     //post evaluation
     double eva_priority_;
     ssize_t offset_;

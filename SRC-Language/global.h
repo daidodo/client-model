@@ -12,7 +12,6 @@ struct CGlobal
         __FunNode():func_(0),dst_len_max_(0){}
     };
     typedef std::map<std::string,__FunNode> __FuncMap;
-    static const int MAX_ERRORS = 3;
     //parse infos
     int lineno;
     int err_count_;
