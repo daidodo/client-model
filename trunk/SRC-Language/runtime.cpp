@@ -307,21 +307,74 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
                 <<RealVarname(vname)<<"'");
             return;
         }
-    }else if(cmd->IsSend()){
+    }
+    if(decl->arglist_){
+        if(!decl->arglist_->Evaluate(decl->vals_,decl->lineno_)){
+            RUNTIME_ERR(decl->lineno_,"cannot evaluate variable '"<<RealVarname(vname)<<"'");
+            return;
+        }
+        if(decl->var_->array_type_->sz_){
+            if(size_t(decl->var_->array_type_->sz_) < decl->vals_.size()){
+                RUNTIME_ERR(decl->lineno_,"too many values for '"<<RealVarname(vname)<<"'");
+                return;
+            }else if((size_t)decl->var_->array_type_->sz_ > decl->vals_.size()){
+                decl->vals_.reserve(decl->var_->array_type_->sz_);
+                for(int i = decl->vals_.size(),j = 0;i < decl->var_->array_type_->sz_;++i,++j)
+                    decl->vals_.push_back(decl->vals_[j]);
+            }
+        }else
+            decl->var_->array_type_->sz_ = decl->vals_.size();
+        for(size_t i = 0;i < decl->vals_.size();++i){
+            DBG_RT("decl->var_->array_type_->tp_token_="<<decl->var_->array_type_->tp_token_);
+            if(!decl->vals_[i]->CastType(decl->var_->RetType())){
+                RUNTIME_ERR(decl->lineno_,"cannot assign value "<<(i + 1)<<" to array '"<<RealVarname(vname)<<"'");
+                return;
+            }
+            DBG_RT("decl->vals_[i]="<<to_str(decl->vals_[i]));
+        }
+    }else if(decl->expr_){
+        DBG_RT("decl->expr_="<<to_str(decl->expr_));
+        if(!DT_IsChar(decl->var_->array_type_->RetType())){
+            RUNTIME_ERR(decl->lineno_,"cannot evaluate variable '"<<RealVarname(vname)<<"'");
+            return;
+        }
+        decl->val_ = decl->expr_->Evaluate();
+        if(!decl->val_){
+            RUNTIME_ERR(decl->lineno_,"cannot evaluate variable '"<<RealVarname(vname)<<"'");
+            return;
+        }
+        if(!decl->val_->IsStrOrPA()){
+            RUNTIME_ERR(decl->lineno_,"cannot evaluate variable '"<<RealVarname(vname)<<"'");
+            return;
+        }
+        if(decl->var_->array_type_->sz_ < 0)
+            decl->var_->array_type_->sz_ = decl->val_->str_.length();
+        if(int(decl->val_->str_.length()) > decl->var_->array_type_->sz_){
+            RUNTIME_ERR(decl->lineno_,"string value is too long for '"<<RealVarname(vname)<<"'");
+            return;
+        }
+        decl->val_->str_.resize(decl->var_->array_type_->sz_);
+    }
+    if(decl->var_->array_type_->sz_ < 0 && cmd->IsSend()){
         RUNTIME_ERR(decl->lineno_,"array size is unknown in SEND command");
         return;
     }
-    decl->val_ = decl->var_->Initial(decl->lineno_);
-    if(!decl->val_){
-        RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<RealVarname(vname)
-            <<"'");
-        return;
-    }
+    //if(!decl->val_ && decl->vals_.empty())
+    //    decl->val_ = decl->var_->Initial(decl->lineno_);
+    //if(!decl->val_ && decl->vals_.empty()){
+    //    RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<RealVarname(vname)
+    //        <<"'");
+    //    return;
+    //}
     if(cmd->IsSend() && !cmd->PutArray(decl)){
         RUNTIME_ERR(decl->lineno_,"cannot pack array '"<<RealVarname(vname)
             <<"'");
-    }else if(cmd->IsRecv() && !cmd->GetArray(decl)){
-        ASSERT_FAIL(cmd,decl->lineno_,"recv '"<<RealVarname(vname)<<"' failed");
+    }else if(cmd->IsRecv()){
+        if(!decl->val_)
+            decl->val_ = decl->var_->Initial(decl->lineno_);
+        if(!cmd->GetArray(decl)){
+            ASSERT_FAIL(cmd,decl->lineno_,"recv '"<<RealVarname(vname)<<"' failed");
+        }
     }
 }
 
@@ -337,6 +390,7 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         return;
     DBG_RT("processPost Evaluate "<<vname<<"="<<to_str(decl->val_));
     var_table_[vname] = decl;
+    decl->eva_priority_ = maxPriority() + 1000; //解决自赋值问题
     if(!cmd)
         return;
     if(cmd->IsSend()){  //send cmd
@@ -344,12 +398,10 @@ void CRuntime::processPost(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
             if(cmd->IsInArray()){
                 RUNTIME_ERR(decl->lineno_,"post evaluation in ARRAY is not supported yet, please using :=");
             }else{
-                decl->eva_priority_ = maxPriority() + 1000; //解决自赋值问题
                 std::string depend = decl->Depend();
-                if(depend.empty()){
-                    decl->eva_priority_ = 0;
-                    //decl->expr_ = 0;
-                }else{
+                DBG_RT("arg[0]="<<to_str(decl->expr_->func_call_->arg_list_->args_[0]));
+                DBG_RT("depend="<<depend);
+                if(!depend.empty()){
                     if(vname == depend){
                         GAMMAR_ERR(decl->lineno_,"symbol '"<<RealVarname(vname)
                             <<"' is self-depended");

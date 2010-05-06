@@ -102,6 +102,7 @@ struct CValue
     int operator !=(const CValue & v) const;
     int operator !() const;
     bool StreamOut(const CValue & v,int lineno);
+    bool CastType(int type);
  };
 
 COutByteStream & operator <<(COutByteStream & ds,const CValue & v);

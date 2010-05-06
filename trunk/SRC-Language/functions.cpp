@@ -83,10 +83,10 @@ __ValuePtr EvaluateS64(const std::vector<__ValuePtr> & args,int lineno)
     return ret;
 }
 
-__ValuePtr EvaluateSTR(const std::vector<__ValuePtr> & args,int lineno)
+__ValuePtr EvaluateSTR(int type,const std::vector<__ValuePtr> & args,int lineno)
 {
     __ValuePtr ret = New<CValue>();
-    ret->type_ = DT_STR;
+    ret->type_ = type;
     if(!args.empty()){
         if(!args[0]->IsStrOrPA()){
             RUNTIME_ERR(lineno,"invalid conversion to STR");
@@ -353,12 +353,14 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
             cmd->Begin((*args)[i]);
         }else{          //END
             assert(decl->val_);
+            DBG_RT("decl->val_="<<to_str(decl->val_)<<",decl->var_="<<to_str(decl->var_));
             size_t dis = cmd->SendDataOffset() - decl->var_->begin_;
             decl->var_->begin_ = -2;
+            DBG_RT("dis="<<dis<<",decl="<<to_str(decl)<<",decl->var_="<<to_str(decl->var_));
             if(!decl->val_->FromInteger(dis)){
                 RUNTIME_ERR(lineno,"variable '"<<CRuntime::RealVarname(vname)
                     <<"' is too small to hold offset("<<dis<<")");
-            }else if(!decl->is_def_ && !cmd->PostPutValue(decl->val_,decl->offset_)){
+            }else if(!decl->is_def_ && decl->offset_ >= 0 && !cmd->PostPutValue(decl->val_,decl->offset_)){
                 INTERNAL_ERR("cannot post pack '"<<CRuntime::RealVarname(vname)<<"'");
             }
             if(args != cmd->begin_list_)    //命令结束时会对所有BEGIN变量自动调用END，此时(args == cmd->begin_list_)

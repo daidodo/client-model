@@ -9,7 +9,7 @@ int yylex();
 
 %token NL EOF_ IEQ
 %token CMD DEF
-%token TP_U8 TP_S8 TP_U16 TP_S16 TP_U32 TP_S32 TP_U64 TP_S64 STR RAW TCP UDP
+%token TP_U8 TP_S8 TP_U16 TP_S16 TP_U32 TP_S32 TP_U64 TP_S64 STR STR1 STR2 STR4 RAW TCP UDP
 %token FUN BEGIN_ END HBO NBO SEND RECV HEX UNHEX PRINT IP __IPN __IPH ARRAY __END_ARRAY SLEEP __DEBUG
 %token OP_LG OP_SM OP_LEQ OP_SEQ OP_EQ OP_NEQ OP_NOT OP_IN OP_OUT
 %token <int_> INT
@@ -269,6 +269,30 @@ array_declare : array_type_name
 				$$->var_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
+		| array_type_name '=' '{' arg_list_not_empty '}'
+			{
+				DBG_YY("array_declare 2");
+				DBG_YY("$1 = "<<to_str($1));
+				DBG_YY("$4 = "<<to_str($4));
+				assert($1 && $4);
+				$$ = New<CDeclare>($1->lineno_);
+				$$->type_ = 1;
+				$$->var_ = $1;
+				$$->arglist_ = $4;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+		| array_type_name '=' expr
+			{
+				DBG_YY("array_declare 3");
+				DBG_YY("$1 = "<<to_str($1));
+				DBG_YY("$3 = "<<to_str($3));
+				assert($1 && $3);
+				$$ = New<CDeclare>($1->lineno_);
+				$$->type_ = 1;
+				$$->var_ = $1;
+				$$->expr_ = $3;
+				DBG_YY("$$ = "<<to_str($$));
+			}
 	;
 
 assert_declare : sim_type_name comp_op expr
@@ -421,6 +445,46 @@ array_type_name : array_type VAR_NAME
 				$$->array_type_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
+		| simple_type VAR_NAME '[' ']'
+			{
+				DBG_YY("array_type_name 2");
+				DBG_YY("$2 = "<<to_str($2));
+				assert($2);
+				$$ = $2;
+				if($$->ref_count_ > 0){
+					//redefinition, but we need the whole declaration
+					CSharedPtr<CVariable> t = $$;
+					$$ = New<CVariable>(LINE_NO);
+					$$->shadow_ = t;
+					$$->varname_ = t->varname_;
+					$$->host_cmd_ = CUR_CMD;
+				}
+				$$->array_type_ = New<CArrayType>(LINE_NO);
+				$$->array_type_->tp_token_ = $1;
+				$$->array_type_->has_sz_ = false;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+		| simple_type VAR_NAME '[' expr ']'
+			{
+				DBG_YY("array_type_name 3");
+				DBG_YY("$2 = "<<to_str($2));
+				DBG_YY("$4 = "<<to_str($4));
+				assert($2 && $4);
+				$$ = $2;
+				if($$->ref_count_ > 0){
+					//redefinition, but we need the whole declaration
+					CSharedPtr<CVariable> t = $$;
+					$$ = New<CVariable>(LINE_NO);
+					$$->shadow_ = t;
+					$$->varname_ = t->varname_;
+					$$->host_cmd_ = CUR_CMD;
+				}
+				$$->array_type_ = New<CArrayType>(LINE_NO);
+				$$->array_type_->tp_token_ = $1;
+				$$->array_type_->has_sz_ = true;
+				$$->array_type_->sz_expr_ = $4;
+				DBG_YY("$$ = "<<to_str($$));
+			}
 	;
 
 sim_type_name : simple_type VAR_NAME
@@ -565,6 +629,9 @@ simple_type : TP_U8	{DBG_YY("simple_type = U8("<<TP_U8<<")");$$ = TP_U8;}
 	| TP_U64	{DBG_YY("simple_type = U64("<<TP_U64<<")");$$ = TP_U64;}
 	| TP_S64	{DBG_YY("simple_type = S64("<<TP_S64<<")");$$ = TP_S64;}
 	| STR		{DBG_YY("simple_type = STR("<<STR<<")");$$ = STR;}
+	| STR1		{DBG_YY("simple_type = STR1("<<STR1<<")");$$ = STR1;}
+	| STR2		{DBG_YY("simple_type = STR2("<<STR2<<")");$$ = STR2;}
+	| STR4		{DBG_YY("simple_type = STR4("<<STR4<<")");$$ = STR4;}
 	| RAW		{DBG_YY("simple_type = RAW("<<RAW<<")");$$ =  RAW;}
 	| TCP		{DBG_YY("simple_type = TCP("<<TCP<<")");$$ = TCP;}
 	| UDP		{DBG_YY("simple_type = UDP("<<UDP<<")");$$ = UDP;}

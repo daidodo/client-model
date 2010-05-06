@@ -20,6 +20,9 @@ const int DT_RAW =  12;     //RAW
 const int DT_TCP =  13;     //TCP
 const int DT_UDP =  14;     //UDP
 const int DT_PA =   15;     //program argument
+const int DT_STR1 = 16;     //STR1
+const int DT_STR2 = DT_STR; //STR2
+const int DT_STR4 = 18;     //STR4
 
 inline bool DT_IsVoid(int type){return type == DT_VOID;}
 
@@ -48,7 +51,9 @@ inline bool DT_IsUnsigned(int type){
         type == DT_U64);
 }
 
-inline bool DT_IsString(int type){return type == DT_STR || type == DT_RAW;}
+inline bool DT_IsChar(int type){return type == DT_U8 || type == DT_S8;}
+
+inline bool DT_IsString(int type){return type == DT_STR1 || type == DT_STR2 || type == DT_STR4 || type == DT_RAW;}
 
 inline bool DT_IsRaw(int type){return type == DT_RAW;}
 
