@@ -66,7 +66,7 @@ CVariable::CVariable(int ln)
     : lineno_(ln)
     , tp_token_(0)
     , ref_count_(0)
-    , begin_(-1)
+    , begin_(STATUS_BEGIN_READY)
 {}
 
 std::string CVariable::ToString() const{
