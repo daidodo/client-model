@@ -17,11 +17,11 @@ int yylex();
 %token <i64_> I64
 %token <strIdx_> QSTRING
 %token <prog_arg_> PROG_ARG
-%token <var_> VAR_NAME
+%token <var_> VAR_NAME VAR_REF
 
 %type <token_> simple_type func_name comp_op stream_op
 %type <fix_value_> fix_value
-%type <var_> sim_type_name array_type_name
+%type <var_> variable sim_type_name array_type_name
 %type <expr_> expr
 %type <array_type_> array_type
 %type <arg_list_> arg_list arg_list_not_empty
@@ -549,7 +549,7 @@ expr : fix_value	{
 				$$->func_call_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
-	| VAR_NAME	{
+	| variable	{
 				DBG_YY("expr 3");
 				DBG_YY("$1 = "<<to_str($1));
 				assert($1);
@@ -584,6 +584,18 @@ array_type : simple_type '[' ']'
 	;
 
 	/* basic symbols */
+variable : VAR_NAME	{	DBG_YY("variable 1");
+				DBG_YY("$1 = "<<$1);
+				$$ = $1;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	| VAR_REF	{	DBG_YY("variable 2");
+				DBG_YY("$1 = "<<$1);
+				$$ = $1;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+	;
+
 fix_value : INT		{
 				DBG_YY("fix_value 1");
 				DBG_YY("$1 = "<<$1);

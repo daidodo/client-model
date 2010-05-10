@@ -28,6 +28,8 @@ int_const	({int_const_val}{int_suf}?)
 long_const	({int_const_val}{long_suf}?)
 i64_const	({int_const_val}{i64_suf}?)
 
+varname		([_a-zA-Z][_a-zA-Z0-9]*)
+
 %%
 
 <EOF_S><<EOF>>	|
@@ -146,11 +148,17 @@ DEF	{CUR_TOK = yytext;DBG_LEX1("DEF",CUR_TOK);return DEF;}
 ">"	{CUR_TOK = yytext;DBG_LEX1("OP_LG",CUR_TOK);return OP_LG;}
 !	{CUR_TOK = yytext;DBG_LEX1("NOT",CUR_TOK);return OP_NOT;}
 
-[_a-zA-Z][_a-zA-Z0-9]*	{
+{varname}		{
 				CUR_TOK = yytext;
 				DBG_LEX1("VAR_NAME",CUR_TOK);
 				yylval.var_ = program().GetVar(CUR_TOK);
 				return VAR_NAME;
+			}
+{varname}\.{varname}	{
+				CUR_TOK = yytext;
+				DBG_LEX1("VAR_REF",CUR_TOK);
+				yylval.var_ = program().GetVarRef(CUR_TOK);
+				return VAR_REF;
 			}
 {int_const}[kKmMgG]?	{
 				CUR_TOK = yytext;

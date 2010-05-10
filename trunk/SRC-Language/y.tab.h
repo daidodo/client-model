@@ -50,3 +50,4 @@
 #define QSTRING 306
 #define PROG_ARG 307
 #define VAR_NAME 308
+#define VAR_REF 309
