@@ -269,7 +269,7 @@ array_declare : array_type_name
 				$$->var_ = $1;
 				DBG_YY("$$ = "<<to_str($$));
 			}
-		| array_type_name '=' '{' arg_list_not_empty '}'
+		| array_type_name IEQ '{' arg_list_not_empty '}'
 			{
 				DBG_YY("array_declare 2");
 				DBG_YY("$1 = "<<to_str($1));
@@ -281,9 +281,33 @@ array_declare : array_type_name
 				$$->arglist_ = $4;
 				DBG_YY("$$ = "<<to_str($$));
 			}
-		| array_type_name '=' expr
+		| array_type_name IEQ expr
 			{
 				DBG_YY("array_declare 3");
+				DBG_YY("$1 = "<<to_str($1));
+				DBG_YY("$3 = "<<to_str($3));
+				assert($1 && $3);
+				$$ = New<CDeclare>($1->lineno_);
+				$$->type_ = 1;
+				$$->var_ = $1;
+				$$->expr_ = $3;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+		| array_type_name '=' '{' arg_list_not_empty '}'
+			{
+				DBG_YY("array_declare 4");
+				DBG_YY("$1 = "<<to_str($1));
+				DBG_YY("$4 = "<<to_str($4));
+				assert($1 && $4);
+				$$ = New<CDeclare>($1->lineno_);
+				$$->type_ = 1;
+				$$->var_ = $1;
+				$$->arglist_ = $4;
+				DBG_YY("$$ = "<<to_str($$));
+			}
+		| array_type_name '=' expr
+			{
+				DBG_YY("array_declare 5");
 				DBG_YY("$1 = "<<to_str($1));
 				DBG_YY("$3 = "<<to_str($3));
 				assert($1 && $3);
