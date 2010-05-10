@@ -18,10 +18,11 @@ CP := cp -f
 CPP_SRC := $(wildcard *.cpp) $(wildcard common/*.cpp)
 
 RM_SRC := y.tab.h grammar_src.cpp scanner_src.cpp
-
 OBJS := $(CPP_SRC:.cpp=.o)
-
 DEPS := $(CPP_SRC:.cpp=.d)
+
+CXXFLAGS += -MD
+CFLAGS += -MD
 
 all : out lib so
 	@$(CP) $(INC_TARGET) $(BIN_DIR)
@@ -48,9 +49,6 @@ so : $(SO_TARGET)
 
 deps : $(DEPS)
 
-%.d : %.cpp $(YACC_OBJ)
-	@$(CXX) -MM $(INCLUDE) -o $*.d $<
-
 $(OUT_TARGET) : $(OBJS)
 	$(CXX) -o $@ $^
 
@@ -72,7 +70,7 @@ cleanall : clean
 
 love : cleandist all
 
-.PHONEY : all install uninstall gen out lib so deps cleandist clean cleanall love
+.PHONY : all install uninstall gen out lib so deps cleandist clean cleanall love
 
 ifneq (${MAKECMDGOALS},install)
 ifneq (${MAKECMDGOALS},uninstall)

@@ -20,6 +20,7 @@ struct CProgram
     bool isGlobal() const{return !cur_cmd;}
     size_t AddQstr(const std::string & qstr);
     CSharedPtr<CVariable> GetVar(const std::string & varname);
+    CSharedPtr<CVariable> GetVarRef(const std::string & varname);
     CSharedPtr<CVariable> NewVar(const std::string & varname,CSharedPtr<CVariable> old = 0);
     const std::string & GetQstr(size_t i) const;
     __VarTable & CurVarTable(){return (cur_cmd ? cur_cmd->var_table : var_table);}

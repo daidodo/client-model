@@ -31,6 +31,21 @@ CSharedPtr<CVariable> CProgram::GetVar(const std::string & varname){
     return ret;
 }
 
+CSharedPtr<CVariable> CProgram::GetVarRef(const std::string & varname){
+    CSharedPtr<CVariable> ret = 0;
+    size_t dot = varname.find('.');
+    if(dot == std::string::npos)
+        ret = findVar(var_table,varname);
+    else{
+        CSharedPtr<CCmd> cmd = findCmd(varname.substr(0,dot));
+        if(cmd)
+            ret = findVar(cmd->var_table,varname.substr(dot + 1));
+    }
+    if(ret)
+        ++ret->ref_count_;
+    return ret;
+}
+
 CSharedPtr<CVariable> CProgram::NewVar(const std::string & varname,CSharedPtr<CVariable> old)
 {
     __VarTable & vt = (isGlobal() ? var_table : cur_cmd->var_table);
