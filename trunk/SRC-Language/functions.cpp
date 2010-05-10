@@ -327,10 +327,10 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
             continue;
         assert((*args)[i]->IsVar());  //MUST be variable
         const std::string & vname = (*args)[i]->var_->varname_;
-        if(is_begin && (*args)[i]->var_->begin_ != -1){
+        if(is_begin && (*args)[i]->var_->begin_ != STATUS_BEGIN_READY){
             RUNTIME_ERR(lineno,"cannot BEGIN '"<<CRuntime::RealVarname(vname)<<"' again");
             continue;
-        }else if(!is_begin && (*args)[i]->var_->begin_ < 0){
+        }else if(!is_begin && !ST_IsBegined((*args)[i]->var_->begin_)){
             RUNTIME_ERR(lineno,"END '"<<CRuntime::RealVarname(vname)<<"' before BEGIN");
             continue;
         }
@@ -355,7 +355,7 @@ void InvokeBeginEnd(bool is_begin,CSharedPtr<CArgList> args,int lineno,CSharedPt
             assert(decl->val_);
             DBG_RT("decl->val_="<<to_str(decl->val_)<<",decl->var_="<<to_str(decl->var_));
             size_t dis = cmd->SendDataOffset() - decl->var_->begin_;
-            decl->var_->begin_ = -2;
+            decl->var_->begin_ = STATUS_END_FINISH;
             DBG_RT("dis="<<dis<<",decl="<<to_str(decl)<<",decl->var_="<<to_str(decl->var_));
             if(!decl->val_->FromInteger(dis)){
                 RUNTIME_ERR(lineno,"variable '"<<CRuntime::RealVarname(vname)

@@ -72,4 +72,10 @@ const int RET_SIGN_MISMATCH = -1;    //signed, unsigned mismatch
 const int RET_TYPE_ERROR = -2;       //argument type error
 const int RET_OP_ERROR = -3;         //operator error
 
+// BEGIN/END status
+const int STATUS_BEGIN_READY = -1;  //ready for BEGIN
+const int STATUS_END_FINISH = -1;   //after END
+
+inline bool ST_IsBegined(int begin){return begin >= 0;}
+
 #endif
