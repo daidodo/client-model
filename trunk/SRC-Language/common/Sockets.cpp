@@ -47,18 +47,18 @@ std::string CSockAddr::ToString() const
     return oss.str();
 }
 
-bool CSockAddr::SetAddr(std::string ip,std::string port)
+bool CSockAddr::SetAddr(std::string host,std::string port)
 {
     __AI hints;
     memset(&hints,0,sizeof hints);
-    hints.ai_flags = AI_PASSIVE | AI_NUMERICHOST;
+    hints.ai_flags = AI_PASSIVE;// | AI_NUMERICHOST;
 #ifdef AI_NUMERICSERV
     hints.ai_flags |= AI_NUMERICSERV;
 #endif
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     __AI * ret;
-    int n = getaddrinfo(ip.c_str(),port.c_str(),&hints,&ret);
+    int n = getaddrinfo(host.c_str(),port.c_str(),&hints,&ret);
     if(n != 0){
         gai_errno = n;
         return false;

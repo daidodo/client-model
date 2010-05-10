@@ -433,10 +433,11 @@ void CRuntime::processFixed(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
     DBG_RT("processFixed cmd="<<to_str(cmd));
     const std::string & vname = decl->var_->varname_;
     if(decl->Evaluate()){
+        if(!vname.empty())
+            var_table_[vname] = decl;
         if(decl->IsConnection())
             addConnection(decl->val_);
         else{
-            var_table_[vname] = decl;
             if(!decl->is_def_ && cmd && cmd->IsSend() && !cmd->PutValue(decl->val_)){
                 RUNTIME_ERR(decl->lineno_,"cannot pack '"<<RealVarname(vname)<<"'");
             }
