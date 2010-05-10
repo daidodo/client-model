@@ -39,16 +39,16 @@ class CSockAddr
 public:
     static std::string ErrMsg();
     CSockAddr(){}
-    CSockAddr(std::string ip,std::string port){     //ip和port必须是地址和端口号，而不能是主机名和服务名
-        SetAddr(ip,port);
+    CSockAddr(std::string host,std::string port){     //ip和port必须是地址和端口号，而不能是主机名和服务名
+        SetAddr(host,port);
     }
-    CSockAddr(std::string ip,U16 port,bool hostByteOrder = true){
-        SetAddr(ip,port,hostByteOrder);
+    CSockAddr(std::string host,U16 port,bool hostByteOrder = true){
+        SetAddr(host,port,hostByteOrder);
     }
     std::string ToString() const;
-    bool SetAddr(std::string ip,std::string port);  //ip和port必须是地址和端口号，而不能是主机名和服务名
-    bool SetAddr(std::string ip,U16 port,bool hostByteOrder = true){
-        return SetAddr(ip,"") && SetPort(port,hostByteOrder);
+    bool SetAddr(std::string host,std::string port);  //ip和port必须是地址和端口号，而不能是主机名和服务名
+    bool SetAddr(std::string host,U16 port,bool hostByteOrder = true){
+        return SetAddr(host,"") && SetPort(port,hostByteOrder);
     }
     void SetIP(U32 ip4,bool hostByteOrder = true);
     void SetIP(const void * ip6);
