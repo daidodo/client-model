@@ -359,19 +359,10 @@ void CRuntime::processArray(CSharedPtr<CDeclare> decl,CSharedPtr<CCmd> cmd)
         RUNTIME_ERR(decl->lineno_,"array size is unknown in SEND command");
         return;
     }
-    //if(!decl->val_ && decl->vals_.empty())
-    //    decl->val_ = decl->var_->Initial(decl->lineno_);
-    //if(!decl->val_ && decl->vals_.empty()){
-    //    RUNTIME_ERR(decl->lineno_,"cannot initialize '"<<RealVarname(vname)
-    //        <<"'");
-    //    return;
-    //}
     if(cmd->IsSend() && !cmd->PutArray(decl)){
         RUNTIME_ERR(decl->lineno_,"cannot pack array '"<<RealVarname(vname)
             <<"'");
     }else if(cmd->IsRecv()){
-        if(!decl->val_)
-            decl->val_ = decl->var_->Initial(decl->lineno_);
         if(!cmd->GetArray(decl)){
             ASSERT_FAIL(cmd,decl->lineno_,"recv '"<<RealVarname(vname)<<"' failed");
         }
