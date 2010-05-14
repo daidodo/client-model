@@ -1,0 +1,42 @@
+#!/usr/local/bin/srcc
+# This is an example of SRC Language
+//cmd.field test
+
+#STR server_ip := "127.0.0.1";
+STR server_ip := "www.baidu.com";
+U16 server_port := 9531;
+
+UDP conn(server_ip,server_port)
+PRINT(conn)
+
+NBO
+DEBUG
+
+U32 g_len = 0
+
+CMD QueryCommand1 SEND
+  U32 len = g_len
+  U16 ver := 100
+  U16 cmd_type:(161)
+  U32 seq = 123
+  BEGIN(g_len)
+  STR1 file_hash = "123"
+  STR2 client_hash := UNHEX("1A2B3C4D5E6F")
+  STR4 peer_id := "ABCDEF"
+  U8 str[] := "ABCDEF"
+END CMD
+
+CMD QueryCommand2 SEND
+  U32 len = g_len
+  U16 ver := QueryCommand1.cmd_type
+  U16 cmd_type:(161)
+  U32 seq = 345
+  BEGIN(g_len)
+  STR1 file_hash = "1234"
+  STR2 client_hash := UNHEX("1A2B3C4D5E6F")
+  STR4 peer_id := "ABCDEF"
+  U8 str[] := peer_id
+  END(g_len)
+END CMD
+
+# The End

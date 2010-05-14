@@ -858,8 +858,8 @@ bool CCmd::GetRaw(std::string & res,const std::string & v,int lineno)
 bool CCmd::GetArray(CSharedPtr<CDeclare> d)
 {
     assert(d && d->IsArray());
+    U32 sz = 0;
     if(!d->var_->array_type_->HasSize()){
-        U32 sz = 0;
         if(!GetVal(sz,d->lineno_)){
             RUNTIME_ERR(d->lineno_,"recv array size error");
             return false;
@@ -867,11 +867,14 @@ bool CCmd::GetArray(CSharedPtr<CDeclare> d)
             ASSERT_FAIL(this,d->lineno_,"array size is larger than "<<MAX_ARRAY_SIZE);
         }else
             d->var_->array_type_->sz_ = int(sz);
-    }
-    assert(d->val_);
+    }else
+        sz = d->var_->array_type_->sz_;
+    if(!d->val_)
+        d->val_ = d->var_->Initial(d->lineno_);
     SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()
-        <<".size() = "<<d->var_->array_type_->sz_);
-    for(int i = 0;i < d->var_->array_type_->sz_;++i){
+        <<".size() = "<<sz);
+    d->vals_.resize(sz);
+    for(U32 i = 0;i < sz;++i){
         if(GetVal(*d->val_,d->lineno_)){
             SHOW(CRuntime::RealVarname(d->var_->varname_)<<ArrayIndexString()<<"["<<i<<"] = "
                 <<d->val_->ShowValue());
