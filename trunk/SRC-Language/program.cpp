@@ -34,12 +34,23 @@ CSharedPtr<CVariable> CProgram::GetVar(const std::string & varname){
 CSharedPtr<CVariable> CProgram::GetVarRef(const std::string & varname){
     CSharedPtr<CVariable> ret = 0;
     size_t dot = varname.find('.');
-    if(dot == std::string::npos)
+    if(dot == std::string::npos){
         ret = findVar(var_table,varname);
-    else{
-        CSharedPtr<CCmd> cmd = findCmd(varname.substr(0,dot));
-        if(cmd)
-            ret = findVar(cmd->var_table,varname.substr(dot + 1));
+        if(!ret){
+            GAMMAR_ERR(LINE_NO,"'"<<varname<<"' undefined variable");
+        }
+    }else{
+        std::string cmdname = varname.substr(0,dot);
+        CSharedPtr<CCmd> cmd = findCmd(cmdname);
+        if(cmd){
+            std::string vname = varname.substr(dot + 1);
+            ret = findVar(cmd->var_table,vname);
+            if(!ret){
+                GAMMAR_ERR(LINE_NO,"CMD '"<<cmdname<<"' has no field named '"<<vname<<"'");
+            }
+        }else{
+            GAMMAR_ERR(LINE_NO,"CMD '"<<cmdname<<"' undefined");
+        }
     }
     if(ret)
         ++ret->ref_count_;
