@@ -65,8 +65,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,2,0,1
- PRODUCTVERSION 2,2,0,1
+ FILEVERSION 2,3,0,1
+ PRODUCTVERSION 2,3,0,1
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -82,11 +82,11 @@ BEGIN
         BLOCK "080004b0"
         BEGIN
             VALUE "FileDescription", "SRC Language Compiler"
-            VALUE "FileVersion", "2, 2, 0, 1"
+            VALUE "FileVersion", "2, 3, 0, 1"
             VALUE "InternalName", "SRCC"
             VALUE "LegalCopyright", "DoZerg. All rights reserved. Copyright (C) 2009"
             VALUE "OriginalFilename", "SRCC.exe"
-            VALUE "ProductVersion", "2, 2, 0, 1"
+            VALUE "ProductVersion", "2, 3, 0, 1"
         END
     END
     BLOCK "VarFileInfo"

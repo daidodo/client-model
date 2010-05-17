@@ -386,6 +386,18 @@
 				RelativePath="..\..\SRC-Language\examples\example_09.txt"
 				>
 			</File>
+			<File
+				RelativePath="..\..\SRC-Language\examples\example_10.txt"
+				>
+			</File>
+			<File
+				RelativePath="..\..\SRC-Language\examples\example_11.txt"
+				>
+			</File>
+			<File
+				RelativePath="..\..\SRC-Language\examples\example_12.txt"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="docs"
