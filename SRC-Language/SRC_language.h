@@ -19,7 +19,7 @@
 typedef bool (*__SRC_UserFunc)(const char * src,unsigned int src_len,char * dst,unsigned int & dst_len);
 
 //version info(版本信息)
-#define SRC_version "2.2.194"
+#define SRC_version "2.3.217"
 
 //init environment(初始化环境)
 SRCDLL_API void SRC_init();
