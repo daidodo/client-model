@@ -1,0 +1,29 @@
+TCP("192.168.123.105",20080)
+NBO
+
+CMD Query SEND
+  U16 magic := 0x11DE
+  U8  version := 1
+  U16 type := 0
+  U32 seq_num := 1234
+  U32 body_len
+  BEGIN(body_len)
+  U32 program_version := 1
+END CMD
+
+CMD Resp RECV
+  U16 magic
+  U8  version
+  U16 type
+  U32 seq_num
+  U32 body_len
+  U32 error_code == 0
+  U64 tablet_id
+  STR table_name
+  STR start_row
+  STR end_row
+  U16 status
+  STR host_name
+  U16 port
+  U64 start_code
+END CMD

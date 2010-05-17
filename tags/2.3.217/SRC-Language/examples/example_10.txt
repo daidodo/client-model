@@ -1,0 +1,40 @@
+#!/usr/local/bin/srcc
+# This is an example of SRC Language
+//STR1 STR2 STR4 U8[] S8[] test
+
+#STR server_ip := "127.0.0.1";
+STR server_ip := "192.168.123.105";
+U16 server_port := 9531;
+
+UDP conn(server_ip,server_port)
+
+NBO
+
+CMD QueryCommand SEND
+U16 ver := 100
+U16 cmd_type:(161)
+U32 seq = $1
+U32 len(0)
+BEGIN(len)
+STR1 file_hash = $2
+STR2 client_hash := UNHEX("1A2B3C4D5E6F")
+STR4 peer_id := "ABCDEF"
+U8 str[] := peer_id
+END(len)
+END CMD
+
+CMD RespCommand RECV
+U16 ver >= 100
+U16 cmd_type == 162
+U32 seq
+U32 len
+len < 1024
+//cmd body
+U8  result
+!result
+STR fileHash;
+STR clientHash;
+STR[] peer_id_array;    //array
+END CMD
+
+# The End
