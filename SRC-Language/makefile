@@ -8,9 +8,12 @@ INSTALL_OUT_DIR := /usr/local/bin
 INSTALL_LIB_DIR := /usr/lib
 INSTALL_INC_DIR := /usr/include
 
+DEBUG := -g
+#RELEASE := -O3 -DNDEBUG
+
 CC := g++
 INCLUDE := -I./
-CXXFLAGS := -Wall -fPIC -g -O0 $(INCLUDE)
+CXXFLAGS := -Wall -fPIC $(INCLUDE) $(DEBUG) $(RELEASE)
 CFLAGS := $(CXXFLAGS)
 ARFLAGS := cr
 CP := cp -f

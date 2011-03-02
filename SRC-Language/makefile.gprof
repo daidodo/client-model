@@ -72,7 +72,7 @@ cleanall : clean
 
 love : cleandist all
 
-.PHONEY : all install uninstall gen out lib so deps cleandist clean cleanall love
+.PHONY : all install uninstall gen out lib so deps cleandist clean cleanall love
 
 ifneq (${MAKECMDGOALS},install)
 ifneq (${MAKECMDGOALS},uninstall)
