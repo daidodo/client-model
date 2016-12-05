@@ -7,7 +7,7 @@ The language looks like this:
 ```
 #This is an example of SRC Language
 
-Send Command example
+#Send Command example
 
 TCP("192.168.123.105",9531)
 
